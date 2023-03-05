@@ -5,6 +5,7 @@ MoinMoin - mailtranslators script
 @copyright: 2004-2007 MoinMoin:ThomasWaldmann
 @license: GPL, see COPYING for details
 """
+from __future__ import print_function
 
 import sys
 
@@ -67,5 +68,5 @@ General syntax: moin [options] maint mailtranslators [mailtranslators-options]
                 if to_address and '***vacant***' not in to_address:
                     text = text_template % locals()
                     rc = sendmail(request, [to_address], subject, text, mail_from=from_address)
-                    print lang, repr(from_address), repr(to_address), subject, repr(rc)
+                    print(lang, repr(from_address), repr(to_address), subject, repr(rc))
 

@@ -18,14 +18,15 @@
 r"""fieldactions.py: Definitions and implementations of field actions.
 
 """
+from __future__ import absolute_import
 __docformat__ = "restructuredtext en"
 
-import _checkxapian
-import errors
-import marshall
-from replaylog import log
+from . import _checkxapian
+from . import errors
+from . import marshall
+from .replaylog import log
 import xapian
-import parsedate
+from . import parsedate
 
 def _act_store_content(fieldname, doc, value, context):
     """Perform the STORE_CONTENT action.
@@ -153,7 +154,7 @@ class SortableMarshaller(object):
         """
         try:
             value = parsedate.date_from_string(value)
-        except ValueError, e:
+        except ValueError as e:
             raise self._err("Value supplied to field %r must be a "
                             "valid date: was %r: error is '%s'" %
                             (fieldname, value, str(e)))

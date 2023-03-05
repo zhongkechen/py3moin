@@ -24,6 +24,7 @@
                 2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import absolute_import
 
 import re
 
@@ -34,7 +35,7 @@ from MoinMoin import config, wikiutil, macro
 from MoinMoin.action import AttachFile
 from MoinMoin.Page import Page
 
-from text_moin158_wiki import Parser
+from .text_moin158_wiki import Parser
 
 def convert_wiki(request, pagename, intext, renames):
     """ Convert content written in wiki markup """

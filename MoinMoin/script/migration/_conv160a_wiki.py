@@ -12,6 +12,7 @@
                 2007-2009 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import absolute_import
 
 import re
 
@@ -22,8 +23,8 @@ from MoinMoin import config, macro, wikiutil
 from MoinMoin.action import AttachFile
 from MoinMoin.Page import Page
 
-import wikiutil160a
-from text_moin160a_wiki import Parser
+from . import wikiutil160a
+from .text_moin160a_wiki import Parser
 
 QUOTE_CHARS = u"'\""
 

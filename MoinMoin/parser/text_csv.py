@@ -82,7 +82,7 @@ class Parser:
         quoting = QUOTE_NONE
         name = None
         hdr = reader([kw.get('format_args', '').strip().encode('utf-8')], delimiter=" ")
-        args = hdr.next()
+        args = next(hdr)
 
         for arg in args:
             arg = arg.decode('utf-8')
@@ -125,13 +125,13 @@ class Parser:
             staticvals = staticvals[:len(staticcols)]
 
         r = reader(data, delimiter=delimiter, quotechar=quotechar, quoting=quoting)
-        cols = map(lambda x: x.decode('utf-8'), r.next()) + staticcols
+        cols = map(lambda x: x.decode('utf-8'), next(r)) + staticcols
 
         self._show_header = True
 
         if cols == staticcols:
             try:
-                self._first_row = map(lambda x: x.decode('utf-8'), r.next())
+                self._first_row = map(lambda x: x.decode('utf-8'), next(r))
                 cols = [None] * len(self._first_row) + staticcols
                 self._show_header = False
             except StopIteration:

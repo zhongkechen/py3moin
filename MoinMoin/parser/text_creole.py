@@ -20,14 +20,15 @@
                 2007 MoinMoin:ThomasWaldmann (updates)
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import absolute_import
 
 import re
 import StringIO
 from MoinMoin import config, wikiutil
 from MoinMoin.macro import Macro
 from MoinMoin import config
-from _creole import Parser as CreoleParser
-from _creole import Rules as CreoleRules
+from ._creole import Parser as CreoleParser
+from ._creole import Rules as CreoleRules
 
 Dependencies = []
 

@@ -207,7 +207,7 @@ class CacheEntry:
                 fd, filename = tempfile.mkstemp('.tmp', self.key, self.arena_dir)
                 self._tmp_fname = filename
                 self._fileobj = os.fdopen(fd, mode, bufsize)
-        except IOError, err:
+        except IOError as err:
             if 'w' in mode:
                 # IOerror for 'r' can be just a non-existing file, do not log that,
                 # but if open fails for 'w', we likely have some bigger problem:
@@ -236,7 +236,7 @@ class CacheEntry:
                 self._fileobj.close()
                 self._fileobj = None
                 if 'w' in self._mode:
-                    filesys.chmod(self._tmp_fname, 0666 & config.umask) # fix mode that mkstemp chose
+                    filesys.chmod(self._tmp_fname, 0o666 & config.umask) # fix mode that mkstemp chose
                     # this is either atomic or happening with real locks set:
                     filesys.rename(self._tmp_fname, self._fname)
         finally:
@@ -267,7 +267,7 @@ class CacheEntry:
                     self.write(content)
                 finally:
                     self.close()
-        except (pickle.PicklingError, OSError, IOError, ValueError), err:
+        except (pickle.PicklingError, OSError, IOError, ValueError) as err:
             raise CacheError(str(err))
 
     def content(self):
@@ -283,7 +283,7 @@ class CacheEntry:
             elif self.use_encode:
                 data = data.decode(config.charset)
             return data
-        except (pickle.UnpicklingError, IOError, EOFError, ValueError), err:
+        except (pickle.UnpicklingError, IOError, EOFError, ValueError) as err:
             raise CacheError(str(err))
 
     def remove(self):

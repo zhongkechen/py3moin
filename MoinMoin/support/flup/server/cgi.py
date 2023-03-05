@@ -1,6 +1,7 @@
 # Taken from <http://www.python.org/dev/peps/pep-0333/>
 # which was placed in the public domain.
 
+from future.utils import raise_
 import os, sys
 
 
@@ -50,7 +51,7 @@ class WSGIServer(object):
                 try:
                     if headers_sent:
                         # Re-raise original exception if headers sent
-                        raise exc_info[0], exc_info[1], exc_info[2]
+                        raise_(exc_info[0], exc_info[1], exc_info[2])
                 finally:
                     exc_info = None     # avoid dangling circular ref
             elif headers_set:

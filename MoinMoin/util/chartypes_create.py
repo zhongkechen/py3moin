@@ -5,6 +5,7 @@
     @copyright: 2004 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details
 """
+from __future__ import print_function
 
 uppercase = []
 lowercase = []
@@ -27,7 +28,7 @@ chars_lower = u''.join(lowercase+digits)
 chars_digits = u''.join(digits)
 chars_spaces = u''.join(space)
 
-print """
+print("""
 chars_upper = u"%(chars_upper)s"
 
 chars_lower = u"%(chars_lower)s"
@@ -37,5 +38,5 @@ chars_digits = u"%(chars_digits)s"
 chars_spaces = u"%(chars_spaces)s"
 
 
-""" % globals()
+""" % globals())
 

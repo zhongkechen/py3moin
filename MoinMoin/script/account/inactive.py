@@ -7,6 +7,7 @@ MoinMoin - find inactive users (and disable / remove them)
 """
 
 from __future__ import with_statement
+from __future__ import print_function
 
 import sys, os
 
@@ -123,7 +124,7 @@ General syntax: moin [options] account inactive [inactive-options]
             for uid in inactive_uids:
                 u = User(request, uid)
                 if self.options.show:
-                    print "%s\t%r\t%r\t%r" % (uid, u.name, u.email, u.disabled)
+                    print("%s\t%r\t%r\t%r" % (uid, u.name, u.email, u.disabled))
                 if self.options.disable:
                     if check_interactive(u):
                         u.disabled = 1

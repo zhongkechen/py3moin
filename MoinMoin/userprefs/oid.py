@@ -133,10 +133,10 @@ class Settings(UserPrefBase):
         _ = self._
         form = self.request.form
 
-        if self.request.values.has_key('oid.return'):
+        if 'oid.return' in self.request.values:
             return self._handle_oidreturn()
 
-        if form.has_key('cancel'):
+        if 'cancel' in form:
             return
 
         if self.request.method != 'POST':
@@ -145,10 +145,10 @@ class Settings(UserPrefBase):
         if not wikiutil.checkTicket(self.request, form.get('ticket', '')):
             return
 
-        if form.has_key('remove'):
+        if 'remove' in form:
             return self._handle_remove()
 
-        if form.has_key('add'):
+        if 'add' in form:
             return self._handle_add()
 
     def _make_form(self):

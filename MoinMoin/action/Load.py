@@ -68,9 +68,9 @@ class Load(ActionBase):
             try:
                 msg = pg.saveText(filecontent, 0, comment=comment)
                 status = True
-            except pg.EditConflict, e:
+            except pg.EditConflict as e:
                 msg = e.message
-            except pg.SaveError, msg:
+            except pg.SaveError as msg:
                 msg = unicode(msg)
         else:
             msg = _("Pagename not specified!")

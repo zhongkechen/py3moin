@@ -8,6 +8,7 @@
                 2007-2010 by MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 
 import os, StringIO, time
@@ -459,7 +460,7 @@ class TestXapianSearch(BaseSearchTest):
             from MoinMoin.search.Xapian.search import XapianSearch
             self.searcher_class = XapianSearch
 
-        except ImportError, error:
+        except ImportError as error:
             if not str(error).startswith('Xapian '):
                 raise
             py.test.skip('xapian is not installed')
@@ -500,7 +501,7 @@ class TestXapianSearch(BaseSearchTest):
 
         def test_query(query):
             query_ = parser.parse_query(query).xapian_term(self.request, connection)
-            print str(query_)
+            print(str(query_))
             assert not query_.empty()
 
         for prefix, data in prefixes.iteritems():

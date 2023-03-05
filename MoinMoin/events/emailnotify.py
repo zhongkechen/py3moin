@@ -43,7 +43,7 @@ def prep_page_changed_mail(request, page, comment, email_lang, revisions,
     diff = change['diff']
     subject = change['subject']
 
-    if change.has_key('comment'):
+    if 'comment' in change:
         comment = _("Comment:") + "\n" + change['comment'] + "\n\n"
     else:
         comment = ''

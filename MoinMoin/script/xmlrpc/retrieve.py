@@ -5,6 +5,7 @@ MoinMoin - page contents retriever
 @copyright: 2006 MoinMoin:ThomasWaldmann
 @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import xmlrpclib
 
@@ -35,4 +36,4 @@ General syntax: moin [options] xmlrpc retrieve [retrieve-options]
 
     def mainloop(self):
         s = xmlrpclib.ServerProxy(self.argv[0])
-        print s.getPage(self.argv[1])
+        print(s.getPage(self.argv[1]))

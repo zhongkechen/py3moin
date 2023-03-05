@@ -5,6 +5,7 @@
     @copyright: 2005,2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 import os, sys, shutil
 
 opj = os.path.join # yes, I am lazy
@@ -13,14 +14,14 @@ join = os.path.join
 
 def fatalError(msg):
     """ Exit with error message on fatal errors """
-    print "Fatal error:", msg
-    print "Stoping"
+    print("Fatal error:", msg)
+    print("Stoping")
     sys.exit(1)
 
 
 def error(msg):
     """ Report minor error and continue """
-    print "Error:", msg
+    print("Error:", msg)
 
 
 def backup(src, dst):
@@ -29,7 +30,7 @@ def backup(src, dst):
     @param src: source
     @param dst: destination
     """
-    print "Create backup of '%s' in '%s'" % (src, dst)
+    print("Create backup of '%s' in '%s'" % (src, dst))
 
     if not os.path.isdir(src):
         fatalError("can't find '%s'. You must run this script from the directory where '%s' is located." % src)
@@ -63,16 +64,16 @@ def makedir(newdir):
 
 def copy_dir(dir_from, dir_to):
     """ Copy a complete directory """
-    print "%s/ -> %s/" % (dir_from, dir_to)
+    print("%s/ -> %s/" % (dir_from, dir_to))
     try:
         shutil.copytree(dir_from, dir_to)
-    except Exception, err:
+    except Exception as err:
         error("can't copy '%s' to '%s' (%s)" % (dir_from, dir_to, str(err)))
 
 
 def copy_file(fname_from, fname_to):
     """ Copy a single file """
-    print "%s -> %s" % (fname_from, fname_to)
+    print("%s -> %s" % (fname_from, fname_to))
     try:
         shutil.copy2(fname_from, fname_to) # copies file data, mode, atime, mtime
     except:
@@ -81,7 +82,7 @@ def copy_file(fname_from, fname_to):
 
 def move_file(fname_from, fname_to):
     """ Move a single file """
-    print "%s -> %s" % (fname_from, fname_to)
+    print("%s -> %s" % (fname_from, fname_to))
     try:
         shutil.move(fname_from, fname_to) # moves file (even to different filesystem, including mode and atime/mtime)
     except:

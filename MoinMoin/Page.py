@@ -210,7 +210,7 @@ class Page(object):
             # try to open file
             try:
                 f = codecs.open(self._text_filename(), 'rb', config.charset)
-            except IOError, er:
+            except IOError as er:
                 import errno
                 if er.errno in [errno.ENOENT, errno.ENAMETOOLONG, ]:
                     # ENOENT: doesn't exist, file not found
@@ -491,7 +491,7 @@ class Page(object):
                 dirname = fullpath
             try:
                 os.makedirs(dirname)
-            except OSError, err:
+            except OSError as err:
                 if not os.path.exists(dirname):
                     raise
         return underlay, fullpath
@@ -679,7 +679,7 @@ class Page(object):
 
         try:
             return os.path.getsize(self._text_filename(rev=rev))
-        except EnvironmentError, e:
+        except EnvironmentError as e:
             import errno
             if e.errno in [errno.ENOENT, errno.ENAMETOOLONG, ]:
                 return 0
@@ -1174,7 +1174,7 @@ class Page(object):
         if self.hilite_re:
             try:
                 self.formatter.set_highlight_re(self.hilite_re)
-            except re.error, err:
+            except re.error as err:
                 request.theme.add_msg(_('Invalid highlighting regular expression "%(regex)s": %(error)s') % {
                                           'regex': wikiutil.escape(self.hilite_re),
                                           'error': wikiutil.escape(str(err)),
@@ -1424,13 +1424,13 @@ class Page(object):
             try:
                 code = self.loadCache(request)
                 self.execute(request, parser, code)
-            except Exception, e:
+            except Exception as e:
                 if not is_cache_exception(e):
                     raise
                 try:
                     code = self.makeCache(request, parser)
                     self.execute(request, parser, code)
-                except Exception, e:
+                except Exception as e:
                     if not is_cache_exception(e):
                         raise
                     logging.error('page cache failed after creation')
@@ -1454,7 +1454,7 @@ class Page(object):
             if hasattr(MoinMoin, '__loader__'):
                 __file__ = os.path.join(MoinMoin.__loader__.archive, 'dummy')
             try:
-                exec code
+                exec(code)
             except "CacheNeedsUpdate": # convert the exception
                 raise Exception("CacheNeedsUpdate")
         finally:
@@ -1474,7 +1474,7 @@ class Page(object):
             # Bad marshal data, must update the cache.
             # See http://docs.python.org/lib/module-marshal.html
             raise Exception('CacheNeedsUpdate')
-        except Exception, err:
+        except Exception as err:
             logging.info('failed to load "%s" cache: %s' %
                         (self.page_name, str(err)))
             raise Exception('CacheNeedsUpdate')

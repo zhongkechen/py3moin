@@ -11,15 +11,16 @@
     @copyright: 2001 Juergen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 _imperr = None
 try:
     from teud import xmldoc, pydoc
-except ImportError, _imperr:
+except ImportError as _imperr:
     pass
 try:
     from xml.xslt.Processor import Processor
-except ImportError, _imperr:
+except ImportError as _imperr:
     pass
 
 from MoinMoin import config, wikiutil
@@ -37,7 +38,7 @@ def macro_TeudView(macro):
         modname = macro.request.args["module"]
         try:
             obj = pydoc.locate(modname)
-        except pydoc.ErrorDuringImport, value:
+        except pydoc.ErrorDuringImport as value:
             return "Error while loading module %s: %s" % (modname, value)
         else:
             xmlstr = xmldoc.xml.document(obj, encoding=config.charset)
@@ -69,7 +70,7 @@ def macro_TeudView(macro):
             }
         )
     except:
-        print wikiutil.escape(xmlstr)
+        print(wikiutil.escape(xmlstr))
         raise
 
     return navigation + result

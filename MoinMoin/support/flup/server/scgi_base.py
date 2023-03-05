@@ -24,6 +24,7 @@
 #
 # $Id$
 
+from future.utils import raise_
 __author__ = 'Allan Saddi <allan@saddi.com>'
 __version__ = '$Revision$'
 
@@ -76,7 +77,7 @@ def recvall(sock, length):
     while length:
         try:
             data = sock.recv(length)
-        except socket.error, e:
+        except socket.error as e:
             if e[0] == errno.EAGAIN:
                 select.select([sock], [], [])
                 continue
@@ -99,7 +100,7 @@ def readNetstring(sock):
     while True:
         try:
             c = sock.recv(1)
-        except socket.error, e:
+        except socket.error as e:
             if e[0] == errno.EAGAIN:
                 select.select([sock], [], [])
                 continue
@@ -117,7 +118,7 @@ def readNetstring(sock):
         if size < 0:
             raise ValueError
     except ValueError:
-        raise ProtocolError, 'invalid netstring length'
+        raise ProtocolError('invalid netstring length')
 
     # Now read the string.
     s, length = recvall(sock, size)
@@ -132,7 +133,7 @@ def readNetstring(sock):
         raise EOFError
 
     if trailer != ',':
-        raise ProtocolError, 'invalid netstring trailer'
+        raise ProtocolError('invalid netstring trailer')
 
     return s
 
@@ -229,7 +230,7 @@ class Connection(object):
             self.processInput()
         except (EOFError, KeyboardInterrupt):
             pass
-        except ProtocolError, e:
+        except ProtocolError as e:
             self.logger.error("Protocol error '%s'", str(e))
         except:
             self.logger.exception('Exception caught in Connection')
@@ -246,20 +247,20 @@ class Connection(object):
         headers = readNetstring(self._sock)
         headers = headers.split('\x00')[:-1]
         if len(headers) % 2 != 0:
-            raise ProtocolError, 'invalid headers'
+            raise ProtocolError('invalid headers')
         environ = {}
         for i in range(len(headers) / 2):
             environ[headers[2*i]] = headers[2*i+1]
 
         clen = environ.get('CONTENT_LENGTH')
         if clen is None:
-            raise ProtocolError, 'missing CONTENT_LENGTH'
+            raise ProtocolError('missing CONTENT_LENGTH')
         try:
             clen = int(clen)
             if clen < 0:
                 raise ValueError
         except ValueError:
-            raise ProtocolError, 'invalid CONTENT_LENGTH'
+            raise ProtocolError('invalid CONTENT_LENGTH')
 
         self._sock.setblocking(1)
         if clen:
@@ -451,7 +452,7 @@ class BaseSCGIServer(object):
                 try:
                     if headers_sent:
                         # Re-raise if too late
-                        raise exc_info[0], exc_info[1], exc_info[2]
+                        raise_(exc_info[0], exc_info[1], exc_info[2])
                 finally:
                     exc_info = None # avoid dangling circular ref
             else:
@@ -484,7 +485,7 @@ class BaseSCGIServer(object):
                 finally:
                     if hasattr(result, 'close'):
                         result.close()
-            except socket.error, e:
+            except socket.error as e:
                 if e[0] != errno.EPIPE:
                     raise # Don't let EPIPE propagate beyond server
         finally:
@@ -494,11 +495,11 @@ class BaseSCGIServer(object):
     def _sanitizeEnv(self, environ):
         """Fill-in/deduce missing values in environ."""
         reqUri = None
-        if environ.has_key('REQUEST_URI'):
+        if 'REQUEST_URI' in environ:
             reqUri = environ['REQUEST_URI'].split('?', 1)
 
         # Ensure QUERY_STRING exists
-        if not environ.has_key('QUERY_STRING') or not environ['QUERY_STRING']:
+        if 'QUERY_STRING' not in environ or not environ['QUERY_STRING']:
             if reqUri is not None and len(reqUri) > 1:
                 environ['QUERY_STRING'] = reqUri[1]
             else:
@@ -521,9 +522,9 @@ class BaseSCGIServer(object):
 
         if scriptName is NoDefault:
             # Pull SCRIPT_NAME/PATH_INFO from environment, with empty defaults
-            if not environ.has_key('SCRIPT_NAME'):
+            if 'SCRIPT_NAME' not in environ:
                 environ['SCRIPT_NAME'] = ''
-            if not environ.has_key('PATH_INFO') or not environ['PATH_INFO']:
+            if 'PATH_INFO' not in environ or not environ['PATH_INFO']:
                 if reqUri is not None:
                     scriptName = environ['SCRIPT_NAME']
                     if not reqUri[0].startswith(scriptName):

@@ -85,7 +85,7 @@ class ReplayLog(object):
             for membername in dir(item):
                 member = getattr(item, membername)
                 if isinstance(member, types.MethodType):
-                    self._xapian_methods[member.im_func] = (name, membername)
+                    self._xapian_methods[member.__func__] = (name, membername)
                     has_members = True
             if has_members:
                 self._xapian_classes[item] = name
@@ -142,7 +142,7 @@ class ReplayLog(object):
 
         """
         # Check if it's a xapian class, or subclass.
-        if isinstance(obj, types.TypeType):
+        if isinstance(obj, type):
             classname = self._xapian_classes.get(obj, None)
             if classname is not None:
                 return classname
@@ -168,7 +168,7 @@ class ReplayLog(object):
 
         # Check if it's a proxied method.
         if isinstance(obj, LoggedProxyMethod):
-            classname, methodname = self._xapian_methods[obj.real.im_func]
+            classname, methodname = self._xapian_methods[obj.real.__func__]
             objnum = self._get_obj_num(obj.proxyobj, maybe_new=maybe_new)
             return "%s#%d.%s" % (classname, objnum, methodname)
 
@@ -289,11 +289,11 @@ class ReplayLog(object):
             self._log("CALL%s:UNKNOWN:%r(%s)\n" % (call_id, call, logargs))
         return call_id
 
-    def log_except(self, (etype, value, tb), call_id):
+    def log_except(self, xxx_todo_changeme, call_id):
         """Log an exception which has occurred.
 
         """
-        # No access to an members, so no need to acquire mutex.
+        (etype, value, tb) = xxx_todo_changeme
         exc = traceback.format_exception_only(etype, value)
         self._log("EXCEPT%s:%s\n" % (call_id, ''.join(exc).strip()))
 

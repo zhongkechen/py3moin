@@ -4,6 +4,8 @@ Execute a shell command with timeout.
 @copyright: 2016 Thomas Waldmann <tw@waldmann-edv.de>
 @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import signal
@@ -48,5 +50,5 @@ if __name__ == '__main__':
     # expected output:
     # ('', '', -9)               --> no stdout, stderr output, killed by SIGKILL (signal 9)
     # ('20s gone\n', '', 0)      --> some output on stdout, no stderr, rc = 0 (did not get killed)
-    print exec_cmd("python", "import time ; time.sleep(20) ; print 'timeout does not work!' ;", timeout=10)
-    print exec_cmd("python", "import time ; time.sleep(20) ; print '20s gone' ;")
+    print(exec_cmd("python", "import time ; time.sleep(20) ; print 'timeout does not work!' ;", timeout=10))
+    print(exec_cmd("python", "import time ; time.sleep(20) ; print '20s gone' ;"))

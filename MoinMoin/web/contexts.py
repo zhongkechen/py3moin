@@ -223,7 +223,7 @@ class HTTPContext(BaseContext):
     def __getattr__(self, name):
         try:
             return getattr(self.request, name)
-        except AttributeError, e:
+        except AttributeError as e:
             return super(HTTPContext, self).__getattribute__(name)
 
     # methods regarding manipulation of HTTP related data

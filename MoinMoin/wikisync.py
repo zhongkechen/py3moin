@@ -5,6 +5,7 @@
     @copyright: 2006 MoinMoin:AlexanderSchremmer
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import os
 import socket
@@ -179,7 +180,7 @@ class MoinRemoteWiki(RemoteWiki):
             iw_list = self.connection.interwikiName()
         except socket.error:
             raise UnsupportedWikiException(_("The wiki is currently not reachable."))
-        except xmlrpclib.Fault, err:
+        except xmlrpclib.Fault as err:
             raise UnsupportedWikiException("xmlrpclib.Fault: %s" % str(err))
 
         if user and password:
@@ -332,7 +333,8 @@ class MoinLocalWiki(RemoteWiki):
         page = PageEditor(self.request, pagename)
         try:
             page.deletePage(comment)
-        except PageEditor.AccessDenied, (msg, ):
+        except PageEditor.AccessDenied as xxx_todo_changeme:
+            (msg, ) = xxx_todo_changeme.args
             return msg
         return ""
 
@@ -412,7 +414,7 @@ class AbstractTagStore(object):
 
     def add(self, **kwargs):
         """ Adds a Tag object to the current TagStore. """
-        print "Got tag for page %r: %r" % (self.page, kwargs)
+        print("Got tag for page %r: %r" % (self.page, kwargs))
         return NotImplemented
 
     def get_all_tags(self):

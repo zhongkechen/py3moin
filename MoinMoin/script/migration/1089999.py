@@ -44,7 +44,7 @@ def execute(script, data_dir, rev):
                         # tar container file gets renamed:
                         tar.add(filename, 'drawing' + ext)
                     os.remove(filename)
-                except OSError, err:
+                except OSError as err:
                     if err.errno != errno.ENOENT:
                         # .map and .png are optional, .draw should be there
                         raise

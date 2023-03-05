@@ -59,7 +59,7 @@ class FCKeditorConnectorZope(FCKeditorConnector):
 			folderNames = self.userFilesFolder.split("/")
 			c = self.getZopeRootContext()
 			for folderName in folderNames:
-				if (folderName <> ""):
+				if (folderName != ""):
 					c = c[folderName]
 			self.zopeUploadContext = c
 		return self.zopeUploadContext
@@ -105,13 +105,13 @@ class FCKeditorConnectorZope(FCKeditorConnector):
 		zopeFolder = self.getZopeUploadContext()
 		folderName = self.removeFromStart(folderName, "/")
 		folderName = self.removeFromEnd(folderName, "/")
-		if (resourceType <> ""):
+		if (resourceType != ""):
 			try:
 				zopeFolder = zopeFolder[resourceType]
 			except:
 				zopeFolder.manage_addProduct["OFSP"].manage_addFolder(id=resourceType, title=resourceType)
 				zopeFolder = zopeFolder[resourceType]
-		if (folderName <> ""):
+		if (folderName != ""):
 			folderNames = folderName.split("/")
 			for folderName in folderNames:
 				zopeFolder = zopeFolder[folderName]
@@ -122,7 +122,7 @@ class FCKeditorConnectorZope(FCKeditorConnector):
 		zopeFolder = self.findZopeFolder(resourceType, currentFolder)
 		errorNo = 0
 		errorMsg = ""
-		if self.request.has_key("NewFolderName"):
+		if "NewFolderName" in self.request:
 			newFolder = self.request.get("NewFolderName", None)
 			zopeFolder.manage_addProduct["OFSP"].manage_addFolder(id=newFolder, title=newFolder)
 		else:
@@ -161,7 +161,7 @@ class FCKeditorRequest(object):
 		self.request = r
 
 	def has_key(self, key):
-		return self.request.has_key(key)
+		return key in self.request
 
 	def get(self, key, default=None):
 		return self.request.get(key, default)

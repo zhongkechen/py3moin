@@ -5,6 +5,7 @@ MoinMoin - remote command execution, client part
 @copyright: 2006 MoinMoin:ThomasWaldmann
 @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import sys
 import xmlrpclib
@@ -43,7 +44,7 @@ General syntax: moin [options] xmlrpc remote [remote-options]
 
         secret = conf.remotescript_secret
         url = conf.remotescript_url
-        print url, secret, self.argv
+        print(url, secret, self.argv)
 
         s = xmlrpclib.ServerProxy(url)
 
@@ -53,5 +54,5 @@ General syntax: moin [options] xmlrpc remote [remote-options]
         # TODO handle stdout, stderr
 
         if result != "OK":
-            print >> sys.stderr, result
+            print(result, file=sys.stderr)
 

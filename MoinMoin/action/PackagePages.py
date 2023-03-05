@@ -57,7 +57,7 @@ class PackagePages:
                 raise ActionError
 
             self.package()
-        except ActionError, e:
+        except ActionError as e:
             return self.page.send_page()
 
     def package(self):

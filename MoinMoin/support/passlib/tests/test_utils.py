@@ -44,7 +44,7 @@ class MiscTest(TestCase):
 
         self.assertEqual(test.xprop, 1)
         prop = test.__dict__['xprop']
-        self.assertIs(prop.im_func, prop.__func__)
+        self.assertIs(prop.__func__, prop.__func__)
 
     def test_deprecated_function(self):
         from passlib.utils.decor import deprecated_function
@@ -83,7 +83,7 @@ class MiscTest(TestCase):
 
         prop = dummy.value
         if not PY3:
-            self.assertIs(prop.im_func, prop.__func__)
+            self.assertIs(prop.__func__, prop.__func__)
 
     def test_getrandbytes(self):
         """getrandbytes()"""

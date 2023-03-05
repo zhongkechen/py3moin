@@ -310,7 +310,7 @@ class FormatterBase:
         # call the macro
         try:
             return macro_obj.execute(name, args)
-        except ImportError, err:
+        except ImportError as err:
             errmsg = unicode(err)
             if not name in errmsg:
                 raise

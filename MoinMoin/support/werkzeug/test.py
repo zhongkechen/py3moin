@@ -8,6 +8,7 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from __future__ import absolute_import
 import mimetypes
 import sys
 from io import BytesIO
@@ -52,7 +53,7 @@ except ImportError:
     from urllib2 import Request as U2Request
 
 try:
-    from http.cookiejar import CookieJar
+    from .http.cookiejar import CookieJar
 except ImportError:
     from cookielib import CookieJar
 

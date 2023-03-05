@@ -5,6 +5,7 @@
     @copyright: 2008 MoinMoin:ForrestVoight
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import os
 import sys
@@ -86,19 +87,19 @@ General syntax: moin [options] server standalone [standalone-options]
             try:
                 pids = open(pidfile, "r").read()
             except IOError:
-                print "pid file not found (server not running?)"
+                print("pid file not found (server not running?)")
             else:
                 try:
                     os.kill(int(pids), signal.SIGTERM)
                 except OSError:
-                    print "kill failed (server not running?)"
+                    print("kill failed (server not running?)")
             os.remove(pidfile)
         else:
             try:
                 if self.options.config_dir:
                     sys.path.insert(0, self.options.config_dir)
                 from wikiserverconfig import Config
-            except ImportError, err:
+            except ImportError as err:
                 if 'wikiserverconfig' in str(err):
                     # we are unable to import from wikiserverconfig module
                     Config = DefaultConfig

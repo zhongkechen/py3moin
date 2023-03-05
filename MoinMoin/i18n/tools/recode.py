@@ -46,9 +46,9 @@ def run():
             line = unicode(line, src_enc).encode(dst_enc)
             sys.stdout.write(line)
 
-    except UnicodeError, err:
+    except UnicodeError as err:
         error("Can't recode: %s" % str(err))
-    except LookupError, err:
+    except LookupError as err:
         error(str(err))
     except ValueError:
         error("Wrong number of arguments")

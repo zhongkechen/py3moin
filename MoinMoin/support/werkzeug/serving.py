@@ -35,6 +35,7 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from __future__ import absolute_import
 import io
 import os
 import signal
@@ -55,8 +56,8 @@ from .urls import url_unquote
 
 try:
     import socketserver
-    from http.server import BaseHTTPRequestHandler
-    from http.server import HTTPServer
+    from .http.server import BaseHTTPRequestHandler
+    from .http.server import HTTPServer
 except ImportError:
     import SocketServer as socketserver
     from BaseHTTPServer import HTTPServer

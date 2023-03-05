@@ -125,7 +125,7 @@ class PluginScript(IndexScript):
             idx_new = XapianIndex(self.request, name='index.new').db
             try:
                 shutil.rmtree(idx_old)
-            except OSError, err:
+            except OSError as err:
                 if err.errno != errno.ENOENT: # ignore it if we have no current index
                     raise
             os.rename(idx_new, idx_old)

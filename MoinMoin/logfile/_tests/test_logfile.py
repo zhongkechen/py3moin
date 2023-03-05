@@ -5,6 +5,7 @@
     @copyright: 2011 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 import os
 import tempfile
 import shutil
@@ -48,22 +49,22 @@ class TestLogFile(object):
             lf.add(*linedata)
         expected_contents = open(self.fname, 'rb').read()
         real_contents = open(fname_log, 'rb').read()
-        print repr(expected_contents)
-        print repr(real_contents)
+        print(repr(expected_contents))
+        print(repr(real_contents))
         assert real_contents == expected_contents
 
     def test_iter_forward(self):
         lf = LogFile(self.fname)
         for result, expected in zip(lf, self.LOG):
-            print expected
-            print result
+            print(expected)
+            print(result)
             assert result == expected
 
     def test_iter_reverse(self):
         lf = LogFile(self.fname)
         for result, expected in zip(lf.reverse(), self.LOG[::-1]):
-            print expected
-            print result
+            print(expected)
+            print(result)
             assert result == expected
 
     def test_position(self):
@@ -72,13 +73,13 @@ class TestLogFile(object):
         for data in lf:
             expected_pos += len(self.make_line(data))
             real_pos = lf.position()
-            print expected_pos, real_pos
+            print(expected_pos, real_pos)
             assert real_pos == expected_pos
 
     def test_seek(self):
         lf = LogFile(self.fname)
         for data in lf:
-            print repr(data)
+            print(repr(data))
         # now we are at the current end, remember position
         pos = lf.position()
         # add new data
@@ -89,7 +90,7 @@ class TestLogFile(object):
         assert lf.position() == pos
         for data in lf:
             # reads the one new line we added
-            print 'new:', repr(data)
+            print('new:', repr(data))
             assert data == newdata
         lf.seek(0)
         assert lf.position() == 0

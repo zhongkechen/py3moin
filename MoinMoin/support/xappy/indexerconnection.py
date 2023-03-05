@@ -18,18 +18,19 @@
 r"""indexerconnection.py: A connection to the search engine for indexing.
 
 """
+from __future__ import absolute_import
 __docformat__ = "restructuredtext en"
 
-import _checkxapian
+from . import _checkxapian
 import cPickle
 import xapian
 
-from datastructures import *
-import errors
-from fieldactions import *
-import fieldmappings
-import memutils
-from replaylog import log
+from .datastructures import *
+from . import errors
+from .fieldactions import *
+from . import fieldmappings
+from . import memutils
+from .replaylog import log
 
 class IndexerConnection(object):
     """A connection to the search engine for indexing.
@@ -608,12 +609,12 @@ class IndexerConnection(object):
             raise errors.IndexerError("IndexerConnection has been closed")
         postlist = self._index.postlist('Q' + id)
         try:
-            plitem = postlist.next()
+            plitem = next(postlist)
         except StopIteration:
             # Unique ID not found
             raise KeyError('Unique ID %r not found' % id)
         try:
-            postlist.next()
+            next(postlist)
             raise errors.IndexerError("Multiple documents " #pragma: no cover
                                        "found with same unique ID")
         except StopIteration:
@@ -774,7 +775,7 @@ class SynonymIter(object):
         """Get the next synonym.
 
         """
-        synkey = self._syniter.next()
+        synkey = next(self._syniter)
         pos = 0
         for char in synkey:
             if char.isupper(): pos += 1
@@ -812,10 +813,10 @@ class FacetQueryTypeIter(object):
         """Get the next (query type, facet set) 2-tuple.
 
         """
-        query_type, facet_dict = self._table_iter.next()
+        query_type, facet_dict = next(self._table_iter)
         facet_list = [facet for facet, association in facet_dict.iteritems() if association == self._association]
         if len(facet_list) == 0:
-            return self.next()
+            return next(self)
         return (query_type, set(facet_list))
 
 if __name__ == '__main__':

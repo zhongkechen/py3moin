@@ -49,7 +49,7 @@ def _importConfigModule(name):
         mtime = os.path.getmtime(module.__file__)
     except ImportError:
         raise
-    except IndentationError, err:
+    except IndentationError as err:
         logging.exception('Your source code / config file is not correctly indented!')
         msg = """IndentationError: %(err)s
 
@@ -60,7 +60,7 @@ You have to use four spaces at the beginning of the line mostly.
     'err': err,
 }
         raise error.ConfigurationError(msg)
-    except Exception, err:
+    except Exception as err:
         logging.exception('An exception happened.')
         msg = '%s: %s' % (err.__class__.__name__, str(err))
         raise error.ConfigurationError(msg)
@@ -80,7 +80,7 @@ def _url_re_list():
     if _url_re_cache is None:
         try:
             farmconfig, _farmconfig_mtime = _importConfigModule('farmconfig')
-        except ImportError, err:
+        except ImportError as err:
             if 'farmconfig' in str(err):
                 # we failed importing farmconfig
                 logging.debug("could not import farmconfig, mapping all URLs to wikiconfig")
@@ -125,7 +125,7 @@ def _makeConfig(name):
         cfg = configClass(name)
         cfg.cfg_mtime = max(mtime, _farmconfig_mtime)
         logging.info("using wiki config: %s" % os.path.abspath(module.__file__))
-    except ImportError, err:
+    except ImportError as err:
         logging.exception('Could not import.')
         msg = """ImportError: %(err)s
 
@@ -141,7 +141,7 @@ module name does not include the ".py" suffix.
     'err': err,
 }
         raise error.ConfigurationError(msg)
-    except AttributeError, err:
+    except AttributeError as err:
         logging.exception('An exception occurred.')
         msg = """AttributeError: %(err)s
 
@@ -367,7 +367,7 @@ class ConfigFunctionality(object):
         if self.xapian_search:
             try:
                 import xapian
-            except ImportError, err:
+            except ImportError as err:
                 self.xapian_search = False
                 logging.error("xapian_search was auto-disabled because python-xapian is not installed [%s]." % str(err))
 
@@ -439,11 +439,11 @@ class ConfigFunctionality(object):
         if self.passlib_support:
             try:
                 from passlib.context import CryptContext
-            except ImportError, err:
+            except ImportError as err:
                 raise error.ConfigurationError("Wiki is configured to use passlib, but importing passlib failed [%s]!" % str(err))
             try:
                 self.cache.pwd_context = CryptContext(**self.passlib_crypt_context)
-            except (ValueError, KeyError, TypeError, UserWarning), err:
+            except (ValueError, KeyError, TypeError, UserWarning) as err:
                 # ValueError: wrong configuration values
                 # KeyError: unsupported hash (seen with passlib 1.3)
                 # TypeError: configuration value has wrong type
@@ -661,7 +661,7 @@ also the spelling of the directory name.
                         self._plugin_modules.append(modname)
             finally:
                 imp.release_lock()
-        except ImportError, err:
+        except ImportError as err:
             msg = """
 Could not import plugin package "%(path)s" because of ImportError:
 %(err)s.

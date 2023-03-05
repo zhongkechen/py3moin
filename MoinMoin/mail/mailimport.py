@@ -8,6 +8,7 @@
                 2006 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import sys, re, time
 import email
@@ -41,7 +42,7 @@ class ProcessingError(Exception):
 
 def log(text):
     if debug:
-        print >> sys.stderr, text
+        print(text, file=sys.stderr)
 
 def decode_2044(header):
     """ Decodes header field. See RFC 2044. """
@@ -344,6 +345,6 @@ if __name__ == "__main__":
 
     try:
         import_mail_from_file(request, infile)
-    except ProcessingError, e:
-        print >> sys.stderr, "An error occurred while processing the message:", e.args
+    except ProcessingError as e:
+        print("An error occurred while processing the message:", e.args, file=sys.stderr)
 

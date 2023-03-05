@@ -6,10 +6,11 @@
                 2006 by MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import absolute_import
 import hashlib
 import re
 
-import wikiutil160a as wikiutil
+from . import wikiutil160a as wikiutil
 from MoinMoin import config, macro
 
 Dependencies = []
@@ -750,11 +751,11 @@ class Parser:
 
             # check for adjacent cell markers
             if word.count("|") > 2:
-                if not attrs.has_key('align') and \
-                   not (attrs.has_key('style') and 'text-align' in attrs['style'].lower()):
+                if 'align' not in attrs and \
+                   not ('style' in attrs and 'text-align' in attrs['style'].lower()):
                     # add center alignment if we don't have some alignment already
                     attrs['align'] = '"center"'
-                if not attrs.has_key('colspan'):
+                if 'colspan' not in attrs:
                     attrs['colspan'] = '"%d"' % (word.count("|")/2)
 
             # return the complete cell markup
@@ -924,7 +925,7 @@ class Parser:
         else:
             # We should never get here
             import pprint
-            raise Exception("Can't handle match " + `match`
+            raise Exception("Can't handle match " + repr(match)
                 + "\n" + pprint.pformat(match.groupdict())
                 + "\n" + pprint.pformat(match.groups()) )
 

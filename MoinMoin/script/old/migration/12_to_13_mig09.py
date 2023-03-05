@@ -45,6 +45,7 @@ Steps for a successful migration:
 @copyright: 2004 Thomas Waldmann
 @license: GPL, see COPYING for details
 """
+from __future__ import print_function
 
 import os, sys, codecs
 join = os.path.join
@@ -139,7 +140,7 @@ def convertUsers(srcdir, dstdir):
             f = codecs.open(dstfile, 'wb', charset)
             f.write(text)
             f.close()
-            print "Converted '%s' to '%s'" % (srcfile, dstfile)
+            print("Converted '%s' to '%s'" % (srcfile, dstfile))
 
 
 if __name__ == '__main__':

@@ -127,7 +127,7 @@ class Macro:
                     raise ImportError("Cannot load macro %s" % macro_name)
         try:
             return execute(self, args)
-        except Exception, err:
+        except Exception as err:
             # we do not want that a faulty macro aborts rendering of the page
             # and makes the wiki UI unusable (by emitting a Server Error),
             # thus, in case of exceptions, we just log the problem and return
@@ -178,7 +178,7 @@ class Macro:
         _ = self._
         try:
             needle_re = re.compile(needle, re.IGNORECASE)
-        except re.error, err:
+        except re.error as err:
             raise ValueError("Error in regex %r: %s" % (needle, err))
 
         # Get page list readable by current user, filtered by needle
@@ -337,7 +337,7 @@ class Macro:
                         if sign == '-':
                             tzoffset = -tzoffset
                 tm = (year, month, day, hour, minute, second, 0, 0, 0)
-            except ValueError, err:
+            except ValueError as err:
                 raise ValueError("Bad timestamp %r: %s" % (args, err))
             # as mktime wants a localtime argument (but we only have UTC),
             # we adjust by our local timezone's offset
@@ -349,7 +349,7 @@ class Macro:
             # try raw seconds since epoch in UTC
             try:
                 tm = float(args)
-            except ValueError, err:
+            except ValueError as err:
                 raise ValueError("Bad timestamp %r: %s" % (args, err))
         return format_date(tm)
 

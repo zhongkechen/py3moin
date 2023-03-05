@@ -6,6 +6,7 @@
                 2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import py
 
@@ -143,7 +144,7 @@ class TestExpandPrivateVariables(TestExpandUserName):
             file(os.path.join(path, 'current'), 'w').write('%s\n' % current)
             text = u' ME:: %s\n' % self.name
             file(os.path.join(revisionsDir, current), 'w').write(text)
-        except Exception, err:
+        except Exception as err:
             py.test.skip("Can not be create test page: %s" % err)
 
     def deleteCaches(self):
@@ -191,7 +192,7 @@ class TestSave(object):
         editor = PageEditor(self.request, pagename)
         editor.saveText(testtext, 0)
 
-        print "PageEditor can't save a page if Abort is returned from PreSave event handlers"
+        print("PageEditor can't save a page if Abort is returned from PreSave event handlers")
         page = Page(self.request, pagename)
         assert page.body != testtext
 
@@ -289,7 +290,7 @@ class TestCopyPage(object):
             file(os.path.join(path, 'current'), 'w').write('%s\n' % current)
 
             file(os.path.join(revisionsDir, current), 'w').write(self.text)
-        except Exception, err:
+        except Exception as err:
             py.test.skip("Can not be create test page: %s" % err)
 
     def deleteTestPage(self):

@@ -23,6 +23,7 @@ http://www.mozilla.org/MPL/MPL-1.1.html
 This is the "File Uploader" for Python
 
 """
+from __future__ import print_function
 import os
 
 from fckutil import *
@@ -78,11 +79,11 @@ if __name__ == '__main__':
 		data = conn.doResponse()
 		for header in conn.headers:
 			if not header is None:
-				print '%s: %s' % header
-		print
-		print data
+				print('%s: %s' % header)
+		print()
+		print(data)
 	except:
-		print "Content-Type: text/plain"
-		print
+		print("Content-Type: text/plain")
+		print()
 		import cgi
 		cgi.print_exception()

@@ -4,6 +4,7 @@
     prepend some processing instructions to a .po file to be able to put it
     onto moinmaster wiki, letting it get processed by gettext parser
 """
+from __future__ import print_function
 
 master_url = "https://master19.moinmo.in/?action=xmlrpc2"
 user = "ThomasWaldmann" # must be a known Wiki account
@@ -58,7 +59,7 @@ def run():
     mc.putPage(pagename, pagedata)
     mc.deleteAuthToken(token)
     result = mc()
-    print "Page: %s rc=%r" % (pagename, list(result))
+    print("Page: %s rc=%r" % (pagename, list(result)))
 
 if __name__ == "__main__":
     run()

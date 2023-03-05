@@ -18,12 +18,13 @@
     @copyright: 2005 by Thomas Waldmann (MoinMoin:ThomasWaldmann)
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 def run():
     import sys
     from hotshot import stats
 
     if len(sys.argv) != 2:
-        print __doc__
+        print(__doc__)
         sys.exit()
 
     # Load and print stats

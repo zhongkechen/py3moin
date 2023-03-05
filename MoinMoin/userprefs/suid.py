@@ -34,7 +34,7 @@ class Settings(UserPrefBase):
         request = self.request
         form = request.form
 
-        if form.has_key('cancel'):
+        if 'cancel' in form:
             return
 
         if request.method != 'POST':

@@ -26,7 +26,7 @@ class TestBase(object):
     def do_convert_real(self, func_args, successful=True):
         try:
             ret = convert(*func_args)
-        except error, e:
+        except error as e:
             if successful:
                 py.test.fail("fails with parse error: %s" % e)
             else:

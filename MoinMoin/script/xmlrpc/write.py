@@ -5,6 +5,7 @@
     @copyright: 2007 MoinMoin:JohannesBerg
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import xmlrpclib
 import sys
@@ -52,7 +53,7 @@ Note: we automatically append ?action=xmlrpc2 to the target url given.
         token = s.getAuthToken(user, passwd)
 
         if not token:
-            print 'Invalid username/password'
+            print('Invalid username/password')
             return
 
         # Verify that the token is valid by using it

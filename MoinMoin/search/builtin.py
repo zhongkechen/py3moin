@@ -256,7 +256,7 @@ class BaseIndex(object):
         try:
             data = execute(self, filename)
             logging.debug("Filter %s returned %d characters for file %s" % (modulename, len(data), filename))
-        except (OSError, IOError), err:
+        except (OSError, IOError) as err:
             data = ''
             logging.exception("Filter %s threw error '%s' for file %s" % (modulename, str(err), filename))
         return mt.mime_type(), data

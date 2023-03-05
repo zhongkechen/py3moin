@@ -1,4 +1,5 @@
 """passlib.tests.tox_support - helper script for tox tests"""
+from __future__ import print_function
 #=============================================================================
 # init script env
 #=============================================================================

@@ -5,6 +5,7 @@ MoinMoin - do global changes to all pages in a wiki.
 @copyright: 2004-2006 MoinMoin:ThomasWaldmann
 @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 debug = False
 
@@ -158,6 +159,6 @@ General syntax: moin [options] maint globaledit [globaledit-options]
                 origtext = p.get_raw_body()
                 changedtext = self.do_edit(pagename, origtext)
                 if changedtext and changedtext != origtext:
-                    print "Writing %s ..." % repr(pagename)
+                    print("Writing %s ..." % repr(pagename))
                     p._write_file(changedtext)
 

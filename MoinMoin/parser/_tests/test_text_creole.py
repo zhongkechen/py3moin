@@ -8,6 +8,7 @@
     @copyright: 2003-2004 by Juergen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import re
 from StringIO import StringIO
@@ -303,7 +304,7 @@ pattern = re.compile(r'{{{This is some nested text}}}')
 }}}"""
         output = self.parse(raw)
         output = ''.join(output)
-        print output
+        print(output)
         # note: recent pygments renders the opening {{{ intermixed into some <span> tags
         assert "This is some nested text}}}" in output
 
@@ -317,7 +318,7 @@ You can use {{{brackets}}}
 }}}"""
         output = self.parse(raw)
         output = ''.join(output)
-        print output
+        print(output)
         assert 'You can use {{{brackets}}}' in output
 
     def testTextBeforeNestingPreBrackets(self):

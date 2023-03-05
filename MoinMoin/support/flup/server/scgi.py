@@ -65,6 +65,7 @@ Example wrapper script::
     STATUS=$?
   done
 """
+from __future__ import absolute_import
 
 __author__ = 'Allan Saddi <allan@saddi.com>'
 __version__ = '$Revision$'
@@ -136,7 +137,7 @@ class WSGIServer(BaseSCGIServer, ThreadedServer):
                                 loggingLevel=loggingLevel,
                                 debug=debug)
         for key in ('jobClass', 'jobArgs'):
-            if kw.has_key(key):
+            if key in kw:
                 del kw[key]
         ThreadedServer.__init__(self, jobClass=Connection,
                                 jobArgs=(self, None), **kw)
@@ -151,7 +152,7 @@ class WSGIServer(BaseSCGIServer, ThreadedServer):
 
         try:
             sock = self._setupSocket()
-        except socket.error, e:
+        except socket.error as e:
             self.logger.error('Failed to bind socket (%s), exiting', e[1])
             return False
 
@@ -168,7 +169,7 @@ class WSGIServer(BaseSCGIServer, ThreadedServer):
 if __name__ == '__main__':
     def test_app(environ, start_response):
         """Probably not the most efficient example."""
-        import cgi
+        from . import cgi
         start_response('200 OK', [('Content-Type', 'text/html')])
         yield '<html><head><title>Hello World!</title></head>\n' \
               '<body>\n' \
@@ -178,7 +179,7 @@ if __name__ == '__main__':
         names.sort()
         for name in names:
             yield '<tr><td>%s</td><td>%s</td></tr>\n' % (
-                name, cgi.escape(`environ[name]`))
+                name, cgi.escape(repr(environ[name])))
 
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ,
                                 keep_blank_values=1)

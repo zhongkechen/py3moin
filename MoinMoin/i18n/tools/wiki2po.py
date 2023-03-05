@@ -2,6 +2,7 @@
 """
     get latest translation page content from the wiki and write it to *.po
 """
+from __future__ import print_function
 
 master_url = "https://master19.moinmo.in/?action=xmlrpc2"
 
@@ -19,7 +20,7 @@ def run():
         wiki = xmlrpclib.ServerProxy(master_url)
 
         pagename = "MoinI18n/%s" % lang
-        print pagename
+        print(pagename)
         pagedata = wiki.getPage(pagename).encode('utf-8').replace("\n", "\r\n")
 
         f = open("%s.%s.po" % (lang, DOMAIN), "w")

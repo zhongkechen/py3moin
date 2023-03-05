@@ -77,7 +77,7 @@ class Settings(UserPrefBase):
         request = self.request
         form = request.form
 
-        if form.has_key('cancel'):
+        if 'cancel' in form:
             return
 
         if request.method != 'POST':
@@ -86,7 +86,7 @@ class Settings(UserPrefBase):
         if not wikiutil.checkTicket(request, form.get('ticket', '')):
             return
 
-        if form.has_key('save'): # Save user profile
+        if 'save' in form: # Save user profile
             return self._save_notification_settings()
 
     # form generation part

@@ -75,7 +75,7 @@ class FCKeditorRequest(object):
 			self.get_request={}
 
 	def has_key(self, key):
-		return self.request.has_key(key) or self.get_request.has_key(key)
+		return key in self.request or key in self.get_request
 
 	def get(self, key, default=None):
 		if key in self.request.keys():

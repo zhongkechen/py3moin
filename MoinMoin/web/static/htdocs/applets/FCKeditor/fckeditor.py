@@ -108,7 +108,7 @@ class FCKeditor(object):
         return Html
 
     def IsCompatible(self):
-        if (os.environ.has_key("HTTP_USER_AGENT")):
+        if ("HTTP_USER_AGENT" in os.environ):
             sAgent = os.environ.get("HTTP_USER_AGENT", "")
         else:
             sAgent = ""

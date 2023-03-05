@@ -66,7 +66,7 @@ class SCGIApp(object):
         # TODO: Anything not from environ that needs to be sent also?
 
         content_length = int(environ.get('CONTENT_LENGTH') or 0)
-        if headers.has_key('CONTENT_LENGTH'):
+        if 'CONTENT_LENGTH' in headers:
             del headers['CONTENT_LENGTH']
             
         headers_out = ['CONTENT_LENGTH', str(content_length), 'SCGI', '1']
@@ -137,7 +137,7 @@ class SCGIApp(object):
         return [result]
 
     def _getConnection(self):
-        if isinstance(self._connect, types.StringTypes):
+        if isinstance(self._connect, (str,)):
             sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             sock.connect(self._connect)
         elif hasattr(socket, 'create_connection'):

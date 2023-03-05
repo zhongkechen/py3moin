@@ -7,6 +7,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from future.utils import raise_
 import cgi
 import codecs
 import hashlib
@@ -362,7 +363,7 @@ def timestamp2version(ts):
         We don't want to use floats, so we just scale by 1e6 to get
         an integer in usecs.
     """
-    return long(ts*1000000L) # has to be long for py 2.2.x
+    return long(ts*1000000) # has to be long for py 2.2.x
 
 def version2timestamp(v):
     """ Convert version number to UNIX timestamp (float).
@@ -613,7 +614,7 @@ def resolve_wiki(request, wikiurl):
     """
     _interwiki_list = load_wikimap(request)
     wikiname, pagename, linktext = split_wiki(wikiurl)
-    if _interwiki_list.has_key(wikiname):
+    if wikiname in _interwiki_list:
         return (wikiname, _interwiki_list[wikiname], pagename, False)
     else:
         return (wikiname, request.script_root, "/InterWiki", True)
@@ -893,7 +894,7 @@ class MimeType(object):
             if value[0] == '"' and value[-1] == '"': # remove quotes
                 value = value[1:-1]
             self.params[key.lower()] = value
-        if self.params.has_key('charset'):
+        if 'charset' in self.params:
             self.charset = self.params['charset'].lower()
         self.sanitize()
 
@@ -1180,7 +1181,7 @@ def parseAttributes(request, attrstring, endtoken=None, extension=None):
     while not msg:
         try:
             key = parser.get_token()
-        except ValueError, err:
+        except ValueError as err:
             msg = str(err)
             break
         if not key: break
@@ -1198,7 +1199,7 @@ def parseAttributes(request, attrstring, endtoken=None, extension=None):
 
         try:
             eq = parser.get_token()
-        except ValueError, err:
+        except ValueError as err:
             msg = str(err)
             break
         if eq != "=":
@@ -1207,7 +1208,7 @@ def parseAttributes(request, attrstring, endtoken=None, extension=None):
 
         try:
             val = parser.get_token()
-        except ValueError, err:
+        except ValueError as err:
             msg = str(err)
             break
         if not val:
@@ -1303,7 +1304,7 @@ class ParameterParser:
                 named = True
                 self.param_dict[match.group('name')[1:-1]] = i
             elif named:
-                raise ValueError, "Named parameter expected"
+                raise ValueError("Named parameter expected")
             i += 1
 
     def __str__(self):
@@ -1325,7 +1326,7 @@ class ParameterParser:
         while start < len(input):
             match = re.match(self.param_re, input[start:])
             if not match:
-                raise ValueError, "Misformatted value"
+                raise ValueError("Misformatted value")
             start += match.end()
             value = None
             if match.group("int"):
@@ -1348,8 +1349,8 @@ class ParameterParser:
 
             parameter_list.append(value)
             if match.group("name"):
-                if not self.param_dict.has_key(match.group("name")):
-                    raise ValueError, "Unknown parameter name '%s'" % match.group("name")
+                if match.group("name") not in self.param_dict:
+                    raise_(ValueError, "Unknown parameter name '%s'" % match.group("name"))
                 nr = self.param_dict[match.group("name")]
                 if check_list[nr]:
                     #raise ValueError, "Parameter specified twice"
@@ -1361,7 +1362,7 @@ class ParameterParser:
                 parameter_list[nr] = value
                 named = True
             elif named:
-                raise ValueError, "Only named parameters allowed"
+                raise ValueError("Only named parameters allowed")
             else:
                 nr = i
                 parameter_list[nr] = value
@@ -1513,7 +1514,7 @@ def link_tag(request, params, text=None, formatter=None, on=None, **kw):
     """
     if formatter is None:
         formatter = request.html_formatter
-    if kw.has_key('css_class'):
+    if 'css_class' in kw:
         css_class = kw['css_class']
         del kw['css_class'] # one time is enough
     else:

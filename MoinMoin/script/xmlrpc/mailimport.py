@@ -5,6 +5,7 @@ MoinMoin - MailImport script
 @copyright: 2006 MoinMoin:AlexanderSchremmer
 @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import sys
 import xmlrpclib
@@ -52,5 +53,5 @@ General syntax: moin [options] maint mailimport [mailimport-options]
         result = s.ProcessMail(secret, xmlrpclib.Binary(input.read()))
 
         if result != "OK":
-            print >> sys.stderr, result
+            print(result, file=sys.stderr)
 

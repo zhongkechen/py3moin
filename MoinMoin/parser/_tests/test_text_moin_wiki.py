@@ -8,6 +8,7 @@
     @copyright: 2003-2004 by Juergen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import re
 from StringIO import StringIO
@@ -395,7 +396,7 @@ class TestBlock(ParserTestCase):
             expected = r'<p.*?>AAA\s*\n*(<span.*?></span>\s*\n*)?%s' % blockstart
             needle = re.compile(expected, re.MULTILINE)
             result = self.parse(text % test)
-            print expected, result
+            print(expected, result)
             assert needle.search(result)
 
     def testEmptyLineBeforeBlock(self):
@@ -415,7 +416,7 @@ class TestBlock(ParserTestCase):
             expected = r'<p.*?>AAA.*?(<p.*?>\s*)*%s' % blockstart # XXX ignores addtl. <p>
             needle = re.compile(expected, re.MULTILINE)
             result = self.parse(text % test)
-            print expected, result
+            print(expected, result)
             assert needle.search(result)
 
     def testUrlAfterBlock(self):
@@ -442,7 +443,7 @@ pattern = re.compile(r'{{{This is some nested text}}}')
 }}}}"""
         output = self.parse(raw)
         output = ''.join(output)
-        print output
+        print(output)
         # note: recent pygments renders the opening {{{ intermixed into some <span> tags
         assert "This is some nested text}}}" in output
 
@@ -455,7 +456,7 @@ You can use {{{brackets}}}
 }}}}"""
         output = self.parse(raw)
         output = ''.join(output)
-        print output
+        print(output)
         assert 'You can use {{{brackets}}}' in output
 
     def testTextBeforeNestingPreBrackets(self):

@@ -7,10 +7,11 @@ Additionally, we check that the files have no crlf (Windows style) line endings.
             2007 adapted and extended (calling the PEP8 checker for most stuff) by MoinMoin:ThomasWaldmann.
 @license: MIT licensed
 """
+from __future__ import absolute_import
 
 import os, re, time, stat
 
-import pep8
+from . import pep8
 
 from MoinMoin.conftest import moindir
 

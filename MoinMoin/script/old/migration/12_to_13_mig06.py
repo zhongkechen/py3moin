@@ -42,6 +42,7 @@
     @copyright: 2004 Thomas Waldmann
     @license: GPL, see COPYING for details
 """
+from __future__ import print_function
 
 from_encoding = 'iso8859-1'
 to_encoding = 'utf-8'
@@ -57,7 +58,7 @@ def convert_string(str, enc_from, enc_to):
     return str.decode(enc_from).encode(enc_to)
 
 def convert_eventlog(fname_from, fname_to, enc_from, enc_to):
-    print "%s -> %s" % (fname_from, fname_to)
+    print("%s -> %s" % (fname_from, fname_to))
     file_from = open(fname_from)
     file_to = open(fname_to, "w")
 
@@ -91,7 +92,7 @@ origdir = 'data.pre-mig6'
 try:
     os.rename('data', origdir)
 except OSError:
-    print "You need to be in the directory where your copy of the 'data' directory is located."
+    print("You need to be in the directory where your copy of the 'data' directory is located.")
     sys.exit(1)
 
 copy_dir(origdir, 'data')

@@ -166,7 +166,7 @@ def execute(pagename, request):
             if request.cfg.comment_required and not comment:
                 raise pg.SaveError(_('Supplying a comment is mandatory. Write a comment below and try again...'))
             savemsg = pg.saveText(savetext, rev, trivial=trivial, comment=comment)
-        except pg.EditConflict, e:
+        except pg.EditConflict as e:
             msg = e.message
 
             # Handle conflict and send editor
@@ -177,7 +177,7 @@ def execute(pagename, request):
             pg.sendEditor(msg=msg, comment=comment)
             return
 
-        except pg.SaveError, msg:
+        except pg.SaveError as msg:
             # Show the error message
             request.theme.add_msg(unicode(msg), "error")
             # And show the editor again

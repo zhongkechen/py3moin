@@ -8,6 +8,7 @@
 
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import zlib, difflib, struct
 
@@ -86,8 +87,8 @@ def test():
 
     d = diff(a, b)
     z = compress(d)
-    print repr(patchtext(d))
-    print repr(d)
-    print "".join(b) == patch("".join(a), d)
-    print len(d), len(z)
+    print(repr(patchtext(d)))
+    print(repr(d))
+    print("".join(b) == patch("".join(a), d))
+    print(len(d), len(z))
 

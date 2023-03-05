@@ -22,7 +22,7 @@ from MoinMoin.action import get_names, get_available_actions
 from MoinMoin.util.abuse import log_attempt
 
 
-def set_umask(new_mask=0777^config.umask):
+def set_umask(new_mask=0o777^config.umask):
     """ Set the OS umask value (and ignore potential failures on OSes where
         this is not supported).
         Default: the bitwise inverted value of config.umask
@@ -269,12 +269,12 @@ class Application(object):
                     logging.info("timing: %s %s %s %3.3f %s" % (
                         request.remote_addr, request.url, request.referrer,
                         dt, "!" * int(dt) or "."))
-        except HTTPException, e:
+        except HTTPException as e:
             response = e
-        except error.ConfigurationError, e:
+        except error.ConfigurationError as e:
             # this is stuff the user should see on the web interface:
             response = fatal_response(e)
-        except Exception, e:
+        except Exception as e:
             # we avoid raising more exceptions here to preserve the original exception
             url_info = request and ' [%s]' % request.url or ''
             # have exceptions logged within the moin logging framework:

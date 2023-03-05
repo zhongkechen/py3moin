@@ -31,6 +31,7 @@
     @copyright: 2005 Thomas Waldmann
     @license: GPL, see COPYING for details
 """
+from __future__ import print_function
 
 import os.path, sys, urllib
 
@@ -73,7 +74,7 @@ destdir = 'data'
 try:
     os.rename(destdir, origdir)
 except OSError:
-    print "You need to be in the directory where your copy of the 'data' directory is located."
+    print("You need to be in the directory where your copy of the 'data' directory is located.")
     sys.exit(1)
 
 copy_dir(origdir, destdir)

@@ -162,7 +162,7 @@ class SlideshowAction:
             self.request.content_type = "text/html; charset=%s" % (config.charset, )
             self.request.setContentLanguage(language)
             self.request.write(self.template % self)
-        except Error, err:
+        except Error as err:
             self.request.theme.add_msg(wikiutil.escape(unicode(err)), "error")
             self.page.send_page()
 

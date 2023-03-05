@@ -52,7 +52,7 @@ class Formatter(FormatterBase):
         the Include macro will not be calling them, and the formatter doesn't
         work properly unless they are called.
         '''
-        if kw.has_key("is_included") and kw["is_included"]:
+        if "is_included" in kw and kw["is_included"]:
             self.include_kludge = True
         else:
             self.include_kludge = False
@@ -236,7 +236,7 @@ class Formatter(FormatterBase):
                             'i': "lowerroman",
                             'I': "upperroman"}
 
-        if type and docbook_ol_types.has_key(type):
+        if type and type in docbook_ol_types:
             attrs = [("numeration", docbook_ol_types[type])]
         else:
             attrs = []
@@ -257,7 +257,7 @@ class Formatter(FormatterBase):
         args = []
         if on and style:
             styles = self._convertStylesToDict(style)
-            if styles.has_key('list-style-type'):
+            if 'list-style-type' in styles:
                 args.append(('override', styles['list-style-type']))
 
         return self._handleNode("listitem", on, attributes=args)
@@ -337,7 +337,7 @@ class Formatter(FormatterBase):
         wikitag, wikiurl, wikitail, wikitag_bad = wikiutil.resolve_interwiki(self.request, interwiki, pagename)
         wikiurl = wikiutil.mapURL(self.request, wikiurl)
         href = wikiutil.join_wiki(wikiurl, wikitail)
-        if kw.has_key("anchor"):
+        if "anchor" in kw:
             href="%s#%s"%(href, kw['anchor'])
 
         if pagename == self.page.page_name:
@@ -353,7 +353,7 @@ class Formatter(FormatterBase):
         if not on:
             self._cleanupUlinkNode()
 
-        if kw.has_key("anchor") and kw.has_key("is_self") and kw["is_self"]:
+        if "anchor" in kw and "is_self" in kw and kw["is_self"]:
             #handle the case where we are pointing to somewhere insidee our own document
             return self._handleNode("link", on, attributes=(('linkend', kw["anchor"]), ))
         else:
@@ -436,22 +436,22 @@ class Formatter(FormatterBase):
         media.appendChild(imagewrap)
 
         image = self.doc.createElement('imagedata')
-        if kw.has_key('src'):
+        if 'src' in kw:
             src = kw['src']
             if src.startswith("/"):
                 # convert to absolute path:
                 src = self.request.getQualifiedURL(src)
             image.setAttribute('fileref', src)
-        if kw.has_key('width'):
+        if 'width' in kw:
             image.setAttribute('width', str(kw['width']))
-        if kw.has_key('height'):
+        if 'height' in kw:
             image.setAttribute('depth', str(kw['height']))
         imagewrap.appendChild(image)
 
         # Look for any suitable title, order is important.
         title = ''
         for a in ('title', 'html_title', 'alt', 'html_alt', 'attachment_title'):
-            if kw.has_key(a):
+            if a in kw:
                 title = kw[a]
                 break
         if title:
@@ -515,7 +515,7 @@ class Formatter(FormatterBase):
                      )
             return self._handleNode("screen", on, attributes=attrs)
         else:
-            if programming_languages.has_key(code_type):
+            if code_type in programming_languages:
                 code_type = programming_languages[code_type]
 
             attrs = (('linenumbering', show),
@@ -550,7 +550,7 @@ class Formatter(FormatterBase):
                     'Preprc': '',
                     'Text': '',
                    }
-        if toks_map.has_key(tok_type) and toks_map[tok_type]:
+        if tok_type in toks_map and toks_map[tok_type]:
             return self._handleFormatting(toks_map[tok_type], on)
         else:
             return ""
@@ -828,7 +828,7 @@ class Formatter(FormatterBase):
             entities = re.compile("&(?P<e>[a-zA-Z]+);").findall(cleaned)
             from htmlentitydefs import name2codepoint
             for ent in entities:
-                if name2codepoint.has_key(ent):
+                if ent in name2codepoint:
                     cleaned = cleaned.replace("&%s;" % ent, unichr(name2codepoint[ent]))
 
             # Then we replace all escaped unicodes.
@@ -969,7 +969,7 @@ class Table:
         for colnr in range(0, self.maxColumn):
             colspecElem = self.doc.createElement('colspec')
             colspecElem.setAttribute('colname', 'col_%s' % str(colnr))
-            if self.colWidths.has_key(str(colnr)) and self.colWidths[str(colnr)] != "1*":
+            if str(colnr) in self.colWidths and self.colWidths[str(colnr)] != "1*":
                 colspecElem.setAttribute('colwidth', self.colWidths[str(colnr)])
             self.tgroup.appendChild(colspecElem)
         self.tgroup.appendChild(self.tbody)
@@ -1001,7 +1001,7 @@ class Table:
         return cell
 
     def _handleColWidth(self, argsdict={}):
-        if not argsdict.has_key("width"):
+        if "width" not in argsdict:
             return
         argsdict["width"] = argsdict["width"].strip('"')
         if not argsdict["width"].endswith("%"):
@@ -1012,7 +1012,7 @@ class Table:
 
     def _handleColSpan(self, element, argsdict={}):
         """Returns the number of colums this entry spans"""
-        if not argsdict or not argsdict.has_key('colspan'):
+        if not argsdict or 'colspan' not in argsdict:
             return 1
         assert(element.nodeName == "entry")
         extracols = int(argsdict['colspan'].strip('"')) - 1
@@ -1029,11 +1029,11 @@ class Table:
                            'align': ('left', 'center', 'right'),
                           }
 
-        if argsdict.has_key('rowspan'):
+        if 'rowspan' in argsdict:
             extrarows = int(argsdict['rowspan'].strip('"')) - 1
             element.setAttribute('morerows', str(extrarows))
 
-        if argsdict.has_key('align'):
+        if 'align' in argsdict:
             value = argsdict['align'].strip('"')
             if value in safe_values_for['align']:
                 element.setAttribute('align', value)
@@ -1041,7 +1041,7 @@ class Table:
                 self.formatter._emitComment("Alignment %s not supported" % value)
                 pass
 
-        if argsdict.has_key('valign'):
+        if 'valign' in argsdict:
             value = argsdict['valign'].strip('"')
             if value in safe_values_for['valign']:
                 element.setAttribute('valign', value)

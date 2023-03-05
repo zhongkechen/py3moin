@@ -117,7 +117,7 @@ class Parser:
 ''' % self.key
         try:
             file(self.pluginFilePath('.py'), 'w').write(data)
-        except Exception, err:
+        except Exception as err:
             py.test.skip("Can't create test plugin: %s" % str(err))
 
     def deleteTestPlugin(self):
@@ -127,7 +127,7 @@ class Parser:
         for suffix in ('.py', '.pyc'):
             try:
                 os.unlink(self.pluginFilePath(suffix))
-            except OSError, err:
+            except OSError as err:
                 if err.errno != errno.ENOENT:
                     raise
 

@@ -12,6 +12,7 @@
     @copyright: 2006 Alexander Schremmer <alex AT alexanderweb DOT de>
     @license: GNU GPL Version 2
 """
+from __future__ import print_function
 
 
 __all__ = "activate_hook trigger_dump dump_regularly".split()
@@ -50,7 +51,7 @@ class LegacyMonitor(AbstractMonitor):
     def dump(cls, label):
         df = cls.dump_file or sys.stderr
         s = StringIO()
-        print >>s, "\nDumping thread %s:" % (label, )
+        print("\nDumping thread %s:" % (label, ), file=s)
         try:
             raise ZeroDivisionError
         except ZeroDivisionError:
@@ -103,7 +104,7 @@ class DirectMonitor(AbstractMonitor):
         cur_frames = sys._current_frames()
         for i in cur_frames:
             s = StringIO()
-            print >>s, "\nDumping thread (id %s):" % (i, )
+            print("\nDumping thread (id %s):" % (i, ), file=s)
             traceback.print_stack(cur_frames[i], file=s)
             dumpfile.write(s.getvalue())
 

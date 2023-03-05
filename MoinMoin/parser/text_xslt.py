@@ -98,11 +98,11 @@ class Parser:
                 result = out_file.getvalue().decode('utf-8')
                 result = self.parse_result(result) # hook, for extending this parser
 
-            except FtException, msg:
+            except FtException as msg:
                 etype = "XSLT"
-            except Uri.UriException, msg:
+            except Uri.UriException as msg:
                 etype = "XSLT"
-            except IOError, msg:
+            except IOError as msg:
                 etype = "I/O"
 
             if msg:

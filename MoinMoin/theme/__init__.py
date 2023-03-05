@@ -576,10 +576,10 @@ class ThemeBase:
         alt, img, w, h = self.get_icon(icon)
         try:
             alt = vars['icon-alt-text'] # if it is possible we take the alt-text from 'page_icons_table'
-        except KeyError, err:
+        except KeyError as err:
             try:
                 alt = alt % vars # if not we just leave the  alt-text from 'icons'
-            except KeyError, err:
+            except KeyError as err:
                 alt = 'KeyError: %s' % str(err)
         alt = self.request.getText(alt)
         tag = self.request.formatter.image(src=img, alt=alt, width=w, height=h, **kw)
@@ -1194,8 +1194,8 @@ actionsMenuInit('%(label)s');
             action = self.request.action
             # Do not show editbar on edit but on save/cancel
             return not (action == 'edit' and
-                        not form.has_key('button_save') and
-                        not form.has_key('button_cancel'))
+                        'button_save' not in form and
+                        'button_cancel' not in form)
         return False
 
     def editbarItems(self, page):
@@ -1621,7 +1621,7 @@ var gui_editor_link_text = "%(text)s";
         _ = request.getText
         rev = request.rev
 
-        if keywords.has_key('page'):
+        if 'page' in keywords:
             page = keywords['page']
             pagename = page.page_name
         else:
@@ -1767,7 +1767,7 @@ var gui_editor_link_text = "%(text)s";
 
         # start the <body>
         bodyattr = []
-        if keywords.has_key('body_attr'):
+        if 'body_attr' in keywords:
             bodyattr.append(' ')
             bodyattr.append(keywords['body_attr'])
 

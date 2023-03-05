@@ -5,6 +5,7 @@
     @copyright: 2007 by Karol Nowak <grywacz@gmail.com>
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import py
 
@@ -31,20 +32,20 @@ def test_send_event(request):
     request.cfg.event_handlers = [event_handler]
     event = events.Event(request)
 
-    print "A proper event handler must be called and an 1-element list of results returned"
+    print("A proper event handler must be called and an 1-element list of results returned")
     results = events.send_event(event)
     assert issubclass(results[0].__class__, events.EventResult)
 
 def test_subscribable_events(request):
     """Test if there are any subscribable events. There should be some."""
 
-    print "There should be at least a few subscribable events!"
+    print("There should be at least a few subscribable events!")
     assert events.get_subscribable_events()
 
 def test_page_change_message(request):
     page = PageEditor(request, "FrontPage")
 
-    print "Provided with a dumb change type argument, this should raise an exception!"
+    print("Provided with a dumb change type argument, this should raise an exception!")
     py.test.raises(notification.UnknownChangeType, notification.page_change_message,
                    "StupidType", request, page, "en", revisions=page.getRevList())
 
@@ -68,32 +69,32 @@ def test_filter_subscriber_list(request):
     user = User(request)
     event = events.Event(request)
 
-    print "User is subscribed to this event on jabber."
-    print "This means, that he should stay on the list."
+    print("User is subscribed to this event on jabber.")
+    print("This means, that he should stay on the list.")
     user.jid = "user@example.com"
     user.jabber_subscribed_events = [events.Event.__name__]
     subscribers = {"en": [user]}
     notification.filter_subscriber_list(event, subscribers, True)
     assert subscribers["en"]
 
-    print "User is not subscribed to this event on jabber."
-    print "The list should be empty."
+    print("User is not subscribed to this event on jabber.")
+    print("The list should be empty.")
     user.jid = "user@example.com"
     user.jabber_subscribed_events = []
     subscribers = {"en": [user]}
     notification.filter_subscriber_list(event, subscribers, True)
     assert not subscribers["en"]
 
-    print "User is subscribed to this event on email."
-    print "This means, that he should stay on the list."
+    print("User is subscribed to this event on email.")
+    print("This means, that he should stay on the list.")
     user.email = "user@example.com"
     user.email_subscribed_events = [events.Event.__name__]
     subscribers = {"en": [user]}
     notification.filter_subscriber_list(event, subscribers, False)
     assert subscribers["en"]
 
-    print "User is not subscribed to this event on email."
-    print "The list should be empty."
+    print("User is not subscribed to this event on email.")
+    print("The list should be empty.")
     user.email = "user@example.com"
     user.email_subscribed_events = []
     subscribers = {"en": [user]}

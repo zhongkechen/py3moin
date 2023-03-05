@@ -5,6 +5,7 @@ pdt_locales
 
 All of the included locale classes shipped with pdt.
 """
+from __future__ import absolute_import
 import datetime
 
 try:
@@ -13,7 +14,7 @@ except NameError:
     pass
 
 try:
-    import icu as pyicu
+    from . import icu as pyicu
 except ImportError:
     try:
         import PyICU as pyicu

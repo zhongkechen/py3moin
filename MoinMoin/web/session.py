@@ -142,7 +142,7 @@ class FileSessionService(SessionService):
         except OSError:
             pass
         return FilesystemSessionStore(path=path, filename_template='%s',
-                                      session_class=MoinSession, mode=0666 & config.umask)
+                                      session_class=MoinSession, mode=0o666 & config.umask)
 
     def get_session(self, request, sid=None):
         if sid is None:

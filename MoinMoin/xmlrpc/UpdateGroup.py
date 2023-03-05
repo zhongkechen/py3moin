@@ -48,7 +48,7 @@ def execute(self, groupname, groupcomment, memberlist, pageacls=u"All:read"):
     page = PageEditor(self.request, pagename)
     try:
         msg = page.saveText(newtext, 0)
-    except page.SaveError, msg:
+    except page.SaveError as msg:
         logging.error("SaveError msg: %s" % str(msg))
         return xmlrpclib.Fault(3, msg)
     if msg:

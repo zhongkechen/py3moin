@@ -244,7 +244,7 @@ class XmlRpcBase:
             except:
                 results.append(
                     {'faultCode': 1,
-                     'faultString': "%s:%s" % (sys.exc_type, sys.exc_value)}
+                     'faultString': "%s:%s" % (sys.exc_info()[0], sys.exc_info()[1])}
                     )
 
         return results
@@ -605,7 +605,7 @@ class XmlRpcBase:
             elif self.version == 1:
                 newtext = self._inlob(pagetext)
             msg = page.saveText(newtext, 0)
-        except page.SaveError, msg:
+        except page.SaveError as msg:
             logging.error("SaveError: %s" % msg)
             return xmlrpclib.Fault(1, "%s" % msg)
 
@@ -636,7 +636,7 @@ class XmlRpcBase:
 
         try:
             editor.renamePage(newpagename)
-        except PageEditor.SaveError, error:
+        except PageEditor.SaveError as error:
             return xmlrpclib.Fault(1, "Rename failed: %s" % (str(error), ))
 
         return xmlrpclib.Boolean(1)
@@ -664,7 +664,7 @@ class XmlRpcBase:
 
         try:
             editor.revertPage(rev)
-        except PageEditor.SaveError, error:
+        except PageEditor.SaveError as error:
             return xmlrpclib.Fault(1, "Revert failed: %s" % (str(error), ))
 
         return xmlrpclib.Boolean(1)
@@ -1001,7 +1001,8 @@ class XmlRpcBase:
         if diff is None: # delete the page
             try:
                 currentpage.deletePage(comment)
-            except PageEditor.AccessDenied, (msg, ):
+            except PageEditor.AccessDenied as xxx_todo_changeme:
+                (msg, ) = xxx_todo_changeme.args
                 return xmlrpclib.Fault("NOT_ALLOWED", msg)
             return currentpage.get_real_rev()
 

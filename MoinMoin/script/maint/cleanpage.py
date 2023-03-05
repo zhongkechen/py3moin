@@ -5,6 +5,7 @@ MoinMoin - display unused or trash page directories in data/pages
 @copyright: 2005-2006 MoinMoin:ThomasWaldmann
 @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import os
 
@@ -73,9 +74,9 @@ General syntax: moin [options] maint cleanpage [cleanpage-options]
             pagedir = os.path.join(pagesdir, p)
             status = self.qualify(pagedir)
             if status in ['trash', 'empty', ]:
-                print "mv '%s' trash # %s" % (pagedir, status)
+                print("mv '%s' trash # %s" % (pagedir, status))
             elif status in ['deleted', ]:
-                print "mv '%s' deleted # %s" % (pagedir, status)
+                print("mv '%s' deleted # %s" % (pagedir, status))
             else:
-                print "# %s: '%s'" % (status, pagedir)
+                print("# %s: '%s'" % (status, pagedir))
 

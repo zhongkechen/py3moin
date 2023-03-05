@@ -1181,7 +1181,7 @@ def _do_unzip(pagename, request, overwrite=False):
                         'filelist': ', '.join(not_overwritten), }
             else:
                 msg = _("Attachment '%(filename)s' unzipped.") % {'filename': filename}
-    except (IOError, RuntimeError, zipfile.BadZipfile, zipfile.LargeZipFile), err:
+    except (IOError, RuntimeError, zipfile.BadZipfile, zipfile.LargeZipFile) as err:
         # We don't want to crash with a traceback here (an exception
         # here could be caused by an uploaded defective zip file - and
         # if we crash here, the user does not get a UI to remove the

@@ -28,18 +28,18 @@ def execute(pagename, request):
         date = request.values['date']
         try:
             date = long(date) # must be long for py 2.2.x
-        except StandardError:
+        except Exception:
             date = 0
     except KeyError:
         date = 0
 
     try:
         rev1 = int(request.values.get('rev1', -1))
-    except StandardError:
+    except Exception:
         rev1 = 0
     try:
         rev2 = int(request.values.get('rev2', 0))
-    except StandardError:
+    except Exception:
         rev2 = 0
 
     if rev1 == -1 and rev2 == 0:

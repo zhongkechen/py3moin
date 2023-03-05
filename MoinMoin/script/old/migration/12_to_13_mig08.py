@@ -41,6 +41,7 @@
     @copyright: 2004 Thomas Waldmann
     @license: GPL, see COPYING for details
 """
+from __future__ import print_function
 
 
 import os.path, sys, urllib
@@ -198,7 +199,7 @@ try:
     os.rename('data', origdir)
     os.mkdir('data')
 except OSError:
-    print "You need to be in the directory where your copy of the 'data' directory is located."
+    print("You need to be in the directory where your copy of the 'data' directory is located.")
     sys.exit(1)
 
 #gather_editlog(opj(origdir, 'edit-log'))

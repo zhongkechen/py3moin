@@ -276,7 +276,7 @@ def get_subscribable_events():
     subscribable_events = {}
 
     for ev in defs.values():
-        if type(ev) is type and issubclass(ev, Event) and ev.__dict__.has_key("description") and ev.__dict__.has_key("name"):
+        if type(ev) is type and issubclass(ev, Event) and "description" in ev.__dict__ and "name" in ev.__dict__:
             subscribable_events[ev.name] = {'desc': ev.description, 'superuser': ev.req_superuser}
 
     return subscribable_events

@@ -37,7 +37,7 @@ class FrontEnd(object):
 
         try:
             self.run_server(application, options)
-        except SystemExit, err:
+        except SystemExit as err:
             # the flup CGIRequest uses sys.exit(0) to terminate
             if err.code: # log a non-zero exit status (0 means no error)
                 logging.exception('A SystemExit(%d) exception occurred.' % err.code)

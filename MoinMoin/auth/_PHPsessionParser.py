@@ -4,6 +4,7 @@
     @copyright: 2005 MoinMoin:AlexanderSchremmer (Thanks to Spreadshirt)
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 #Known minor bugs/questions/ideas:
 #How does object demarshalling work?
@@ -116,7 +117,7 @@ def loadSession(key, path=s_path, prefix=s_prefix):
 
     try:
         f = open(filename, "rb")
-    except IOError, e:
+    except IOError as e:
         if e.errno == 2:
             return None # session does not exist
         else:
@@ -140,6 +141,6 @@ if __name__ == '__main__':
     p_s = loadSession("...")
     import pprint
     pprint.pprint(p_s)
-    print time.clock() - a
-    print listSessions()
+    print(time.clock() - a)
+    print(listSessions())
 

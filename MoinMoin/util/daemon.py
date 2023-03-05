@@ -153,7 +153,7 @@ class Daemon:
             try:
                 os.kill(pid, 0)
                 running = True
-            except OSError, err:
+            except OSError as err:
                 if err.errno == errno.ESRCH:
                     # No such process or security enhancements are causing
                     # the system to deny its existence.
@@ -172,7 +172,7 @@ class Daemon:
         pid = None
         try:
             pid = int(file(self.pidFile).read())
-        except IOError, err:
+        except IOError as err:
             if err.errno != errno.ENOENT:
                 raise
         except ValueError:
@@ -190,12 +190,12 @@ class Daemon:
         os.setsid()
         if os.fork():   # launch child and...
             os._exit(0) # kill off parent again.
-        os.umask(0077)
+        os.umask(0o077)
         null = os.open('/dev/null', os.O_RDWR)
         for i in range(3):
             try:
                 os.dup2(null, i)
-            except OSError, e:
+            except OSError as e:
                 if e.errno != errno.EBADF:
                     raise
         os.close(null)
@@ -207,7 +207,7 @@ class Daemon:
     def removePID(self):
         try:
             os.remove(self.pidFile)
-        except OSError, err:
+        except OSError as err:
             if err.errno != errno.ENOENT:
                 raise
 
@@ -238,7 +238,7 @@ class DaemonScript(Daemon):
             func()
         except AttributeError:
             self.usage('unknown command %r' % command)
-        except Exception, why:
+        except Exception as why:
             sys.exit("error: %s" % str(why))
 
     def usage(self, message):

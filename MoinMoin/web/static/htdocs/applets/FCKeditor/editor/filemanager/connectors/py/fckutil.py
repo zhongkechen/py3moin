@@ -79,9 +79,9 @@ def getCurrentFolder(currentFolder):
 		currentFolder = '/'
 
 	# Check the current folder syntax (must begin and end with a slash).
-	if (currentFolder[-1] <> "/"):
+	if (currentFolder[-1] != "/"):
 		currentFolder += "/"
-	if (currentFolder[0] <> "/"):
+	if (currentFolder[0] != "/"):
 		currentFolder = "/" + currentFolder
 
 	# Ensure the folder path has no double-slashes
@@ -112,7 +112,7 @@ def getRootPath(environ):
 	# WARNING: this may not be thread safe, and doesn't work w/ VirtualServer/mod_python
 	# Use Config.UserFilesAbsolutePath instead
 
-	if environ.has_key('DOCUMENT_ROOT'):
+	if 'DOCUMENT_ROOT' in environ:
 		return environ['DOCUMENT_ROOT']
 	else:
 		realPath = os.path.realpath( './' )
@@ -125,6 +125,6 @@ def getRootPath(environ):
 		# This can check only that this script isn't run from a virtual dir
 		# But it avoids the problems that arise if it isn't checked
 		raise realPath
-		if ( position < 0 or position <> len(realPath) - len(selfPath) or realPath[ : position ]==''):
+		if ( position < 0 or position != len(realPath) - len(selfPath) or realPath[ : position ]==''):
 			raise Exception('Sorry, can\'t map "UserFilesPath" to a physical path. You must set the "UserFilesAbsolutePath" value in "editor/filemanager/connectors/py/config.py".')
 		return realPath[ : position ]

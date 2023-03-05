@@ -116,7 +116,7 @@ def _log(type, message, *args, **kwargs):
 def _parse_signature(func):
     """Return a signature object for the function."""
     if hasattr(func, "im_func"):
-        func = func.im_func
+        func = func.__func__
 
     # if we have a cached validator for this function, return it
     parse = _signature_cache.get(func)

@@ -45,6 +45,7 @@ Why run this script?
 @copyright: 2004 Nir Soffer <nirs AT freeshell DOT org>
 @license: GPL, see COPYING for details
 """
+from __future__ import print_function
 
 import codecs
 import os, sys
@@ -120,7 +121,7 @@ def processPages(path, repair):
     for page in pages:
         revdir = os.path.join(path, page, 'revisions')
         if not os.path.isdir(revdir):
-            print 'Error: %s: missing revisions directory' % page
+            print('Error: %s: missing revisions directory' % page)
             continue
 
         for rev in listdir(revdir):
@@ -136,9 +137,9 @@ def processPages(path, repair):
                 f = codecs.open(revpath, 'wb', charset)
                 f.write(text)
                 f.close()
-                print 'Repaired %s revision %s' % (page, rev)
+                print('Repaired %s revision %s' % (page, rev))
             elif changed:
-                print 'Should repair %s revision %s' % (page, rev)
+                print('Should repair %s revision %s' % (page, rev))
 
 
 if __name__ == '__main__':
@@ -146,15 +147,15 @@ if __name__ == '__main__':
     # Check for pages directory in current directory
     path = os.path.abspath('pages')
     if not os.path.isdir(path):
-        print "Error: could not find 'pages' directory"
-        print 'Run this script from your wiki data directory'
-        print __doc__
+        print("Error: could not find 'pages' directory")
+        print('Run this script from your wiki data directory')
+        print(__doc__)
         sys.exit(1)
 
     options = {'verify': 0, 'repair': 1, }
 
     if len(sys.argv) != 2 or sys.argv[1] not in options:
-        print __doc__
+        print(__doc__)
         sys.exit(1)
 
     processPages(path, repair=options[sys.argv[1]])

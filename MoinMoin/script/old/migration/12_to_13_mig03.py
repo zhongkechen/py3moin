@@ -47,6 +47,7 @@
     @copyright: 2004 Thomas Waldmann
     @license: GPL, see COPYING for details
 """
+from __future__ import print_function
 
 import os, sys, shutil, urllib
 
@@ -90,7 +91,7 @@ def convert_textdir(dir_from, dir_to, is_backupdir=0):
 def convert_pagedir(dir_from, dir_to):
     os.mkdir(dir_to)
     for dname_from in listdir(dir_from):
-        print "%s" % (dname_from, )
+        print("%s" % (dname_from, ))
         dname_to = dname_from
         shutil.copytree(opj(dir_from, dname_from), opj(dir_to, dname_to), 1)
         try:
@@ -122,7 +123,7 @@ try:
     os.rename('data', origdir)
     os.mkdir('data')
 except OSError:
-    print "You need to be in the directory where your copy of the 'data' directory is located."
+    print("You need to be in the directory where your copy of the 'data' directory is located.")
     sys.exit(1)
 
 convert_pagedir(opj(origdir, 'pages'), opj('data', 'pages'))

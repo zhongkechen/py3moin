@@ -37,7 +37,7 @@ class Settings(UserPrefBase):
         request = self.request
         form = request.form
 
-        if form.has_key('cancel'):
+        if 'cancel' in form:
             return
 
         if request.method != 'POST':
@@ -65,7 +65,7 @@ class Settings(UserPrefBase):
             self.request.user.enc_password = user.encodePassword(request.cfg, password)
             self.request.user.save()
             return 'info', _("Your password has been changed.")
-        except UnicodeError, err:
+        except UnicodeError as err:
             # Should never happen
             return "Can't encode password: %s" % str(err)
 

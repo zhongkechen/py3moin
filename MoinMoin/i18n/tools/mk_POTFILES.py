@@ -28,14 +28,14 @@ outname_final = "POTFILES"
 
 # Functions.
 
-def get_files((files, prefix, blacklist), d, names):
+def get_files(xxx_todo_changeme, d, names):
 
     """
     Store pathnames in 'files', removing 'prefix', excluding those mentioned
     in the 'blacklist', building such pathnames from the directory 'd' and
     the given 'names'.
     """
-
+    (files, prefix, blacklist) = xxx_todo_changeme
     for name in names:
         if name.endswith(".py"):
             path = os.path.join(d, name)

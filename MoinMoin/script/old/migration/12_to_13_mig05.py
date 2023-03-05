@@ -67,6 +67,7 @@
     @copyright: 2004 Thomas Waldmann
     @license: GPL, see COPYING for details
 """
+from __future__ import print_function
 
 
 import os.path, sys, urllib
@@ -196,7 +197,7 @@ def gather_pagedirs(dir_from, is_backupdir=0):
                         entry[ts][0] = backup_from
                         lleftover.remove(ts)
                         bleftover.remove(bfile)
-                        print "Warning: Win32 daylight saving bug encountered & fixed!"
+                        print("Warning: Win32 daylight saving bug encountered & fixed!")
 
             if len(bleftover) == 1 and len(lleftover) == 1: # only 1 left, must be this
                 backup_from = opj(backupdir_from, bleftover[0])
@@ -262,7 +263,7 @@ def generate_pages(dir_from, dir_to):
                         revertrev = int(entry[revertts][1][1])
                     except KeyError:
                         # never should trigger...
-                        print "********* KeyError %s entry[%d][1][1] **********" % (pagename, revertts)
+                        print("********* KeyError %s entry[%d][1][1] **********" % (pagename, revertts))
                         revertrev = 0
                     data[7] = '%08d' % revertrev
                 f.write('\t'.join(data)+'\n')
@@ -308,7 +309,7 @@ try:
     os.rename('data', origdir)
     os.mkdir('data')
 except OSError:
-    print "You need to be in the directory where your copy of the 'data' directory is located."
+    print("You need to be in the directory where your copy of the 'data' directory is located.")
     sys.exit(1)
 
 gather_editlog(origdir, opj(origdir, 'edit-log'))

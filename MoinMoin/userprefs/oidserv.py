@@ -51,13 +51,13 @@ class Settings(UserPrefBase):
         _ = self._
         form = self.request.form
 
-        if form.has_key('cancel'):
+        if 'cancel' in form:
             return
 
         if self.request.method != 'POST':
             return
 
-        if form.has_key('remove'):
+        if 'remove' in form:
             return self._handle_remove()
 
     def _make_form(self):

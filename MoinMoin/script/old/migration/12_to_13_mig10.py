@@ -38,6 +38,7 @@
     @copyright: 2005 Thomas Waldmann
     @license: GPL, see COPYING for details
 """
+from __future__ import print_function
 
 from_encoding = 'iso8859-1'
 #from_encoding = 'utf-8'
@@ -75,7 +76,7 @@ def migrate(dir_to):
                 except UnicodeDecodeError:
                     fnew = f.decode(from_encoding).encode(to_encoding)
                     os.rename(os.path.join(root, f), os.path.join(root, fnew))
-                    print 'renamed', f, '\n ->', fnew, ' in dir:', root
+                    print('renamed', f, '\n ->', fnew, ' in dir:', root)
 
 
 origdir = 'data.pre-mig10'
@@ -85,7 +86,7 @@ destdir = 'data'
 try:
     os.rename(destdir, origdir)
 except OSError:
-    print "You need to be in the directory where your copy of the 'data' directory is located."
+    print("You need to be in the directory where your copy of the 'data' directory is located.")
     sys.exit(1)
 
 copy_dir(origdir, destdir)

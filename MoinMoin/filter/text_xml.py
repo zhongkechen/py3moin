@@ -19,7 +19,7 @@ def execute(indexobj, filename):
     data = textfilter(indexobj, filename)
     try:
         data = " ".join(rx_stripxml.sub(" ", data).split())
-    except RuntimeError, err:
+    except RuntimeError as err:
         logging.error(str(err))
         data = ""
     return data

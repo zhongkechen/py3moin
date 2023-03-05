@@ -188,7 +188,7 @@ class PageEditor(Page):
                             ) + "<br>" + edit_lock_message
                     else:
                         msg = edit_lock_message
-            except OSError, err:
+            except OSError as err:
                 if err.errno == errno.ENAMETOOLONG:
                     msg = _("Page name is too long, try shorter name.")
                 else:
@@ -239,7 +239,7 @@ class PageEditor(Page):
         # get request parameters
         try:
             text_rows = int(form['rows'])
-        except StandardError:
+        except Exception:
             text_rows = self.cfg.edit_rows
             if request.user.valid:
                 text_rows = int(request.user.edit_rows)
@@ -585,7 +585,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             send_event(event)
 
             return True, None
-        except OSError, err:
+        except OSError as err:
             # Try to understand what happened. Maybe its better to check
             # the error code, but I just reused the available code above...
             if newpage.exists(includeDeleted=1):
@@ -659,7 +659,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             send_event(event)
 
             return True, None
-        except OSError, err:
+        except OSError as err:
             # Try to understand what happened. Maybe its better to check
             # the error code, but I just reused the available code above...
             if newpage.exists(includeDeleted=1):
@@ -727,7 +727,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             event = PageDeletedEvent(request, self, comment)
             send_event(event)
 
-        except self.SaveError, message:
+        except self.SaveError as message:
             # XXX do not only catch base class SaveError here, but
             # also the derived classes, so we can give better err msgs
             success = False
@@ -967,7 +967,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
                 try:
                     filesys.rename(cfn, clfn)
                     got_lock = True
-                except OSError, err:
+                except OSError as err:
                     got_lock = False
                     if err.errno == 2: # there was no 'current' file
                         time.sleep(0.1)
@@ -983,7 +983,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             f.close()
             try:
                 rev = int(revstr)
-            except ValueError, err:
+            except ValueError as err:
                 raise self.SaveError(_("Unable to determine current page revision from the 'current' file. The page %s is damaged and cannot be edited right now.") % self.page_name)
 
             if not was_deprecated:
@@ -995,7 +995,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
                 f = file(cltfn, 'w')
                 f.write(revstr+'\n')
                 f.close()
-            except IOError, err:
+            except IOError as err:
                 try:
                     os.remove(cltfn)
                 except:
@@ -1312,7 +1312,7 @@ To leave the editor, press the Cancel button.""", wiki=True) % {
 
         if self.locktype:
             try:
-                entry = editlog.EditLog(self.request, filename=self._filename()).next()
+                entry = next(editlog.EditLog(self.request, filename=self._filename()))
             except StopIteration:
                 entry = None
 

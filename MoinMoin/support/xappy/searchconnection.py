@@ -18,22 +18,24 @@
 r"""searchconnection.py: A connection to the search engine for searching.
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 __docformat__ = "restructuredtext en"
 
-import _checkxapian
+from . import _checkxapian
 import os as _os
 import cPickle as _cPickle
 import math
 
 import xapian as _xapian
-from datastructures import *
-from fieldactions import *
-import fieldmappings as _fieldmappings
-import highlight as _highlight 
-import errors as _errors
-import indexerconnection as _indexerconnection
+from .datastructures import *
+from .fieldactions import *
+from . import fieldmappings as _fieldmappings
+from . import highlight as _highlight 
+from . import errors as _errors
+from . import indexerconnection as _indexerconnection
 import re as _re
-from replaylog import log as _log
+from .replaylog import log as _log
 
 class SearchResult(ProcessedDocument):
     """A result from a search.
@@ -174,9 +176,9 @@ class SearchResultIter(object):
 
     def next(self):
         if self._order is None:
-            msetitem = self._iter.next()
+            msetitem = next(self._iter)
         else:
-            index = self._iter.next()
+            index = next(self._iter)
             msetitem = self._results._mset.get_hit(index)
         return SearchResult(msetitem, self._results)
 
@@ -853,9 +855,9 @@ class SearchConnection(object):
         for handler, userdata in self._close_handlers:
             try:
                 handler(indexpath, userdata)
-            except Exception, e:
+            except Exception as e:
                 import sys, traceback
-                print >>sys.stderr, "WARNING: unhandled exception in handler called by SearchConnection.close(): %s" % traceback.format_exception_only(type(e), e)
+                print("WARNING: unhandled exception in handler called by SearchConnection.close(): %s" % traceback.format_exception_only(type(e), e), file=sys.stderr)
 
     def get_doccount(self):
         """Count the number of documents in the database.
@@ -1154,7 +1156,7 @@ class SearchConnection(object):
                                                self._qp_flags_synonym |
                                                self._qp_flags_bool,
                                                prefix)
-        except _xapian.QueryParserError, e:
+        except _xapian.QueryParserError as e:
             # If we got a parse error, retry without boolean operators (since
             # these are the usual cause of the parse error).
             q1 = self._query_parse_with_prefix(qp, string,
@@ -1169,7 +1171,7 @@ class SearchConnection(object):
                                                self._qp_flags_base |
                                                self._qp_flags_bool,
                                                prefix)
-        except _xapian.QueryParserError, e:
+        except _xapian.QueryParserError as e:
             # If we got a parse error, retry without boolean operators (since
             # these are the usual cause of the parse error).
             q2 = self._query_parse_with_prefix(qp, string,
@@ -1385,7 +1387,7 @@ class SearchConnection(object):
             try:
                 eterms = self._perform_expand(ids, prefixes, simterms)
                 break;
-            except _xapian.DatabaseModifiedError, e:
+            except _xapian.DatabaseModifiedError as e:
                 self.reopen()
         return eterms, prefixes
 
@@ -1420,7 +1422,7 @@ class SearchConnection(object):
         for id in ids:
             pl = self._index.postlist('Q' + id)
             try:
-                xapid = pl.next()
+                xapid = next(pl)
                 rset.add_document(xapid.docid)
             except StopIteration:
                 pass
@@ -1695,7 +1697,7 @@ class SearchConnection(object):
                     field = self._field_mappings.get_fieldname_from_prefix(prefix)
                     if field and FieldActions.FACET in self._field_actions[field]._actions:
                         queryfacets.add(field)
-                    termsiter.next()
+                    next(termsiter)
 
             for field in allowfacets:
                 try:
@@ -1764,7 +1766,7 @@ class SearchConnection(object):
                     mset = enq.get_mset(startrank, maxitems, checkatleast,
                                         None, None, matchspy)
                 break
-            except _xapian.DatabaseModifiedError, e:
+            except _xapian.DatabaseModifiedError as e:
                 self.reopen()
         facet_hierarchy = None
         if usesubfacets:
@@ -1805,12 +1807,12 @@ class SearchConnection(object):
             try:
                 postlist = self._index.postlist('Q' + id)
                 try:
-                    plitem = postlist.next()
+                    plitem = next(postlist)
                 except StopIteration:
                     # Unique ID not found
                     raise KeyError('Unique ID %r not found' % id)
                 try:
-                    postlist.next()
+                    next(postlist)
                     raise _errors.IndexerError("Multiple documents " #pragma: no cover
                                                "found with same unique ID")
                 except StopIteration:
@@ -1821,7 +1823,7 @@ class SearchConnection(object):
                 result.id = id
                 result._doc = self._index.get_document(plitem.docid)
                 return result
-            except _xapian.DatabaseModifiedError, e:
+            except _xapian.DatabaseModifiedError as e:
                 self.reopen()
 
     def iter_synonyms(self, prefix=""):

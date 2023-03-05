@@ -5,6 +5,7 @@
     @copyright: 2005 by MoinMoin:AlexanderSchremmer
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import py
 
@@ -21,9 +22,9 @@ class TestFormatter:
         except wikiutil.PluginAttributeError:
             pass
         else:
-            print "Formatting using %r" % formatter
+            print("Formatting using %r" % formatter)
             self.formatPage("HelpOnMoinWikiSyntax", formatter)
-            print "Done."
+            print("Done.")
 
     def testSyntaxReferenceDocBook(self):
         py.test.skip("docbook is broken")
@@ -33,9 +34,9 @@ class TestFormatter:
         except wikiutil.PluginAttributeError:
             pass
         else:
-            print "Formatting using %r" % formatter
+            print("Formatting using %r" % formatter)
             self.formatPage("HelpOnMoinWikiSyntax", formatter)
-            print "Done."
+            print("Done.")
 
     def testSyntaxReferenceOthers(self):
         formatters = wikiutil.getPlugins("formatter", self.request.cfg)
@@ -50,9 +51,9 @@ class TestFormatter:
             except wikiutil.PluginAttributeError:
                 pass
             else:
-                print "Formatting using %r" % formatter
+                print("Formatting using %r" % formatter)
                 self.formatPage("HelpOnMoinWikiSyntax", formatter)
-                print "Done."
+                print("Done.")
 
     def formatPage(self, pagename, formatter):
         """Parse a page. Should not raise an exception if the API of the

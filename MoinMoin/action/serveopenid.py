@@ -216,7 +216,7 @@ class MoinOpenIDServer:
             answer = self.handle_response(False, username, identity)
             if answer is None:
                 return
-        elif form.has_key('approve'):
+        elif 'approve' in form:
             answer = self.handle_response(True, username, identity)
             if answer is None:
                 return
@@ -226,7 +226,7 @@ class MoinOpenIDServer:
                 query[key] = form[key]
             try:
                 openidreq = openidsrv.decodeRequest(query)
-            except Exception, e:
+            except Exception as e:
                 request.makeForbidden(403, 'OpenID decode error: %r' % e)
                 return
 

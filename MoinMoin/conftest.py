@@ -86,7 +86,7 @@ def pytest_funcarg__request(request):
 class MoinTestFunction(py.test.collect.Function):
     def execute(self, target, *args):
         request = self.parent.request
-        co = target.func_code
+        co = target.__code__
         if 'request' in co.co_varnames[:co.co_argcount]:
             target(request, *args)
         else:

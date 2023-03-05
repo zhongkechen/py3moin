@@ -13,6 +13,7 @@
     @copyright: 2004 Thomas Waldmann
     @license: GPL, see COPYING for details
 """
+from __future__ import print_function
 
 import os.path, sys, urllib
 
@@ -65,7 +66,7 @@ origdir = 'data.pre-mig7'
 try:
     os.rename('data', origdir)
 except OSError:
-    print "You need to be in the directory where your copy of the 'data' directory is located."
+    print("You need to be in the directory where your copy of the 'data' directory is located.")
     sys.exit(1)
 
 os.makedirs(opj('data', 'pages'))

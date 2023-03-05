@@ -701,7 +701,7 @@ class User:
                         pwd_context = self._cfg.cache.pwd_context
                         try:
                             password_correct = pwd_context.verify(password, d)
-                        except ValueError, err:
+                        except ValueError as err:
                             # can happen for unknown scheme
                             logging.error('in user profile %r, verifying the passlib pw hash crashed [%s]' % (self.id, str(err)))
                         if password_correct:

@@ -34,6 +34,8 @@
     @copyright: 2007 by Thomas Waldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os.path
 import re
@@ -45,7 +47,7 @@ from MoinMoin.script.migration.migutil import opj, listdir, copy_file, move_file
 
 import mimetypes # this MUST be after wikiutil import!
 
-from _conv160_wiki import convert_wiki
+from ._conv160_wiki import convert_wiki
 
 create_rev = True # create a <new> rev with the converted content of <new-1> rev?
 
@@ -76,9 +78,9 @@ class EventLog:
 
     def read(self):
         """ read complete event-log from disk """
-        print "Reading event-log. Depending on the size of event-log this may take a long time and"
-        print "consume lots of memory (if you don't need statistics, truncate event-log to speed this"
-        print "up and use less memory)."
+        print("Reading event-log. Depending on the size of event-log this may take a long time and")
+        print("consume lots of memory (if you don't need statistics, truncate event-log to speed this")
+        print("up and use less memory).")
         data = []
         try:
             lineno = 0
@@ -94,18 +96,18 @@ class EventLog:
                     timestamp = int(timestamp)
                     kvdict = wikiutil.parseQueryString(kvpairs)
                     data.append((timestamp, action, kvdict))
-                except ValueError, err:
+                except ValueError as err:
                     # corrupt event log line, log error and skip it
-                    print "Error: invalid event log (%s) line %d, err: %s, SKIPPING THIS LINE!" % (self.fname, lineno, str(err))
+                    print("Error: invalid event log (%s) line %d, err: %s, SKIPPING THIS LINE!" % (self.fname, lineno, str(err)))
             f.close()
-        except IOError, err:
+        except IOError as err:
             # no event-log
             pass
         self.data = data
 
     def write(self, fname):
         """ write complete event-log to disk """
-        print "Writing event-log. Depending on the size of event-log this may take a long time."
+        print("Writing event-log. Depending on the size of event-log this may take a long time.")
         if self.data:
             f = file(fname, 'wb') # write in binary mode, so it stays exactly as we write it, even on windows.
                                   # the code in MoinMoin.logfile also uses binary mode and writes \n only.
@@ -148,14 +150,14 @@ class EditLog:
                 try:
                     timestamp = int(timestamp)
                     rev = int(rev)
-                except ValueError, err:
-                    print "Error: %r has a damaged timestamp or revision number in log line %d [%s] - skipping this entry" % (
-                        self.fname, lineno, str(err))
+                except ValueError as err:
+                    print("Error: %r has a damaged timestamp or revision number in log line %d [%s] - skipping this entry" % (
+                        self.fname, lineno, str(err)))
                     continue # ignore this line, do not terminate - to find all those errors in one go
                 pagename = wikiutil.unquoteWikiname(pagename)
                 data[(timestamp, rev, pagename)] = (timestamp, rev, action, pagename, ip, hostname, userid, extra, comment)
             f.close()
-        except IOError, err:
+        except IOError as err:
             # no edit-log
             pass
         self.data = data
@@ -281,7 +283,7 @@ class Page:
             try:
                 self.current = int(current_rev)
             except ValueError:
-                print "Error: invalid current file %s, SKIPPING THIS PAGE!" % current_fname
+                print("Error: invalid current file %s, SKIPPING THIS PAGE!" % current_fname)
                 return
         # read edit-log
         editlog_fname = opj(page_dir, 'edit-log')
@@ -313,7 +315,7 @@ class Page:
         if ('PAGE', self.name) in self.renames:
             name_new = self.renames[('PAGE', self.name)]
             if name_new != self.name:
-                print "Renaming page %r -> %r" % (self.name, name_new)
+                print("Renaming page %r -> %r" % (self.name, name_new))
                 self.name_old = self.name
                 self.name = name_new
         qpagename = wikiutil.quoteWikinameFS(self.name)
@@ -357,7 +359,7 @@ class Page:
                 if ('FILE', self.name_old, fn) in self.renames:
                     fn_new = self.renames[('FILE', self.name_old, fn)]
                     if fn_new != fn:
-                        print "Renaming file %r %r -> %r" % (self.name_old, fn, fn_new)
+                        print("Renaming file %r %r -> %r" % (self.name_old, fn, fn_new))
                         att.name = fn_new
                 att.copy(attach_dir)
 
@@ -388,8 +390,8 @@ class User:
                 continue
             try:
                 key, value = line.split(u'=', 1)
-            except Exception, err:
-                print "Error: User reader can not parse line %r from profile %r (%s)" % (line, fname, str(err))
+            except Exception as err:
+                print("Error: User reader can not parse line %r from profile %r (%s)" % (line, fname, str(err)))
                 continue
             self.profile[key] = value
         f.close()

@@ -65,7 +65,7 @@ General syntax: moin [options] import wikipage [wikipage-options]
 
         try:
             fileObj = open(self.options.file, 'rb')
-        except IOError, err:
+        except IOError as err:
             fatal(str(err))
         page_content = decodeUnknownInput(fileObj.read()).rstrip()
         fileObj.close()
@@ -89,5 +89,5 @@ General syntax: moin [options] import wikipage [wikipage-options]
             pe.saveText(acl + page_content, 0, comment=comment)
         except PageEditor.Unchanged:
             log("info: wikipage was not modified - ignored update.")
-        except PageEditor.SaveError, err:
+        except PageEditor.SaveError as err:
             log("error: %r" % err)

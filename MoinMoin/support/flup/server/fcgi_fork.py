@@ -51,6 +51,7 @@ On most platforms, fcgi will fallback to regular CGI behavior if run in a
 non-FastCGI context. If you want to force CGI behavior, set the environment
 variable FCGI_FORCE_CGI to "Y" or "y".
 """
+from __future__ import absolute_import
 
 __author__ = 'Allan Saddi <allan@saddi.com>'
 __version__ = '$Revision$'
@@ -97,7 +98,7 @@ class WSGIServer(BaseFCGIServer, PreforkServer):
                                 roles=roles,
                                 forceCGI=forceCGI)
         for key in ('multithreaded', 'multiprocess', 'jobClass', 'jobArgs'):
-            if kw.has_key(key):
+            if key in kw:
                 del kw[key]
         PreforkServer.__init__(self, jobClass=self._connectionClass,
                                jobArgs=(self, timeout), **kw)
@@ -146,7 +147,7 @@ class WSGIServer(BaseFCGIServer, PreforkServer):
 if __name__ == '__main__':
     def test_app(environ, start_response):
         """Probably not the most efficient example."""
-        import cgi
+        from . import cgi
         start_response('200 OK', [('Content-Type', 'text/html')])
         yield '<html><head><title>Hello World!</title></head>\n' \
               '<body>\n' \
@@ -156,7 +157,7 @@ if __name__ == '__main__':
         names.sort()
         for name in names:
             yield '<tr><td>%s</td><td>%s</td></tr>\n' % (
-                name, cgi.escape(`environ[name]`))
+                name, cgi.escape(repr(environ[name])))
 
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ,
                                 keep_blank_values=1)

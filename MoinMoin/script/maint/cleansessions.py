@@ -6,6 +6,7 @@ MoinMoin - cleansessions script
             2010 MoinMoin:ThomasWaldmann
 @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import os, time
 
@@ -61,7 +62,7 @@ General syntax: moin [options] maint cleansessions [cleansessions-options]
         if self.options.username:
             u = user.User(request, None, self.options.username)
             if not u.exists():
-                print 'User "%s" does not exist!' % self.options.username
+                print('User "%s" does not exist!' % self.options.username)
                 return
             else:
                 def user_matches(session):

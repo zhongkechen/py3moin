@@ -36,6 +36,7 @@ Based on code by Oliver Graf
 @copyright: 2004 Nir Soffer
 @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import os, time, gc
 
@@ -178,5 +179,5 @@ class TwistedProfiler(Profiler):
 
 if __name__ == '__main__':
     # In case someone try to run as a script
-    print __doc__
+    print(__doc__)
 

@@ -29,7 +29,7 @@ class RPCYielder(object):
 
     def fetch_call(self):
         try:
-            next_item = self._gen.next()
+            next_item = next(self._gen)
         except StopIteration:
             return None
         return next_item
@@ -87,8 +87,8 @@ def scheduler(multicall_func, handler, args, max_calls=10, prepare_multicall_fun
             result = iter(m()) # execute multicall
             for gen in gens_result:
                 try:
-                    item = result.next()
-                except xmlrpclib.Fault, e:
+                    item = next(result)
+                except xmlrpclib.Fault as e:
                     # this exception is reraised by the RPCYielder
                     item = e
                 gen.set_result(item)
@@ -108,8 +108,8 @@ def scheduler_simple(multicall_func, handler, args):
                 getattr(m, func)(arg) # register call
                 result = iter(m()) # execute multicall
                 try:
-                    item = result.next()
-                except xmlrpclib.Fault, e:
+                    item = next(result)
+                except xmlrpclib.Fault as e:
                     # this exception is reraised by the RPCYielder
                     item = e
                 cur_handler.set_result(item)

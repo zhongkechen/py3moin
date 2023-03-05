@@ -7,6 +7,7 @@
                2009 MoinMoin:ThomasWaldmann
    @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import sys, os, re
 
@@ -137,7 +138,7 @@ def execute(pagename, request):
 if __name__ == '__main__':
     args = sys.argv
     if len(args) < 2:
-        print >>sys.stderr, """Subscribe users
+        print("""Subscribe users
 
 %(myname)s pagename [+|-][re:]username[,username[,username[,...]]] [URL]
 
@@ -151,7 +152,7 @@ URL is just needed for a farmconfig scenario.
 Example:
 %(myname)s FrontPage TestUser,MatthewSimpson
 
-""" % {"myname": os.path.basename(args[0])}
+""" % {"myname": os.path.basename(args[0])}, file=sys.stderr)
         raise SystemExit
 
     pagename = args[1]
@@ -171,5 +172,5 @@ Example:
 
     subscribe, unsubscribe = parse_userlist(usernames)
 
-    print subscribe_users(request, subscribe, unsubscribe, pagename, formatter)
+    print(subscribe_users(request, subscribe, unsubscribe, pagename, formatter))
 

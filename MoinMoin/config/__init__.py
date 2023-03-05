@@ -20,7 +20,7 @@ parser_text_mimetype = ('plain', 'csv', 'rst', 'docbook', 'latex', 'tex', 'html'
                        'cplusplus', 'java', 'pascal', 'diff', 'gettext', 'xslt', 'creole', )
 
 # When creating files, we use e.g. 0666 & config.umask for the mode:
-umask = 0770
+umask = 0o770
 
 # list of acceptable password hashing schemes for cfg.password_scheme,
 # here we only give reasonably good schemes, which is passlib (if we

@@ -334,7 +334,7 @@ def timestamp2version(ts):
         We don't want to use floats, so we just scale by 1e6 to get
         an integer in usecs.
     """
-    return long(ts*1000000L) # has to be long for py 2.2.x
+    return long(ts*1000000) # has to be long for py 2.2.x
 
 def version2timestamp(v):
     """ Convert version number to UNIX timestamp (float).
@@ -1891,7 +1891,7 @@ def invoke_extension_function(request, function, args, fixed_args=[]):
         argnames, varargs, varkw, defaultlist = getargspec(function)
     elif isclass(function):
         (argnames, varargs,
-         varkw, defaultlist) = getargspec(function.__init__.im_func)
+         varkw, defaultlist) = getargspec(function.__init__.__func__)
     else:
         raise TypeError('function must be a function, method or class')
 
@@ -2002,7 +2002,7 @@ def parseAttributes(request, attrstring, endtoken=None, extension=None):
     while not msg:
         try:
             key = parser.get_token()
-        except ValueError, err:
+        except ValueError as err:
             msg = str(err)
             break
         if not key:
@@ -2022,7 +2022,7 @@ def parseAttributes(request, attrstring, endtoken=None, extension=None):
 
         try:
             eq = parser.get_token()
-        except ValueError, err:
+        except ValueError as err:
             msg = str(err)
             break
         if eq != "=":
@@ -2031,7 +2031,7 @@ def parseAttributes(request, attrstring, endtoken=None, extension=None):
 
         try:
             val = parser.get_token()
-        except ValueError, err:
+        except ValueError as err:
             msg = str(err)
             break
         if not val:

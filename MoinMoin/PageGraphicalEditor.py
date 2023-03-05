@@ -124,7 +124,7 @@ class PageGraphicalEditor(PageEditor.PageEditor):
         # get request parameters
         try:
             text_rows = int(form['rows'])
-        except StandardError:
+        except Exception:
             text_rows = self.cfg.edit_rows
             if request.user.valid:
                 text_rows = int(request.user.edit_rows)

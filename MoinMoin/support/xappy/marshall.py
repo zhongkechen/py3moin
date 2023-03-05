@@ -18,11 +18,12 @@
 r"""marshall.py: Marshal values into strings
 
 """
+from __future__ import absolute_import
 __docformat__ = "restructuredtext en"
 
 import math
 import xapian
-from replaylog import log as _log
+from .replaylog import log as _log
 
 def float_to_string(value):
     """Marshall a floating point number to a string which sorts in the

@@ -145,14 +145,14 @@ def revert_page(request, pagename, editor):
         pg = PageEditor.PageEditor(request, pagename, do_editor_backup=0)
         try:
             savemsg = pg.deletePage(comment)
-        except pg.SaveError, msg:
+        except pg.SaveError as msg:
             savemsg = unicode(msg)
     else: # page edited by spammer
         oldpg = Page.Page(request, pagename, rev=int(rev))
         pg = PageEditor.PageEditor(request, pagename, do_editor_backup=0)
         try:
             savemsg = pg.saveText(oldpg.get_raw_body(), 0, extra=rev, action="SAVE/REVERT")
-        except pg.SaveError, msg:
+        except pg.SaveError as msg:
             savemsg = unicode(msg)
     return savemsg
 

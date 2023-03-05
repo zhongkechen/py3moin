@@ -136,6 +136,7 @@
 #
 # lambda x: ''.join(map(chr, x))
 #
+from __future__ import print_function
 def make_string(seq):
     str = ""
     for c in seq:
@@ -1085,7 +1086,7 @@ def s2n_motorola(str):
 # extract multibyte integer in Intel format (big endian)
 def s2n_intel(str):
     x = 0
-    y = 0L
+    y = 0
     for c in str:
         x = x | (ord(c) << y)
         y = y + 8
@@ -1165,7 +1166,7 @@ class EXIF_header:
             val=s2n_motorola(slice)
         # Sign extension ?
         if signed:
-            msb=1L << (8*length-1)
+            msb=1 << (8*length-1)
             if val & msb:
                 val=val-(msb << 1)
         return val
@@ -1281,8 +1282,8 @@ class EXIF_header:
                                                           values, field_offset,
                                                           count * typelen)
                 if self.debug:
-                    print ' debug:   %s: %s' % (tag_name,
-                                                repr(self.tags[ifd_name + ' ' + tag_name]))
+                    print(' debug:   %s: %s' % (tag_name,
+                                                repr(self.tags[ifd_name + ' ' + tag_name])))
 
             if tag_name == name:
                 break
@@ -1375,13 +1376,13 @@ class EXIF_header:
         if make in ('NIKON', 'NIKON CORPORATION'):
             if note.values[0:7] == [78, 105, 107, 111, 110, 0, 1]:
                 if self.debug:
-                    print "Looks like a type 1 Nikon MakerNote."
+                    print("Looks like a type 1 Nikon MakerNote.")
                 self.dump_IFD(note.field_offset+8, 'MakerNote',
                               dict=MAKERNOTE_NIKON_OLDER_TAGS)
             elif note.values[0:7] == [78, 105, 107, 111, 110, 0, 2]:
                 if self.debug:
-                    print "Looks like a labeled type 2 Nikon MakerNote"
-                if note.values[12:14] != [0, 42] and note.values[12:14] != [42L, 0L]:
+                    print("Looks like a labeled type 2 Nikon MakerNote")
+                if note.values[12:14] != [0, 42] and note.values[12:14] != [42, 0]:
                     raise ValueError("Missing marker tag '42' in MakerNote.")
                 # skip the Makernote label and the TIFF header
                 self.dump_IFD(note.field_offset+10+8, 'MakerNote',
@@ -1389,7 +1390,7 @@ class EXIF_header:
             else:
                 # E99x or D1
                 if self.debug:
-                    print "Looks like an unlabeled type 2 Nikon MakerNote"
+                    print("Looks like an unlabeled type 2 Nikon MakerNote")
                 self.dump_IFD(note.field_offset, 'MakerNote',
                               dict=MAKERNOTE_NIKON_NEWER_TAGS)
             return
@@ -1445,7 +1446,7 @@ class EXIF_header:
         for i in range(1, len(value)):
             x=dict.get(i, ('Unknown', ))
             if self.debug:
-                print i, x
+                print(i, x)
             name=x[0]
             if len(x) > 1:
                 val=x[1].get(value[i], 'Unknown')
@@ -1496,7 +1497,7 @@ def process_file(f, name='UNDEF', details=True, debug=0):
 
     # deal with the EXIF info we found
     if debug:
-        print {'I': 'Intel', 'M': 'Motorola'}[endian], 'format'
+        print({'I': 'Intel', 'M': 'Motorola'}[endian], 'format')
     hdr = EXIF_header(f, endian, offset, fake_exif, debug)
     ifd_list = hdr.list_IFDs()
     ctr = 0
@@ -1509,27 +1510,27 @@ def process_file(f, name='UNDEF', details=True, debug=0):
         else:
             IFD_name = 'IFD %d' % ctr
         if debug:
-            print ' IFD %d (%s) at offset %d:' % (ctr, IFD_name, i)
+            print(' IFD %d (%s) at offset %d:' % (ctr, IFD_name, i))
         hdr.dump_IFD(i, IFD_name, name=name)
         # EXIF IFD
         exif_off = hdr.tags.get(IFD_name+' ExifOffset')
         if exif_off:
             if debug:
-                print ' EXIF SubIFD at offset %d:' % exif_off.values[0]
+                print(' EXIF SubIFD at offset %d:' % exif_off.values[0])
             hdr.dump_IFD(exif_off.values[0], 'EXIF', name=name)
             # Interoperability IFD contained in EXIF IFD
             intr_off = hdr.tags.get('EXIF SubIFD InteroperabilityOffset')
             if intr_off:
                 if debug:
-                    print ' EXIF Interoperability SubSubIFD at offset %d:' \
-                          % intr_off.values[0]
+                    print(' EXIF Interoperability SubSubIFD at offset %d:' \
+                          % intr_off.values[0])
                 hdr.dump_IFD(intr_off.values[0], 'EXIF Interoperability',
                              dict=INTR_TAGS, name=name)
         # GPS IFD
         gps_off = hdr.tags.get(IFD_name+' GPSInfo')
         if gps_off:
             if debug:
-                print ' GPS SubIFD at offset %d:' % gps_off.values[0]
+                print(' GPS SubIFD at offset %d:' % gps_off.values[0])
             hdr.dump_IFD(gps_off.values[0], 'GPS', dict=GPS_TAGS, name=name)
         ctr += 1
 
@@ -1565,7 +1566,7 @@ if __name__ == '__main__':
     import sys
 
     if len(sys.argv) < 2:
-        print "Usage: %s [options] file1 [file2 ...]\n\nOptions:\n-q --quick : do not process MakerNotes for faster processing\n" % sys.argv[0]
+        print("Usage: %s [options] file1 [file2 ...]\n\nOptions:\n-q --quick : do not process MakerNotes for faster processing\n" % sys.argv[0])
         sys.exit(0)
 
     if sys.argv[1] == "-q" or sys.argv[1] == "--quick":
@@ -1579,14 +1580,14 @@ if __name__ == '__main__':
         try:
             file=open(filename, 'rb')
         except:
-            print filename, 'unreadable'
-            print
+            print(filename, 'unreadable')
+            print()
             continue
-        print filename + ':'
+        print(filename + ':')
         # data=process_file(file, debug=1) # with debug info and all tags
         data=process_file(file, details=detailed)
         if not data:
-            print 'No EXIF information found'
+            print('No EXIF information found')
             continue
 
         x=data.keys()
@@ -1595,11 +1596,11 @@ if __name__ == '__main__':
             if i in ('JPEGThumbnail', 'TIFFThumbnail'):
                 continue
             try:
-                print '   %s (%s): %s' % \
-                      (i, FIELD_TYPES[data[i].field_type][2], data[i].printable)
+                print('   %s (%s): %s' % \
+                      (i, FIELD_TYPES[data[i].field_type][2], data[i].printable))
             except:
-                print 'error', i, '"', data[i], '"'
+                print('error', i, '"', data[i], '"')
         if 'JPEGThumbnail' in data:
-            print 'File has JPEG thumbnail'
-        print
+            print('File has JPEG thumbnail')
+        print()
 

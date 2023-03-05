@@ -1422,7 +1422,7 @@ def parse(request, text):
     text = text.encode(config.charset)
     try:
         return xml.dom.minidom.parseString(text)
-    except xml.parsers.expat.ExpatError, msg:
+    except xml.parsers.expat.ExpatError as msg:
         # this sometimes crashes when it should not, so save the stuff to analyze it:
         logname = os.path.join(request.cfg.data_dir, "expaterror.log")
         f = file(logname, "w")

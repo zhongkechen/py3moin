@@ -126,7 +126,7 @@ class DataBrowserWidget(base.Widget):
             given by idx
         """
         self.data.reset()
-        row = self.data.next()
+        row = next(self.data)
         # [empty] is a special already
         unique = ['']
 
@@ -140,7 +140,7 @@ class DataBrowserWidget(base.Widget):
                 option = option[1]
             if not option in unique:
                 unique.append(option)
-            row = self.data.next()
+            row = next(self.data)
 
         # fill in the empty field we left blank
         del unique[0]
@@ -205,7 +205,7 @@ class DataBrowserWidget(base.Widget):
 
         # add data
         self.data.reset()
-        row = self.data.next()
+        row = next(self.data)
         if row is not None:
             filters = [None] * len(row)
 
@@ -251,7 +251,7 @@ class DataBrowserWidget(base.Widget):
                     result.append(fmt.table_cell(0))
                 result.append(fmt.table_row(0))
 
-            row = self.data.next()
+            row = next(self.data)
 
         result.append(fmt.table(0))
         result.append(fmt.div(0))

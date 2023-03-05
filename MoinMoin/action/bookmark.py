@@ -26,7 +26,7 @@ def execute(pagename, request):
         else:
             try:
                 tm = int(timestamp)
-            except StandardError:
+            except Exception:
                 tm = wikiutil.timestamp2version(time.time())
     else:
         tm = wikiutil.timestamp2version(time.time())

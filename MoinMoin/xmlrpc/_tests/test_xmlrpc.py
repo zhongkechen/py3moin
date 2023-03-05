@@ -5,6 +5,7 @@
     @copyright: 2007 by Karol Nowak <grywacz@gmail.com>
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 from xmlrpclib import Fault
 
@@ -22,13 +23,13 @@ def test_fault_serialization(request):
     xmlrpc.xmlrpc_return_fault = xmlrpc_return_fault
     args = [{'methodName': 'return_fault', 'params': []}]
 
-    print """If a XML RPC method returns a Fault, we should get a failure response
+    print("""If a XML RPC method returns a Fault, we should get a failure response
     instead of a serialized Fault, as it happened in the past. See revision
-    8b7d6d70fc95 for details"""
+    8b7d6d70fc95 for details""")
 
     result = xmlrpc.xmlrpc_system_multicall(args)
     assert type(result[0]) is dict
-    assert result[0].has_key("faultCode") and result[0].has_key("faultString")
+    assert "faultCode" in result[0] and "faultString" in result[0]
 
 def test_getAuthToken(request):
     """ Tests if getAuthToken passes without crashing """

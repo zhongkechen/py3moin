@@ -5,6 +5,7 @@
     @copyright: 2008 MoinMoin:FlorianKrupicka
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 from StringIO import StringIO
 
 from MoinMoin import wsgiapp
@@ -24,7 +25,7 @@ class TestApplication:
             def _test_(page=page):
                 appiter, status, headers = self.client.get('/%s' % page)
                 output = ''.join(appiter)
-                print output
+                print(output)
                 assert status[:3] == '200'
                 assert ('Content-Type', 'text/html; charset=utf-8') in list(headers)
                 for needle in (DOC_TYPE, page):

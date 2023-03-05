@@ -16,6 +16,7 @@
     @copyright: 2006 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import print_function
 
 import os
 
@@ -62,17 +63,17 @@ General syntax: moin [options] migration data [migration-data-options]
                     curr_rev = meta['data_format_revision']
                     mig_name = str(curr_rev)
                     execute = wikiutil.importBuiltinPlugin('script.migration', mig_name)
-                    print "Calling migration script for %s, base revision %d" % (data_dir, curr_rev)
+                    print("Calling migration script for %s, base revision %d" % (data_dir, curr_rev))
                     curr_rev = execute(self, data_dir, curr_rev)
                     if curr_rev is None:
-                        print "Final mig script reached, migration is complete."
+                        print("Final mig script reached, migration is complete.")
                         break
                     else:
-                        print "Returned. New rev is %d." % curr_rev
+                        print("Returned. New rev is %d." % curr_rev)
                         meta['data_format_revision'] = curr_rev
                         meta.sync()
                 except wikiutil.PluginMissingError:
-                    print "Error: There is no script for %s." % mig_name
+                    print("Error: There is no script for %s." % mig_name)
                     break
             finally:
                 del meta

@@ -106,7 +106,7 @@ def check_surge_protect(request, kick=False, action=None, username=None):
                         events = surgedict.setdefault(id, {})
                         timestamps = events.setdefault(action, [])
                         timestamps.append((t, surge_indicator))
-                except StandardError:
+                except Exception:
                     pass
 
         maxnum, dt = limits.get(current_action, default_limit)
@@ -144,7 +144,7 @@ def check_surge_protect(request, kick=False, action=None, username=None):
                     data.append("%s\t%d\t%s\t%s" % (id, t, action, surge_indicator))
         data = "\n".join(data)
         cache.update(data)
-    except StandardError:
+    except Exception:
         pass
 
     if surge_detected and validuser and request.user.auth_method in request.cfg.auth_methods_trusted:

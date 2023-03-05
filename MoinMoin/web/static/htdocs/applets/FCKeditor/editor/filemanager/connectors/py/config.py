@@ -70,11 +70,11 @@ ConfigAllowedTypes = ['File', 'Image', 'Flash', 'Media']
 # If possible, it is recommended to set more restrictive permissions, like 0755.
 # Set to 0 to disable this feature.
 # Note: not needed on Windows-based servers.
-ChmodOnUpload = 0755
+ChmodOnUpload = 0o755
 
 # See comments above.
 # Used when creating folders that does not exist.
-ChmodOnFolderCreate = 0755
+ChmodOnFolderCreate = 0o755
 
 # Do not touch this 3 lines, see "Configuration settings for each Resource Type"
 AllowedExtensions = {}; DeniedExtensions = {};

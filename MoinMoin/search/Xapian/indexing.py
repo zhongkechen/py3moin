@@ -429,7 +429,7 @@ class XapianIndex(BaseIndex):
 
             try:
                 connection.replace(doc)
-            except xappy.IndexerError, err:
+            except xappy.IndexerError as err:
                 logging.warning("IndexerError at %r %r %r (%s)" % (
                     wikiname, pagename, revision, str(err)))
 
@@ -492,7 +492,7 @@ class XapianIndex(BaseIndex):
 
                 try:
                     connection.replace(doc)
-                except xapian.Error, err:
+                except xapian.Error as err:
                     logging.error('attachment %r (page %r) could not be updated in index: %s' % (
                         attachmentname, pagename, str(err)))
                 else:
@@ -501,7 +501,7 @@ class XapianIndex(BaseIndex):
             # attachment file was deleted, remove it from index also
             try:
                 connection.delete(itemid)
-            except xapian.Error, err:
+            except xapian.Error as err:
                 logging.error('attachment %r (page %r) could not be removed from index: %s' % (
                     attachmentname, pagename, str(err)))
             else:

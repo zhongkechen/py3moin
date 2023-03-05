@@ -18,10 +18,11 @@
 r"""datastructures.py: Datastructures for search engine core.
 
 """
+from __future__ import absolute_import
 __docformat__ = "restructuredtext en"
 
-import errors
-from replaylog import log
+from . import errors
+from .replaylog import log
 import xapian
 import cPickle
 

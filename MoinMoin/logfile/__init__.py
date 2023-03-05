@@ -145,7 +145,7 @@ class LogFile:
                 # Open the file (NOT using codecs.open, it breaks our offset calculation. We decode it later.).
                 # Use binary mode in order to retain \r - otherwise the offset calculation would fail.
                 self._input = file(self.__filename, "rb", )
-            except IOError, err:
+            except IOError as err:
                 if err.errno == errno.ENOENT: # "file not found"
                     # XXX workaround if edit-log does not exist: just create it empty
                     # if this workaround raises another error, we don't catch
@@ -174,7 +174,7 @@ class LogFile:
         """
         try:
             return os.path.getsize(self.__filename)
-        except OSError, err:
+        except OSError as err:
             if err.errno == errno.ENOENT:
                 return 0
             raise
@@ -198,7 +198,7 @@ class LogFile:
                 return count
             finally:
                 f.close()
-        except (OSError, IOError), err:
+        except (OSError, IOError) as err:
             if err.errno == errno.ENOENT:
                 return 0
             raise
@@ -208,7 +208,7 @@ class LogFile:
         """ Return timestamp of log file in usecs """
         try:
             mtime = os.path.getmtime(self.__filename)
-        except OSError, err:
+        except OSError as err:
             if err.errno == errno.ENOENT:
                 # This can happen on fresh wiki when building the index
                 # Usually the first request will create an event log
