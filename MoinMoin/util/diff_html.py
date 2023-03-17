@@ -7,6 +7,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import range
 import difflib
 
 from MoinMoin.wikiutil import escape

@@ -18,6 +18,7 @@
     @copyright: 2008 MoinMoin:FlorianKrupicka,
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import object
 from werkzeug.wsgi import get_current_url
 
 from MoinMoin import log

@@ -21,6 +21,7 @@ choice:
 This is the integration file for Python.
 """
 
+from builtins import object
 import cgi
 import os
 import re
@@ -144,7 +145,7 @@ class FCKeditor(object):
     def GetConfigFieldString(self):
         sParams = ""
         bFirst = True
-        for sKey in self.Config.keys():
+        for sKey in list(self.Config.keys()):
             sValue = self.Config[sKey]
             if (not bFirst):
                 sParams += "&amp;"

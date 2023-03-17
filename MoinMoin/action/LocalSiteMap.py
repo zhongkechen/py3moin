@@ -23,6 +23,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
 
@@ -47,7 +48,7 @@ def execute(pagename, request):
     request.theme.send_footer(pagename)
     request.theme.send_closing_html()
 
-class LocalSiteMap:
+class LocalSiteMap(object):
     def __init__(self, name):
         self.name = name
         self.result = []
@@ -81,7 +82,7 @@ class LocalSiteMap:
         self.result.append(text)
 
 
-class PageTreeBuilder:
+class PageTreeBuilder(object):
     def __init__(self, request):
         self.request = request
         self.children = {}
@@ -137,7 +138,7 @@ class PageTreeBuilder:
         if len(all_kids):
             self.recurse_build(all_kids, depth+1)
 
-class Tree:
+class Tree(object):
     def __init__(self, node):
         self.node = node
         self.children = []

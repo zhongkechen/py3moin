@@ -17,6 +17,7 @@
                 2006 Nick Phillips
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import str
 from MoinMoin import log
 logging = log.getLogger(__name__)
 
@@ -187,7 +188,7 @@ class LDAPAuth(BaseAuth):
                 lusers = [(dn, ldap_dict) for dn, ldap_dict in lusers if dn is not None]
                 for dn, ldap_dict in lusers:
                     logging.debug("dn:%r" % dn)
-                    for key, val in ldap_dict.items():
+                    for key, val in list(ldap_dict.items()):
                         logging.debug("    %r: %r" % (key, val))
 
                 result_length = len(lusers)

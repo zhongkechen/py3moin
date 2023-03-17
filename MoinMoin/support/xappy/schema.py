@@ -19,6 +19,7 @@ r"""schema.py: xdefinitions and implementations of field actions.
 
 """
 from __future__ import absolute_import
+from builtins import object
 __docformat__ = "restructuredtext en"
 
 from . import errors as _errors

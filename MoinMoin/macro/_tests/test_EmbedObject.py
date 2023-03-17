@@ -6,37 +6,39 @@
                 2008 MoinMoin:JohannesBerg
     @license: GNU GPL, see COPYING for details.
 """
-import py
+from builtins import object
+import pytest
 
 from MoinMoin import macro
 from MoinMoin.action import AttachFile
 
 from MoinMoin._tests import become_trusted, create_page, make_macro, nuke_page
 
-class TestEmbedObject:
+class TestEmbedObject(object):
     """ testing macro Action calling action raw """
     pagename = u'AutoCreatedMoinMoinTemporaryTestPageForEmbedObject'
 
-    def setup_class(self):
-        request = self.request
+    @pytest.fixture(autouse=True)
+    def setup_class(self, req):
+        request = req
         pagename = self.pagename
         become_trusted(request)
         self.page = create_page(request, pagename, u"Foo")
         AttachFile.getAttachDir(request, pagename)
         test_files = [
-            ('test.ogg', 'vorbis'),
-            ('test.svg', 'SVG'),
-            ('test.mpg', 'MPG'),
-            ('test.pdf', 'PDF'),
-            ('test.mp3', 'MP3'),
+            ('test.ogg', b'vorbis'),
+            ('test.svg', b'SVG'),
+            ('test.mpg', b'MPG'),
+            ('test.pdf', b'PDF'),
+            ('test.mp3', b'MP3'),
         ]
         for filename, filecontent in test_files:
             AttachFile.add_attachment(request, pagename, filename, filecontent, overwrite=0)
 
-    def teardown_class(self):
-        nuke_page(self.request, self.pagename)
+        yield
+        nuke_page(req, self.pagename)
 
-    def testEmbedObjectMimetype(self):
+    def testEmbedObjectMimetype(self, req):
         """ tests defined mimetyes """
         tests = [
             (u'test.pdf', 'application/pdf'),
@@ -45,22 +47,22 @@ class TestEmbedObject:
             (u'test.mp3', 'audio/mpeg'),
         ]
         for filename, mimetype in tests:
-            m = make_macro(self.request, self.page)
+            m = make_macro(req, self.page)
             result = m.execute('EmbedObject', filename)
             assert mimetype in result
 
-    def testEmbedObjectDefaultValues(self):
+    def testEmbedObjectDefaultValues(self, req):
         """ tests default values of macro EmbedObject """
-        m = make_macro(self.request, self.page)
+        m = make_macro(req, self.page)
         filename = 'test.mpg'
         result = m.execute('EmbedObject', u'%s' % filename)
         assert '<object data="/AutoCreatedMoinMoinTemporaryTestPageForEmbedObject?action=AttachFile&amp;do=get&amp;target=test.mpg"' in result
         assert 'align="middle"' in result
         assert 'value="transparent"' in result
 
-    def testEmbedObjectPercentHeight(self):
+    def testEmbedObjectPercentHeight(self, req):
         """ tests a unit value for macro EmbedObject """
-        m = make_macro(self.request, self.page)
+        m = make_macro(req, self.page)
         filename = 'test.mpg'
         height = '50 %' # also tests that space is allowed in there
         result = m.execute('EmbedObject', u'target=%s, height=%s' % (filename, height))
@@ -68,9 +70,9 @@ class TestEmbedObject:
         assert 'height="50%"' in result
         assert 'align="middle"' in result
 
-    def testEmbedObjectFromUrl(self):
+    def testEmbedObjectFromUrl(self, req):
         """ tests using a URL for macro EmbedObject """
-        m = make_macro(self.request, self.page)
+        m = make_macro(req, self.page)
         target = 'http://localhost/%s?action=AttachFile&do=view&target=test.mpg' % self.pagename
         result = m.execute('EmbedObject', u'target=%s, url_mimetype=video/mpeg' % target)
         assert '<object data="http://localhost/AutoCreatedMoinMoinTemporaryTestPageForEmbedObject?action=AttachFile&amp;do=view&amp;target=test.mpg" type="video/mpeg"' in result

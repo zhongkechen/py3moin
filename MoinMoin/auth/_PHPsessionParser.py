@@ -12,6 +12,8 @@ from __future__ import print_function
 #The loader does not check the owner of the files, so be aware of faked session
 #files.
 
+from builtins import range
+from builtins import object
 import os
 from MoinMoin import wikiutil
 
@@ -29,7 +31,7 @@ class UnknownObject(object):
 def transformList(items):
     """ Transforms a list [1, 2, 3, 4, ...] into a
         [(1, 2), (3, 4), ...] generator. """
-    for i in xrange(0, len(items), 2):
+    for i in range(0, len(items), 2):
         yield (items[i], items[i+1])
     raise StopIteration
 

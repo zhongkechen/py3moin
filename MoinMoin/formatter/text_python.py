@@ -8,11 +8,12 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 import time
 from MoinMoin import wikiutil
 
 
-class Formatter:
+class Formatter(object):
     """
         Inserts '<<<>>>' into the page and adds python code to
         self.code_fragments for dynamic parts of the page

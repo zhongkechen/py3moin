@@ -28,6 +28,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import next
+from builtins import range
+from builtins import object
 from csv import reader, QUOTE_NONE, QUOTE_MINIMAL, Sniffer
 from _csv import Error
 
@@ -38,7 +41,7 @@ from MoinMoin.wikiutil import escape
 
 Dependencies = ['time']
 
-class Parser:
+class Parser(object):
     extensions = ['.csv']
     Dependencies = []
 
@@ -55,7 +58,7 @@ class Parser:
 
         # workaround csv.reader deficiency by encoding to utf-8
         # removes empty lines in front of the csv table
-        data = raw.encode('utf-8').lstrip('\n').split('\n')
+        data = raw.lstrip('\n').split('\n')
 
         delimiter = ';'
         # Previous versions of this parser have used only the delimiter ";" (by default).
@@ -81,7 +84,7 @@ class Parser:
         quotechar = '\x00' # can't be entered
         quoting = QUOTE_NONE
         name = None
-        hdr = reader([kw.get('format_args', '').strip().encode('utf-8')], delimiter=" ")
+        hdr = reader([kw.get('format_args', '').strip()], delimiter=" ")
         args = next(hdr)
 
         for arg in args:
@@ -125,13 +128,13 @@ class Parser:
             staticvals = staticvals[:len(staticcols)]
 
         r = reader(data, delimiter=delimiter, quotechar=quotechar, quoting=quoting)
-        cols = map(lambda x: x.decode('utf-8'), next(r)) + staticcols
+        cols = [x for x in next(r)] + staticcols
 
         self._show_header = True
 
         if cols == staticcols:
             try:
-                self._first_row = map(lambda x: x.decode('utf-8'), next(r))
+                self._first_row = [x for x in next(r)]
                 cols = [None] * len(self._first_row) + staticcols
                 self._show_header = False
             except StopIteration:
@@ -156,7 +159,7 @@ class Parser:
             linkparse[colidx] = col in linkcols
 
         for row in self._read_rows(r):
-            row = map(lambda x: x.decode('utf-8'), row)
+            row = [x for x in row]
             if len(row) > num_entry_cols:
                 row = row[:num_entry_cols]
             elif len(row) < num_entry_cols:

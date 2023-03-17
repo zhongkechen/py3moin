@@ -25,6 +25,7 @@ Base Connector for Python (CGI and WSGI).
 See config.py for configuration settings
 
 """
+from builtins import object
 import cgi, os
 
 from fckutil import *
@@ -78,9 +79,9 @@ class FCKeditorRequest(object):
 		return key in self.request or key in self.get_request
 
 	def get(self, key, default=None):
-		if key in self.request.keys():
+		if key in list(self.request.keys()):
 			field = self.request[key]
-		elif key in self.get_request.keys():
+		elif key in list(self.get_request.keys()):
 			field = self.get_request[key]
 		else:
 			return default

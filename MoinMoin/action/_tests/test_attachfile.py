@@ -6,63 +6,66 @@
                 2007-2008 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
-import os, StringIO
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+import os, io
 from MoinMoin.action import AttachFile
 from MoinMoin.PageEditor import PageEditor
 from MoinMoin._tests import become_trusted, create_page, nuke_page
 
-class TestAttachFile:
+class TestAttachFile(object):
     """ testing action AttachFile"""
     pagename = u"AutoCreatedSillyPageToTestAttachments"
 
-    def test_add_attachment(self):
+    def test_add_attachment(self, req):
         """Test if add_attachment() works"""
 
-        become_trusted(self.request)
+        become_trusted(req)
         filename = "AutoCreatedSillyAttachment"
 
-        create_page(self.request, self.pagename, u"Foo!")
+        create_page(req, self.pagename, u"Foo!")
 
-        AttachFile.add_attachment(self.request, self.pagename, filename, "Test content", True)
-        exists = AttachFile.exists(self.request, self.pagename, filename)
+        AttachFile.add_attachment(req, self.pagename, filename, b"Test content", True)
+        exists = AttachFile.exists(req, self.pagename, filename)
 
-        nuke_page(self.request, self.pagename)
+        nuke_page(req, self.pagename)
 
         assert exists
 
-    def test_add_attachment_for_file_object(self):
+    def test_add_attachment_for_file_object(self, req):
         """Test if add_attachment() works with file like object"""
 
-        become_trusted(self.request)
+        become_trusted(req)
 
         filename = "AutoCreatedSillyAttachment.png"
 
-        create_page(self.request, self.pagename, u"FooBar!")
-        data = "Test content"
+        create_page(req, self.pagename, u"FooBar!")
+        data = b"Test content"
 
-        filecontent = StringIO.StringIO(data)
+        filecontent = io.BytesIO(data)
 
-        AttachFile.add_attachment(self.request, self.pagename, filename, filecontent, True)
-        exists = AttachFile.exists(self.request, self.pagename, filename)
-        path = AttachFile.getAttachDir(self.request, self.pagename)
+        AttachFile.add_attachment(req, self.pagename, filename, filecontent, True)
+        exists = AttachFile.exists(req, self.pagename, filename)
+        path = AttachFile.getAttachDir(req, self.pagename)
         imagef = os.path.join(path, filename)
         file_size = os.path.getsize(imagef)
 
-        nuke_page(self.request, self.pagename)
+        nuke_page(req, self.pagename)
 
         assert exists and file_size == len(data)
 
-    def test_get_attachment_path_created_on_getFilename(self):
+    def test_get_attachment_path_created_on_getFilename(self, req):
         """
-        Tests if AttachFile.getFilename creates the attachment dir on self.requesting
+        Tests if AttachFile.getFilename creates the attachment dir on reqing
         """
-        become_trusted(self.request)
+        become_trusted(req)
 
         filename = ""
 
-        file_exists = os.path.exists(AttachFile.getFilename(self.request, self.pagename, filename))
+        file_exists = os.path.exists(AttachFile.getFilename(req, self.pagename, filename))
 
-        nuke_page(self.request, self.pagename)
+        nuke_page(req, self.pagename)
 
         assert file_exists
 

@@ -9,6 +9,7 @@
     :license: BSD, see LICENSE for details.
 """
 
+from builtins import str
 import sys
 
 from pygments.formatter import Formatter

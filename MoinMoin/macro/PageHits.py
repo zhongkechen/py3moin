@@ -7,12 +7,13 @@
 
 """
 
+from builtins import object
 from MoinMoin import caching, logfile
 from MoinMoin.Page import Page
 from MoinMoin.logfile import eventlog
 
 
-class PageHits:
+class PageHits(object):
 
     def __init__(self, macro):
         self.macro = macro
@@ -71,7 +72,7 @@ class PageHits:
     def filterReadableHits(self, hits):
         """ Filter out hits the user many not see """
         userMayRead = self.request.user.may.read
-        for pagename in hits.keys(): # we need .keys() because we modify the dict
+        for pagename in list(hits.keys()): # we need .keys() because we modify the dict
             page = Page(self.request, pagename)
             if page.exists() and userMayRead(pagename):
                 continue

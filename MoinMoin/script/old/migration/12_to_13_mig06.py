@@ -44,10 +44,12 @@
 """
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
 from_encoding = 'iso8859-1'
 to_encoding = 'utf-8'
 
-import os.path, sys, shutil, urllib
+import os.path, sys, shutil, urllib.request, urllib.parse, urllib.error
 
 sys.path.insert(0, '../../../..')
 from MoinMoin import wikiutil
@@ -71,12 +73,12 @@ def convert_eventlog(fname_from, fname_to, enc_from, enc_to):
         kvlist = []
         for kvpair in kvpairs:
             key, val = kvpair.split('=')
-            key = urllib.unquote(key)
-            val = urllib.unquote(val)
+            key = urllib.parse.unquote(key)
+            val = urllib.parse.unquote(val)
             key = convert_string(key, enc_from, enc_to)
             val = convert_string(val, enc_from, enc_to)
-            key = urllib.quote(key)
-            val = urllib.quote(val)
+            key = urllib.parse.quote(key)
+            val = urllib.parse.quote(val)
             kvlist.append("%s=%s" % (key, val))
         fields[2] = '&'.join(kvlist)
         line = '\t'.join(fields) + '\n'

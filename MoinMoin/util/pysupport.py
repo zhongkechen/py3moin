@@ -49,11 +49,13 @@ def getPackageModules(packagefile):
     moinmodule = __import__('MoinMoin')
 
     # Is it in a .zip file?
-    if not in_plugin_dir(packagedir) and hasattr(moinmodule, '__loader__'):
+    if False:
+    # todo: this check no longer works in py3
+    # if not in_plugin_dir(packagedir) and hasattr(moinmodule, '__loader__'):
         pyre = re.compile(r"^([^_].*)\.py(?:c|o)$")
         zipfiles = moinmodule.__loader__._files
         dirlist = [entry[0].replace(r'/', '\\').split('\\')[-1]
-                   for entry in zipfiles.values() if packagedir in entry[0]]
+                   for entry in list(zipfiles.values()) if packagedir in entry[0]]
     else:
         pyre = re.compile(r"^([^_].*)\.py$")
         dirlist = os.listdir(packagedir)

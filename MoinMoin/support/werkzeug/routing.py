@@ -95,6 +95,9 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from builtins import map
+from builtins import str
+from builtins import object
 import ast
 import difflib
 import posixpath
@@ -1623,7 +1626,7 @@ class Map(object):
                 )
                 subdomain = "<invalid>"
             else:
-                subdomain = ".".join(filter(None, cur_server_name[:offset]))
+                subdomain = ".".join([_f for _f in cur_server_name[:offset] if _f])
 
         def _get_wsgi_string(name):
             val = environ.get(name)

@@ -24,6 +24,11 @@
 #
 # $Id$
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import chr
+from builtins import str
+from builtins import object
 from future.utils import raise_
 __author__ = 'Allan Saddi <allan@saddi.com>'
 __version__ = '$Revision$'
@@ -32,18 +37,18 @@ import sys
 import os
 import signal
 import struct
-import cStringIO as StringIO
+import io as StringIO
 import select
 import socket
 import errno
 import traceback
 
 try:
-    import thread
+    import _thread
     import threading
     thread_available = True
 except ImportError:
-    import dummy_thread as thread
+    import _dummy_thread as thread
     import dummy_threading as threading
     thread_available = False
 
@@ -219,7 +224,7 @@ class InputStream(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         r = self.readline()
         if not r:
             raise StopIteration
@@ -889,8 +894,8 @@ class MultiplexedConnection(Connection):
 
     def _start_request(self, req):
         try:
-            thread.start_new_thread(req.run, ())
-        except thread.error as e:
+            _thread.start_new_thread(req.run, ())
+        except _thread.error as e:
             self.end_request(req, 0, FCGI_OVERLOADED, remove=True)
 
     def _do_params(self, inrec):
@@ -970,7 +975,7 @@ class BaseFCGIServer(object):
         self._umask = umask
         
         # Used to force single-threadedness
-        self._appLock = thread.allocate_lock()
+        self._appLock = _thread.allocate_lock()
 
         if thread_available:
             try:

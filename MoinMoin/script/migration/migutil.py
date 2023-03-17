@@ -6,6 +6,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 from __future__ import print_function
+from builtins import str
 import os, sys, shutil
 
 opj = os.path.join # yes, I am lazy

@@ -9,6 +9,7 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from builtins import object
 import codecs
 import re
 from functools import update_wrapper

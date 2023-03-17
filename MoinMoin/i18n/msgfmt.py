@@ -27,6 +27,7 @@ refactored / fixed by Thomas Waldmann <tw AT waldmann-edv DOT de>.
 """
 from __future__ import print_function
 
+from builtins import object
 import sys, os
 import getopt, struct, array
 
@@ -54,7 +55,7 @@ class MsgFmt(object):
     def add(self, id, str, fuzzy):
         """Add a non-fuzzy translation to the dictionary."""
         if not fuzzy and str:
-            self.messages[id] = str
+            self.messages[id.encode("utf8")] = str.encode("utf8")
 
     def read_po(self, lines):
         ID = 1
@@ -107,18 +108,18 @@ class MsgFmt(object):
 
     def generate_mo(self):
         """Return the generated output."""
-        keys = self.messages.keys()
+        keys = list(self.messages.keys())
         # the keys are sorted in the .mo file
         keys.sort()
         offsets = []
-        ids = ''
-        strs = ''
+        ids = b''
+        strs = b''
         for id in keys:
             # For each string, we need size and file offset.  Each string is NUL
             # terminated; the NUL does not count into the size.
             offsets.append((len(ids), len(id), len(strs), len(self.messages[id])))
-            ids += id + '\0'
-            strs += self.messages[id] + '\0'
+            ids += id + b'\0'
+            strs += self.messages[id] + b'\0'
         output = []
         # The header is 7 32-bit unsigned integers.  We don't use hash tables, so
         # the keys start right after the index tables.
@@ -141,17 +142,17 @@ class MsgFmt(object):
                              7*4,               # start of key index
                              7*4 + len(keys)*8, # start of value index
                              0, 0))             # size and offset of hash table
-        output.append(array.array("i", offsets).tostring())
+        output.append(array.array("i", offsets).tobytes())
         output.append(ids)
         output.append(strs)
-        return ''.join(output)
+        return b''.join(output)
 
 
 def make(filename, outfile):
     mf = MsgFmt()
     infile, outfile = mf.make_filenames(filename, outfile)
     try:
-        lines = file(infile).readlines()
+        lines = open(infile).readlines()
     except IOError as msg:
         print(msg, file=sys.stderr)
         sys.exit(1)

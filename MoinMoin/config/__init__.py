@@ -55,7 +55,7 @@ split_regex = re.compile('([%s])([%s])' % (chars_lower, chars_upper), re.UNICODE
 # Invalid characters - invisible characters that should not be in page
 # names. Prevent user confusion and wiki abuse, e.g u'\u202aFrontPage'.
 page_invalid_chars_regex = re.compile(
-    ur"""
+    r"""
     \u0000 | # NULL
 
     # Bidi control characters

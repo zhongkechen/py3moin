@@ -27,6 +27,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 import re
 
 from MoinMoin.util import pysupport
@@ -39,7 +40,7 @@ modules = pysupport.getPackageModules(__file__)
 # builtin-stuff (see do_<name> below):
 names = ['show', 'recall', 'raw', 'format', 'content', 'print', 'refresh', 'goto', ]
 
-class ActionBase:
+class ActionBase(object):
     """ action base class with some generic stuff to inherit
 
     Note: the action name is the class name of the derived class

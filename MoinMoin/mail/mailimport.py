@@ -10,6 +10,8 @@
 """
 from __future__ import print_function
 
+from builtins import str
+from builtins import object
 import sys, re, time
 import email
 from email.utils import getaddresses, parsedate_tz, mktime_tz
@@ -49,7 +51,12 @@ def decode_2044(header):
     chunks = decode_header(header)
     chunks_decoded = []
     for i in chunks:
-        chunks_decoded.append(i[0].decode(i[1] or 'ascii'))
+        if isinstance(i[0], bytes):
+            result = i[0].decode(i[1] or 'ascii')
+        else:
+            result = i[0]
+
+        chunks_decoded.append(result)
     return u''.join(chunks_decoded).strip()
 
 def email_to_markup(request, email):

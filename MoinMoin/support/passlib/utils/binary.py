@@ -6,6 +6,10 @@ passlib.utils.binary - binary data encoding/decoding/manipulation
 #=============================================================================
 # core
 from __future__ import absolute_import, division, print_function
+from builtins import zip
+from builtins import map
+from builtins import bytes
+from builtins import object
 from base64 import (
     b64encode,
     b64decode,
@@ -22,7 +26,7 @@ from passlib.utils.compat import (
     PY3, bascii_to_str,
     irange, imap, iter_byte_chars, join_byte_values, join_byte_elems,
     nextgetter, suppress_cause,
-    u, unicode, unicode_or_bytes_types,
+    u, str, unicode_or_bytes_types,
 )
 from passlib.utils.decor import memoized_property
 # from passlib.utils import BASE64_CHARS, HASH64_CHARS
@@ -127,11 +131,11 @@ def compile_byte_translation(mapping, source=None):
     else:
         assert isinstance(source, bytes) and len(source) == 255
         target = list(iter_byte_chars(source))
-    for k, v in mapping.items():
+    for k, v in list(mapping.items()):
         if isinstance(k, unicode_or_bytes_types):
             k = ord(k)
         assert isinstance(k, int) and 0 <= k < 256
-        if isinstance(v, unicode):
+        if isinstance(v, str):
             v = v.encode("ascii")
         assert isinstance(v, bytes) and len(v) == 1
         target[k] = v
@@ -152,7 +156,7 @@ def b64s_decode(data):
     decode from shortened base64 format which omits padding & whitespace.
     uses default ``+/`` altchars.
     """
-    if isinstance(data, unicode):
+    if isinstance(data, str):
         # needs bytes for replace() call, but want to accept ascii-unicode ala a2b_base64()
         try:
             data = data.encode("ascii")
@@ -198,7 +202,7 @@ def ab64_decode(data):
 
     it is primarily used by Passlib's custom pbkdf2 hashes.
     """
-    if isinstance(data, unicode):
+    if isinstance(data, str):
         # needs bytes for replace() call, but want to accept ascii-unicode ala a2b_base64()
         try:
             data = data.encode("ascii")
@@ -233,7 +237,7 @@ def b32decode(source):
     padding optional, ignored if present.
     """
     # encode & correct for typos
-    if isinstance(source, unicode):
+    if isinstance(source, str):
         source = source.encode("ascii")
     source = source.translate(_b32_translate)
 
@@ -336,7 +340,7 @@ class Base64Engine(object):
     #===================================================================
     def __init__(self, charmap, big=False):
         # validate charmap, generate encode64/decode64 helper functions.
-        if isinstance(charmap, unicode):
+        if isinstance(charmap, str):
             charmap = charmap.encode("latin-1")
         elif not isinstance(charmap, bytes):
             raise exc.ExpectedStringError(charmap, "charmap")
@@ -390,7 +394,7 @@ class Base64Engine(object):
         else:
             next_value = nextgetter(ord(elem) for elem in source)
         gen = self._encode_bytes(next_value, chunks, tail)
-        out = join_byte_elems(imap(self._encode64, gen))
+        out = join_byte_elems(list(map(self._encode64, gen)))
         ##if tail:
         ##    padding = self.padding
         ##    if padding:
@@ -495,7 +499,7 @@ class Base64Engine(object):
         if tail == 1:
             # only 6 bits left, can't encode a whole byte!
             raise ValueError("input string length cannot be == 1 mod 4")
-        next_value = nextgetter(imap(self._decode64, source))
+        next_value = nextgetter(list(map(self._decode64, source)))
         try:
             return join_byte_values(self._decode_bytes(next_value, chunks, tail))
         except KeyError as err:
@@ -626,7 +630,7 @@ class Base64Engine(object):
 
         # we have dirty bits - repair the string by decoding last char,
         # clearing the padding bits via <mask>, and encoding new char.
-        if isinstance(source, unicode):
+        if isinstance(source, str):
             cm = self.charmap
             last = cm[cm.index(last) & mask]
             assert last in padset, "failed to generate valid padding char"
@@ -798,8 +802,8 @@ class Base64Engine(object):
         else:
             itr = irange(0, bits, 6)
             # padding is msb, so no change needed.
-        return join_byte_elems(imap(self._encode64,
-                                ((value>>off) & 0x3f for off in itr)))
+        return join_byte_elems(list(map(self._encode64,
+                                ((value>>off) & 0x3f for off in itr))))
 
     #---------------------------------------------------------------
     # optimized versions for common integer sizes
@@ -821,7 +825,7 @@ class Base64Engine(object):
         raw = [value & 0x3f, (value>>6) & 0x3f]
         if self.big:
             raw = reversed(raw)
-        return join_byte_elems(imap(self._encode64, raw))
+        return join_byte_elems(list(map(self._encode64, raw)))
 
     def encode_int24(self, value):
         """encodes 24-bit integer -> 4 char string"""
@@ -831,7 +835,7 @@ class Base64Engine(object):
                (value>>12) & 0x3f, (value>>18) & 0x3f]
         if self.big:
             raw = reversed(raw)
-        return join_byte_elems(imap(self._encode64, raw))
+        return join_byte_elems(list(map(self._encode64, raw)))
 
     def encode_int30(self, value):
         """decode 5 char string -> 30 bit integer"""

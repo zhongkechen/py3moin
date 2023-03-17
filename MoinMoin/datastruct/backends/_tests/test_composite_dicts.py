@@ -8,7 +8,7 @@ MoinMoin.datastruct.backends.composite_dicts test
 @license: GPL, see COPYING for details
 """
 
-from py.test import raises
+from pytest import raises
 
 from MoinMoin.datastruct.backends._tests import DictsBackendTest
 from MoinMoin.datastruct import ConfigDicts, CompositeDicts, DictDoesNotExistError

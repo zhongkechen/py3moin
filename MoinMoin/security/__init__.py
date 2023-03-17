@@ -19,6 +19,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import range
+from builtins import object
 import re
 
 from MoinMoin import wikiutil, user
@@ -94,7 +96,7 @@ def _check(request, pagename, username, right):
     return False
 
 
-class Permissions:
+class Permissions(object):
     """ Basic interface for user permissions and system policy.
 
     Note that you still need to allow some of the related actions, this
@@ -154,7 +156,7 @@ class Permissions:
 Default = Permissions
 
 
-class AccessControlList:
+class AccessControlList(object):
     ''' Access Control List
 
     Control who may do what on or with a wiki page.
@@ -373,7 +375,7 @@ class AccessControlList:
         return self.acl_lines != other.acl_lines
 
 
-class ACLStringIterator:
+class ACLStringIterator(object):
     """ Iterator for acl string
 
     Parse acl string and return the next entry on each call to
@@ -399,7 +401,7 @@ class ACLStringIterator:
         """ Required by the Iterator protocol """
         return self
 
-    def next(self):
+    def __next__(self):
         """ Return the next values from the acl string
 
         When the iterator is finished and you try to call next, it

@@ -3,6 +3,7 @@
 # imports
 #==========================================================================
 # core
+from builtins import range
 import os
 # pkg
 # local
@@ -77,7 +78,7 @@ _SALSA_OPS = [
 
 def main():
     target = os.path.join(os.path.dirname(__file__), "_salsa.py")
-    fh = file(target, "w")
+    fh = open(target, "w")
     write = fh.write
 
     VNAMES = ["v%d" % i for i in range(16)]

@@ -15,6 +15,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from past.builtins import cmp
+from builtins import str
+from builtins import object
 from MoinMoin import log
 logging = log.getLogger(__name__)
 
@@ -22,7 +25,7 @@ from MoinMoin.logfile import LogFile
 from MoinMoin import wikiutil, user, config
 from MoinMoin.Page import Page
 
-class EditLogLine:
+class EditLogLine(object):
     """
     Has the following attributes
 
@@ -180,7 +183,7 @@ class EditLog(LogFile):
                 import socket
                 try:
                     hostname = socket.gethostbyaddr(host)[0]
-                    hostname = unicode(hostname, config.charset)
+                    hostname = str(hostname, config.charset)
                 except (socket.error, UnicodeError):
                     hostname = host
             else:
@@ -197,7 +200,7 @@ class EditLog(LogFile):
             hostname = self.uid_override
             host = ''
 
-        line = u"\t".join((str(long(mtime)), # has to be long for py 2.2.x
+        line = u"\t".join((str(int(mtime)), # has to be long for py 2.2.x
                            "%08d" % rev,
                            action,
                            wikiutil.quoteWikinameFS(pagename),
@@ -223,7 +226,7 @@ class EditLog(LogFile):
         if not result.hostname:
             result.hostname = result.addr
         result.pagename = wikiutil.unquoteWikiname(result.pagename.encode('ascii'))
-        result.ed_time_usecs = long(result.ed_time_usecs or '0') # has to be long for py 2.2.x
+        result.ed_time_usecs = int(result.ed_time_usecs or '0') # has to be long for py 2.2.x
         return result
 
     def set_filter(self, **kw):
@@ -234,7 +237,7 @@ class EditLog(LogFile):
                 expr = "%s and x.%s == %s" % (expr, field, repr(kw[field]))
 
         if 'ed_time_usecs' in kw:
-            expr = "%s and long(x.ed_time_usecs) == %s" % (expr, long(kw['ed_time_usecs'])) # must be long for py 2.2.x
+            expr = "%s and long(x.ed_time_usecs) == %s" % (expr, int(kw['ed_time_usecs'])) # must be long for py 2.2.x
 
         self.filter = eval("lambda x: " + expr)
 

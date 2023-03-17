@@ -7,6 +7,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import zip
+from builtins import object
 import re
 from MoinMoin.Page import Page
 from MoinMoin import wikiutil
@@ -60,7 +62,7 @@ def _getLinks(request, pagename, filter_regex=None):
     return pos, size, (first, prev, next, last)
 
 
-class Navigation:
+class Navigation(object):
     """ Dispatcher class implementing the navigation schemes.
     """
 
@@ -197,7 +199,7 @@ class Navigation:
         filter_regex = '^%s/' % re.escape(parent)
         pos, size, links = _getLinks(request, self.pagename, filter_regex)
         pos += 1
-        links = zip(labels, (parent, ) + links)
+        links = list(zip(labels, (parent, ) + links))
 
         # generate links to neighborhood
         for label, name in links:

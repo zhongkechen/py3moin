@@ -12,7 +12,7 @@ from MoinMoin import wikiutil
 
 def macro_InterWiki(macro):
     interwiki_list = wikiutil.load_wikimap(macro.request)
-    iwlist = interwiki_list.items() # this is where we cached it
+    iwlist = list(interwiki_list.items()) # this is where we cached it
     iwlist.sort()
     fmt = macro.formatter
     output = []

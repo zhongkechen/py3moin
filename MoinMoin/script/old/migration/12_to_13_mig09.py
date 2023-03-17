@@ -47,6 +47,7 @@ Steps for a successful migration:
 """
 from __future__ import print_function
 
+from builtins import range
 import os, sys, codecs
 join = os.path.join
 

@@ -6,6 +6,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
 from MoinMoin.widget import base
 
 
@@ -27,7 +28,7 @@ class Dialog(base.Widget):
         self.content = kw.get('content', '')
 
     def render(self):
-        return u'<div class="dialog">\n%s\n</div>\n' % unicode(self.content)
+        return u'<div class="dialog">\n%s\n</div>\n' % str(self.content)
 
 
 class Status(base.Widget):
@@ -52,5 +53,5 @@ class Status(base.Widget):
         self.content = kw.get('content', '')
 
     def render(self):
-        return u'<p class="status">%s</p>\n' % unicode(self.content)
+        return u'<p class="status">%s</p>\n' % str(self.content)
 

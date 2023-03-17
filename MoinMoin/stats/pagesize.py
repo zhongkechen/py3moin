@@ -8,6 +8,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
 _debug = 0
 
 from MoinMoin import wikiutil
@@ -50,7 +53,7 @@ def _slice(data, lo, hi):
 
 
 def draw(pagename, request):
-    import bisect, shutil, cStringIO
+    import bisect, shutil, io
     from MoinMoin.stats.chart import Chart, ChartData, Color
 
     _ = request.getText
@@ -59,7 +62,7 @@ def draw(pagename, request):
     # get data
     pages = request.rootpage.getPageDict()
     sizes = []
-    for name, page in pages.items():
+    for name, page in list(pages.items()):
         sizes.append((page.size(), name.encode('iso-8859-1', 'replace')) ) # gdchart does no utf-8
     sizes.sort()
 
@@ -86,7 +89,7 @@ def draw(pagename, request):
             '<br>'.join([wikiutil.escape(repr(x)) for x in [labels, data]])
 
     # create image
-    image = cStringIO.StringIO()
+    image = io.StringIO()
     c = Chart()
     ##c.addData(ChartData(data, 'magenta'))
     c.addData(ChartData(_slice(data, 0, 7), 'blue'))

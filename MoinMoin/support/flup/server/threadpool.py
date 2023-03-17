@@ -24,11 +24,15 @@
 #
 # $Id$
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from builtins import object
 __author__ = 'Allan Saddi <allan@saddi.com>'
 __version__ = '$Revision$'
 
 import sys
-import thread
+import _thread
 import threading
 
 class ThreadPool(object):
@@ -92,7 +96,7 @@ class ThreadPool(object):
                   self._workerCount < self._maxThreads:
                 try:
                     self._start_new_thread()
-                except thread.error:
+                except _thread.error:
                     return False
                 self._workerCount += 1
                 self._idleCount += 1

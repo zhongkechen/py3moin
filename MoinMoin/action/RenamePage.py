@@ -26,7 +26,7 @@ class RenamePage(ActionBase):
         _ = self._
         self.form_trigger = 'rename'
         self.form_trigger_label = _('Rename Page')
-        filterfn = re.compile(ur"^%s/.*$" % re.escape(pagename), re.U).match
+        filterfn = re.compile(r"^%s/.*$" % re.escape(pagename), re.U).match
         subpagenames = request.rootpage.getPageList(user='', exists=1, filter=filterfn)
         self.subpages = [pagename for pagename in subpagenames if self.request.user.may.delete(pagename)]
         try:

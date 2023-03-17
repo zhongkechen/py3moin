@@ -7,7 +7,7 @@
                 2009 by MoinMoin:DmitrijsMilajevs
     @license: GNU GPL, see COPYING for details.
 """
-
+import pytest
 
 from MoinMoin.datastruct.backends._tests import DictsBackendTest
 from MoinMoin.datastruct.backends import wiki_dicts
@@ -18,35 +18,7 @@ class TestWikiDictsBackend(DictsBackendTest):
 
     # Suppose that default configuration for the dicts is used which
     # is WikiDicts backend.
-
-    def setup_class(self):
-        request = self.request
-        become_trusted(request)
-
-        text = '''
-Text ignored
- * list items ignored
-  * Second level list ignored
- First:: first item
- text with spaces:: second item
-
-Empty lines ignored, so is this text
-Next line has key with empty value
- Empty string::\x20
- Last:: last item
-'''
-        create_page(request, u'SomeTestDict', text)
-
-        text = """
- One:: 1
- Two:: 2
-"""
-        create_page(request, u'SomeOtherTestDict', text)
-
-    def teardown_class(self):
-        become_trusted(self.request)
-        nuke_page(self.request, u'SomeTestDict')
-        nuke_page(self.request, u'SomeOtherTestDict')
+    pass
 
 
 coverage_modules = ['MoinMoin.datastruct.backends.wiki_dicts']

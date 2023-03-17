@@ -6,7 +6,10 @@
                 2006-2008 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import division
 
+from builtins import str
+from past.utils import old_div
 import sys, os, shutil, time, errno
 from stat import S_ISDIR, ST_MODE, S_IMODE
 import warnings
@@ -165,7 +168,7 @@ def fuid(filename, max_staleness=3600):
             now = int(time.time())
             if now >= st.st_mtime + max_staleness:
                 # keep same fake_mtime for each max_staleness interval
-                fake_mtime = int(now / max_staleness) * max_staleness
+                fake_mtime = int(old_div(now, max_staleness)) * max_staleness
         uid = (st.st_mtime,  # might have a rather rough granularity, e.g. 2s
                              # on FAT, 1s on ext3 and might not change on fast
                              # updates
@@ -294,19 +297,18 @@ def dcdisable():
     global DCENABLED
     DCENABLED = 0
 
-import dircache
 
 def dclistdir(path):
     warnings.warn(dc_deprecated, DeprecationWarning, stacklevel=2)
     if sys.platform == 'win32' or not DCENABLED:
         return os.listdir(path)
     else:
-        return dircache.listdir(path)
+        return os.listdir(path)
 
 def dcreset():
     warnings.warn(dc_deprecated, DeprecationWarning, stacklevel=2)
     if sys.platform == 'win32' or not DCENABLED:
         return
     else:
-        return dircache.reset()
+        return
 

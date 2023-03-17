@@ -20,7 +20,7 @@ def macro_LikePages(macro, text=u'(none)'):
         start, end, matches = LikePages.findMatches(pagename, request)
 
         # Render matches
-        if matches and not isinstance(matches, (str, unicode)):
+        if matches and not isinstance(matches, (str, str)):
             return request.redirectedOutput(LikePages.showMatches, pagename, request, start, end, matches, False)
         else:
             # if we did not find any similar pages, we just render the text we got as argument:

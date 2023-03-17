@@ -21,6 +21,7 @@ setting each header so the middleware knows what to trust.
 :copyright: 2007 Pallets
 :license: BSD-3-Clause
 """
+from builtins import object
 from werkzeug.http import parse_list_header
 
 

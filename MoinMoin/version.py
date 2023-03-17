@@ -23,10 +23,10 @@ revision = patchlevel
 def update():
     """ update the version information in package init """
     fname = 'MoinMoin/__init__.py'
-    f = file(fname)
+    f = open(fname)
     lines = f.readlines()
     f.close()
-    f = file(fname, "w")
+    f = open(fname, "w")
     version_pattern = "%s Version " % project
     version_string = version_pattern + "%s %s" % (release, revision)
     for line in lines:

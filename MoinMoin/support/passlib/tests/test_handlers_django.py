@@ -2,8 +2,11 @@
 #=============================================================================
 # imports
 #=============================================================================
-from __future__ import with_statement
+
+from __future__ import division
 # core
+from builtins import str
+from past.utils import old_div
 import logging; log = logging.getLogger(__name__)
 import warnings
 # site
@@ -89,7 +92,7 @@ class _DjangoHelper(TestCase):
         from passlib.utils import tick
         from django.contrib.auth.hashers import make_password
         name = self.handler.django_name # set for all the django_* handlers
-        end = tick() + self.max_fuzz_time/2
+        end = tick() + old_div(self.max_fuzz_time,2)
         generator = self.FuzzHashGenerator(self, self.getRandom())
         while tick() < end:
             secret, other = generator.random_password_pair()

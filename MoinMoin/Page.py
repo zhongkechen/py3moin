@@ -34,6 +34,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import filter
+from builtins import str
+from builtins import object
 import os, re, codecs
 
 from MoinMoin import log
@@ -47,7 +50,7 @@ def is_cache_exception(e):
     return not (len(args) != 1 or args[0] != 'CacheNeedsUpdate')
 
 
-class ItemCache:
+class ItemCache(object):
     """ Cache some page item related data, as meta data or pagelist
 
         We only cache this to RAM in request.cfg (this is the only kind of
@@ -151,7 +154,7 @@ class Page(object):
         self.include_self = kw.get('include_self', 0)
 
         formatter = kw.get('formatter', None)
-        if isinstance(formatter, (str, unicode)): # mimetype given
+        if isinstance(formatter, (str, str)): # mimetype given
             mimetype = str(formatter)
             self.formatter = None
             self.output_mimetype = mimetype
@@ -299,7 +302,7 @@ class Page(object):
         """
         revfilename = os.path.join(pagedir, 'current')
         try:
-            revfile = file(revfilename)
+            revfile = open(revfilename)
             revstr = revfile.read().strip()
             revfile.close()
             rev = int(revstr)
@@ -738,7 +741,7 @@ class Page(object):
         @rtype: str
         @return: complete url of this page, including scriptname
         """
-        assert(isinstance(anchor, (type(None), str, unicode)))
+        assert(isinstance(anchor, (type(None), str, str)))
         # Create url, excluding scriptname
         url = wikiutil.quoteWikinameURL(self.page_name)
         if querystr:
@@ -1188,7 +1191,7 @@ class Page(object):
                             'switch_link': ''.join([
                                 request.formatter.url(1, request.getQualifiedURL(
                                    self.url(request, dict([i for i in
-                                   request.values.iteritems()
+                                   list(request.values.items())
                                    if i[0] != 'highlight'])))),
                                 _(u"Switch to non-highlighted view"),
                                 request.formatter.url(0)
@@ -1451,12 +1454,9 @@ class Page(object):
             macro_obj = Macro(parser)
             # Fix __file__ when running from a zip package
             import MoinMoin
-            if hasattr(MoinMoin, '__loader__'):
+            if hasattr(MoinMoin.__loader__, "archive"):
                 __file__ = os.path.join(MoinMoin.__loader__.archive, 'dummy')
-            try:
-                exec(code)
-            except "CacheNeedsUpdate": # convert the exception
-                raise Exception("CacheNeedsUpdate")
+            exec(code)
         finally:
             request.clock.stop("Page.execute")
 
@@ -1637,7 +1637,7 @@ class Page(object):
 
         request.clock.start('parsePageLinks')
 
-        class Null:
+        class Null(object):
             def write(self, data):
                 pass
 
@@ -1907,7 +1907,7 @@ class RootPage(Page):
                 else:
                     pages.append(name)
         else:
-            pages = cachedlist.keys()
+            pages = list(cachedlist.keys())
 
         request.clock.stop('getPageList')
         return pages

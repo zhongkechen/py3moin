@@ -18,6 +18,8 @@
 
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
 MODULES = {'.NET': ('dotnet_load',),
  'APC': ('apc_add',
          'apc_bin_dump',
@@ -4681,7 +4683,7 @@ if __name__ == '__main__':  # pragma: no cover
     import shutil
     import tarfile
     try:
-        from urllib import urlretrieve
+        from urllib.request import urlretrieve
     except ImportError:
         from urllib.request import urlretrieve
 
@@ -4748,7 +4750,7 @@ if __name__ == '__main__':  # pragma: no cover
     def run():
         print('>> Downloading Function Index')
         modules = get_php_functions()
-        total = sum(len(v) for v in modules.values())
+        total = sum(len(v) for v in list(modules.values()))
         print('%d functions found' % total)
         regenerate(__file__, modules)
         shutil.rmtree(PHP_MANUAL_DIR)

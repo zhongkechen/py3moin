@@ -29,7 +29,7 @@ from passlib.utils import safe_crypt, repeat_string, to_bytes, parse_version, \
                           rng, getrandstr, test_crypt, to_unicode
 from passlib.utils.binary import bcrypt64
 from passlib.utils.compat import get_unbound_method_function
-from passlib.utils.compat import u, uascii_to_str, unicode, str_to_uascii
+from passlib.utils.compat import u, uascii_to_str, str, str_to_uascii
 import passlib.utils.handlers as uh
 
 # local
@@ -455,7 +455,7 @@ class _BcryptCommon(uh.SubclassBackendMixin, uh.TruncateMixin, uh.HasManyIdents,
     @classmethod
     def _norm_digest_args(cls, secret, ident, new=False):
         # make sure secret is unicode
-        if isinstance(secret, unicode):
+        if isinstance(secret, str):
             secret = secret.encode("utf-8")
 
         # check max secret size
@@ -592,7 +592,7 @@ class _BcryptBackend(_BcryptCommon):
         #   returns ascii bytes
         secret, ident = self._prepare_digest_args(secret)
         config = self._get_config(ident)
-        if isinstance(config, unicode):
+        if isinstance(config, str):
             config = config.encode("ascii")
         hash = _bcrypt.hashpw(secret, config)
         assert hash.startswith(config) and len(hash) == len(config)+31, \
@@ -934,7 +934,7 @@ class bcrypt_sha256(_wrapped_bcrypt):
     ident_values = (IDENT_2A, IDENT_2B)
 
     # clone bcrypt's ident aliases so they can be used here as well...
-    ident_aliases = (lambda ident_values: dict(item for item in bcrypt.ident_aliases.items()
+    ident_aliases = (lambda ident_values: dict(item for item in list(bcrypt.ident_aliases.items())
                                                if item[1] in ident_values))(ident_values)
     default_ident = IDENT_2B
 
@@ -1008,7 +1008,7 @@ class bcrypt_sha256(_wrapped_bcrypt):
         #       thus, have to use base64 (44 bytes) rather than hex (64 bytes).
         # XXX: it's later come out that 55-72 may be ok, so later revision of bcrypt_sha256
         #      may switch to hex encoding, since it's simpler to implement elsewhere.
-        if isinstance(secret, unicode):
+        if isinstance(secret, str):
             secret = secret.encode("utf-8")
 
         # NOTE: output of b64encode() uses "+/" altchars, "=" padding chars,

@@ -8,6 +8,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
+from builtins import object
 import os
 import shutil
 import tempfile
@@ -48,7 +50,7 @@ def get_cache_list(request, arena, scope):
         return []
 
 
-class CacheEntry:
+class CacheEntry(object):
     def __init__(self, request, arena, key, scope='wiki', do_locking=True,
                  use_pickle=False, use_encode=False):
         """ init a cache entry
@@ -259,7 +261,7 @@ class CacheEntry:
                 # content is a string
                 if self.use_pickle:
                     content = pickle.dumps(content, PICKLE_PROTOCOL)
-                elif self.use_encode:
+                elif self.use_encode and isinstance(content, str):
                     content = content.encode(config.charset)
 
                 try:

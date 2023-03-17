@@ -417,7 +417,7 @@ class AppleScriptLexer(RegexLexer):
                      'between', 'for', 'given', 'instead of', 'on', 'onto',
                      'out of', 'over', 'since')
     Commands = ('ASCII (character|number)', 'activate', 'beep', 'choose URL',
-                'choose application', 'choose color', 'choose file( name)?',
+                'choose application', 'choose color', 'choose open( name)?',
                 'choose folder', 'choose from list',
                 'choose remote application', 'clipboard info',
                 'close( access)?', 'copy', 'count', 'current date', 'delay',

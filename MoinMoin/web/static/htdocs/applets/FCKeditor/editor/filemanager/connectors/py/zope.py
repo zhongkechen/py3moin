@@ -28,7 +28,10 @@ It just was ported from pre 2.5 release, so for further reference see
 releases.
 
 """
+from __future__ import division
 
+from builtins import object
+from past.utils import old_div
 from fckutil import *
 from connector import *
 import config as Config
@@ -94,7 +97,7 @@ class FCKeditorConnectorZope(FCKeditorConnector):
 		for (name, o) in zopeFolder.objectItems(["File","Image"]):
 			s += """<File name="%s" size="%s" />""" % (
 					convertToXmlAttribute(name),
-					((o.get_size() / 1024) + 1)
+					((old_div(o.get_size(), 1024)) + 1)
 					)
 		# Close the files node
 		s += """</Files>"""

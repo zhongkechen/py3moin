@@ -1,3 +1,4 @@
+from builtins import object
 from functools import update_wrapper
 from io import BytesIO
 

@@ -7,8 +7,10 @@ MoinMoin - remote command execution, client part
 """
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
 import sys
-import xmlrpclib
+import xmlrpc.client
 
 from MoinMoin.script import MoinScript, fatal
 
@@ -46,7 +48,7 @@ General syntax: moin [options] xmlrpc remote [remote-options]
         url = conf.remotescript_url
         print(url, secret, self.argv)
 
-        s = xmlrpclib.ServerProxy(url)
+        s = xmlrpc.client.ServerProxy(url)
 
         # TODO handle stdin
         # xmlrpclib.Binary(sys.stdin.read())

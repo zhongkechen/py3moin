@@ -7,25 +7,31 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
+
+import pytest
+
 from MoinMoin import macro
 from MoinMoin.parser.text import Parser
 from MoinMoin.formatter.text_html import Formatter
 from MoinMoin._tests import become_trusted, create_page, make_macro, nuke_page
 
-class TestMacro:
+class TestMacro(object):
     pagename = u'AutoCreatedMoinMoinTemporaryTestPageForTestMacro'
 
-    def setup_class(self):
-        request = self.request
+    @pytest.fixture(autouse=True)
+    def setup_class(self, req):
+        request = req
         become_trusted(request)
         self.page = create_page(request, self.pagename, u"Foo!")
 
-    def teardown_class(self):
-        nuke_page(self.request, self.pagename)
+        yield
 
-    def testTrivialMacro(self):
+        nuke_page(req, self.pagename)
+
+    def testTrivialMacro(self, req):
         """macro: trivial macro works"""
-        m = make_macro(self.request, self.page)
+        m = make_macro(req, self.page)
         expected = m.formatter.linebreak(0)
         result = m.execute("BR", "")
         assert result == expected

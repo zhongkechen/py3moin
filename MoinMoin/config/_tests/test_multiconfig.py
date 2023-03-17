@@ -7,10 +7,11 @@
 """
 from __future__ import print_function
 
-import py
+from builtins import object
+import pytest
 
 
-class TestPasswordChecker:
+class TestPasswordChecker(object):
     username = u"SomeUser"
     tests_builtin = [
         (u'', False), # empty
@@ -26,13 +27,13 @@ class TestPasswordChecker:
         (u"XXX%sXXX" % username, False), # username in password
         (u'Moin-2007', True), # this should be OK
     ]
-    def testBuiltinPasswordChecker(self):
-        pw_checker = self.request.cfg.password_checker
+    def testBuiltinPasswordChecker(self, req):
+        pw_checker = req.cfg.password_checker
         if not pw_checker:
-            py.test.skip("password_checker is disabled in the configuration, not testing it")
+            pytest.skip("password_checker is disabled in the configuration, not testing it")
         else:
             for pw, result in self.tests_builtin:
-                pw_error = pw_checker(self.request, self.username, pw)
+                pw_error = pw_checker(req, self.username, pw)
                 print("%r: %s" % (pw, pw_error))
                 assert result == (pw_error is None)
 

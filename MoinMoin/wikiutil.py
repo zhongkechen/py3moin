@@ -9,14 +9,24 @@
                 2007 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import division
 
-import cgi
+import html
+
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import chr
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import codecs
 import hmac, hashlib
 import os
 import re
 import time
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 from MoinMoin import log
 logging = log.getLogger(__name__)
@@ -60,18 +70,18 @@ def decodeUnknownInput(text):
     @return: decoded text (maybe wrong)
     """
     # Shortcut for unicode input
-    if isinstance(text, unicode):
+    if isinstance(text, str):
         return text
 
     try:
-        return unicode(text, 'utf-8')
+        return str(text, 'utf-8')
     except UnicodeError:
         if config.charset not in ['utf-8', 'iso-8859-1']:
             try:
-                return unicode(text, config.charset)
+                return str(text, config.charset)
             except UnicodeError:
                 pass
-        return unicode(text, 'iso-8859-1', 'replace')
+        return str(text, 'iso-8859-1', 'replace')
 
 
 def decodeUserInput(s, charsets=[config.charset]):
@@ -85,7 +95,10 @@ def decodeUserInput(s, charsets=[config.charset]):
     """
     for charset in charsets:
         try:
-            return s.decode(charset)
+            if isinstance(s, bytes):
+                return s.decode(charset)
+            else:
+                return s
         except UnicodeError:
             pass
     raise UnicodeError('The string %r cannot be decoded.' % s)
@@ -113,7 +126,7 @@ def url_unquote(s, want_unicode=None):
         assert want_unicode is None
     except AssertionError:
         log.exception("call with deprecated want_unicode param, please fix caller")
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         s = s.encode(config.charset)
     try:
         return werkzeug.urls.url_unquote(s, charset=config.charset, errors='strict')
@@ -159,7 +172,7 @@ def makeQueryString(qstr=None, want_unicode=None, **kw):
         log.exception("call with deprecated want_unicode param, please fix caller")
     if qstr is None:
         qstr = {}
-    elif isinstance(qstr, (str, unicode)):
+    elif isinstance(qstr, (bytes, str)):
         return qstr
     if isinstance(qstr, dict):
         qstr.update(kw)
@@ -186,9 +199,9 @@ def quoteWikinameURL(pagename, charset=config.charset):
 
 
 def escape(s, quote=None):
-    if not isinstance(s, (str, unicode)):
+    if not isinstance(s, (str, str)):
         s = str(s)
-    return cgi.escape(s, quote)
+    return html.escape(s, quote)
 
 
 def clean_input(text, max_len=201):
@@ -205,7 +218,7 @@ def clean_input(text, max_len=201):
     if length == 0 or length > max_len:
         return u''
     else:
-        if isinstance(text, str):
+        if isinstance(text, bytes):
             # the translate() below can ONLY process unicode, thus, if we get
             # str, we try to decode it using the usual coding:
             text = text.decode(config.charset)
@@ -247,7 +260,7 @@ def quoteWikinameFS(wikiname, charset=config.charset):
     @rtype: string
     @return: quoted name, safe for any file system
     """
-    filename = wikiname.encode(charset)
+    filename = wikiname
 
     quoted = []
     location = 0
@@ -287,8 +300,8 @@ def unquoteWikiname(filename, charsets=[config.charset]):
     """
     ### Temporary fix start ###
     # From some places we get called with Unicode strings
-    if isinstance(filename, type(u'')):
-        filename = filename.encode(config.charset)
+    if isinstance(filename, bytes):
+        filename = filename.decode(config.charset)
     ### Temporary fix end ###
 
     parts = []
@@ -334,7 +347,7 @@ def timestamp2version(ts):
         We don't want to use floats, so we just scale by 1e6 to get
         an integer in usecs.
     """
-    return long(ts*1000000) # has to be long for py 2.2.x
+    return int(ts*1000000) # has to be long for py 2.2.x
 
 def version2timestamp(v):
     """ Convert version number to UNIX timestamp (float).
@@ -396,7 +409,7 @@ class MetaDict(dict):
             @param metadata: dict of the data to write to the file
         """
         meta = []
-        for key, value in self.items():
+        for key, value in list(self.items()):
             if key in INTEGER_METAS:
                 value = str(value)
             meta.append("%s: %s" % (key, value))
@@ -797,7 +810,7 @@ def AbsPageName(context, pagename):
         while context and pagename.startswith(PARENT_PREFIX):
             context = '/'.join(context.split('/')[:-1])
             pagename = pagename[PARENT_PREFIX_LEN:]
-        pagename = '/'.join(filter(None, [context, pagename, ]))
+        pagename = '/'.join([_f for _f in [context, pagename, ] if _f])
     elif pagename.startswith(CHILD_PREFIX):
         if context:
             pagename = context + '/' + pagename[CHILD_PREFIX_LEN:]
@@ -902,7 +915,7 @@ for name, short, patterns, mime in pygments.lexers.get_all_lexers():
         if pattern.startswith('*.') and mime:
             MIMETYPES_MORE[pattern[1:]] = mime[0]
 
-[mimetypes.add_type(mimetype, ext, True) for ext, mimetype in MIMETYPES_MORE.items()]
+[mimetypes.add_type(mimetype, ext, True) for ext, mimetype in list(MIMETYPES_MORE.items())]
 
 MIMETYPES_sanitize_mapping = {
     # this stuff is text, but got application/* for unknown reasons
@@ -913,7 +926,7 @@ MIMETYPES_sanitize_mapping = {
 }
 
 MIMETYPES_spoil_mapping = {} # inverse mapping of above
-for _key, _value in MIMETYPES_sanitize_mapping.items():
+for _key, _value in list(MIMETYPES_sanitize_mapping.items()):
     MIMETYPES_spoil_mapping[_value] = _key
 
 
@@ -1005,7 +1018,7 @@ class MimeType(object):
             charset = charset or self.charset or params.get('charset', config.charset)
             params['charset'] = charset
         mimestr = "%s/%s" % (major, minor)
-        params = ['%s="%s"' % (key.lower(), value) for key, value in params.items()]
+        params = ['%s="%s"' % (key.lower(), value) for key, value in list(params.items())]
         params.insert(0, mimestr)
         return "; ".join(params)
 
@@ -1263,7 +1276,7 @@ class BracketMissingCloseError(BracketError):
         self.bracket = bracket
         BracketError.__init__(self, "Missing closing bracket %s" % bracket)
 
-class ParserPrefix:
+class ParserPrefix(object):
     """
     Trivial container-class holding a single character for
     the possible prefixes for parse_quoted_separated_ext
@@ -1342,7 +1355,7 @@ def parse_quoted_separated_ext(args, separator=None, name_value_separator=None,
     idx = 0
     assert name_value_separator is None or name_value_separator != separator
     assert name_value_separator is None or len(name_value_separator) == 1
-    if not isinstance(args, unicode):
+    if not isinstance(args, str):
         raise TypeError('args must be unicode')
     max = len(args)
     result = []         # result list
@@ -1537,7 +1550,7 @@ def get_bool(request, arg, name=None, default=None):
     assert default is None or isinstance(default, bool)
     if arg is None:
         return default
-    elif not isinstance(arg, unicode):
+    elif not isinstance(arg, str):
         raise TypeError('Argument must be None or unicode')
     arg = arg.lower()
     if arg in [u'0', u'false', u'no']:
@@ -1569,10 +1582,10 @@ def get_int(request, arg, name=None, default=None):
     @returns: the integer value of the string (or default value)
     """
     _ = request.getText
-    assert default is None or isinstance(default, (int, long))
+    assert default is None or isinstance(default, (int, int))
     if arg is None:
         return default
-    elif not isinstance(arg, unicode):
+    elif not isinstance(arg, str):
         raise TypeError('Argument must be None or unicode')
     try:
         return int(arg)
@@ -1600,10 +1613,10 @@ def get_float(request, arg, name=None, default=None):
     @returns: the float value of the string (or default value)
     """
     _ = request.getText
-    assert default is None or isinstance(default, (int, long, float))
+    assert default is None or isinstance(default, (int, int, float))
     if arg is None:
         return default
-    elif not isinstance(arg, unicode):
+    elif not isinstance(arg, str):
         raise TypeError('Argument must be None or unicode')
     try:
         return float(arg)
@@ -1631,10 +1644,10 @@ def get_complex(request, arg, name=None, default=None):
     @returns: the complex value of the string (or default value)
     """
     _ = request.getText
-    assert default is None or isinstance(default, (int, long, float, complex))
+    assert default is None or isinstance(default, (int, int, float, complex))
     if arg is None:
         return default
-    elif not isinstance(arg, unicode):
+    elif not isinstance(arg, str):
         raise TypeError('Argument must be None or unicode')
     try:
         # allow writing 'i' instead of 'j'
@@ -1663,10 +1676,10 @@ def get_unicode(request, arg, name=None, default=None):
     @rtype: unicode or None
     @returns: the unicode string (or default value)
     """
-    assert default is None or isinstance(default, unicode)
+    assert default is None or isinstance(default, str)
     if arg is None:
         return default
-    elif not isinstance(arg, unicode):
+    elif not isinstance(arg, str):
         raise TypeError('Argument must be None or unicode')
 
     return arg
@@ -1696,7 +1709,7 @@ def get_choice(request, arg, name=None, choices=[None], default_none=False):
             return None
         else:
             return choices[0]
-    elif not isinstance(arg, unicode):
+    elif not isinstance(arg, str):
         raise TypeError('Argument must be None or unicode')
     elif not arg in choices:
         _ = request.getText
@@ -1713,7 +1726,7 @@ def get_choice(request, arg, name=None, choices=[None], default_none=False):
     return arg
 
 
-class IEFArgument:
+class IEFArgument(object):
     """
     Base class for new argument parsers for
     invoke_extension_function.
@@ -1756,7 +1769,7 @@ class UnitArgument(IEFArgument):
         """
         IEFArgument.__init__(self)
         self._units = list(units)
-        self._units.sort(lambda x, y: len(y) - len(x))
+        self._units.sort(key=len)
         self._type = argtype
         self._defaultunit = defaultunit
         assert defaultunit is None or defaultunit in units
@@ -1783,7 +1796,7 @@ class UnitArgument(IEFArgument):
         return self._default
 
 
-class required_arg:
+class required_arg(object):
     """
     Wrap a type in this class and give it as default argument
     for a function passed to invoke_extension_function() in
@@ -1794,7 +1807,7 @@ class required_arg:
         Initialise a required_arg
         @param argtype: the type the argument should have
         """
-        if not (argtype in (bool, int, long, float, complex, unicode) or
+        if not (argtype in (bool, int, int, float, complex, str) or
                 isinstance(argtype, (IEFArgument, tuple, list))):
             raise TypeError("argtype must be a valid type")
         self.argtype = argtype
@@ -1830,19 +1843,19 @@ def invoke_extension_function(request, function, args, fixed_args=[]):
         # if extending this, extend required_arg as well!
         if isinstance(default, bool):
             return get_bool(request, value, name, default)
-        elif isinstance(default, (int, long)):
+        elif isinstance(default, (int, int)):
             return get_int(request, value, name, default)
         elif isinstance(default, float):
             return get_float(request, value, name, default)
         elif isinstance(default, complex):
             return get_complex(request, value, name, default)
-        elif isinstance(default, unicode):
+        elif isinstance(default, str):
             return get_unicode(request, value, name, default)
         elif isinstance(default, (tuple, list)):
             return get_choice(request, value, name, default)
         elif default is bool:
             return get_bool(request, value, name)
-        elif default is int or default is long:
+        elif default is int or default is int:
             return get_int(request, value, name)
         elif default is float:
             return get_float(request, value, name)
@@ -1872,7 +1885,7 @@ def invoke_extension_function(request, function, args, fixed_args=[]):
     trailing_args = []
 
     if args:
-        assert isinstance(args, unicode)
+        assert isinstance(args, str)
 
         positional, keyword, trailing = parse_quoted_separated(args)
 
@@ -1890,8 +1903,7 @@ def invoke_extension_function(request, function, args, fixed_args=[]):
     if isfunction(function) or ismethod(function):
         argnames, varargs, varkw, defaultlist = getargspec(function)
     elif isclass(function):
-        (argnames, varargs,
-         varkw, defaultlist) = getargspec(function.__init__.__func__)
+        argnames, varargs, varkw, defaultlist = getargspec(function.__init__)
     else:
         raise TypeError('function must be a function, method or class')
 
@@ -1945,7 +1957,7 @@ def invoke_extension_function(request, function, args, fixed_args=[]):
 
     # type-convert all keyword arguments to the type
     # that the default value indicates
-    for argname in kwargs.keys()[:]:
+    for argname in list(kwargs.keys())[:]:
         if argname in defaults:
             # the value of 'argname' from kwargs will be put into the
             # macro's 'argname' argument, so convert that giving the
@@ -1968,7 +1980,7 @@ def invoke_extension_function(request, function, args, fixed_args=[]):
         kwargs['_kwargs'] = kwargs_to_pass
         if not allow_kwargs:
             raise ValueError(_(u'No argument named "%s"') % (
-                kwargs_to_pass.keys()[0]))
+                list(kwargs_to_pass.keys())[0]))
 
     return function(*fixed_args, **kwargs)
 
@@ -1990,11 +2002,11 @@ def parseAttributes(request, attrstring, endtoken=None, extension=None):
     @rtype: dict, msg
     @return: a dict plus a possible error message
     """
-    import shlex, StringIO
+    import shlex, io
 
     _ = request.getText
 
-    parser = shlex.shlex(StringIO.StringIO(attrstring))
+    parser = shlex.shlex(io.StringIO(attrstring))
     parser.commenters = ''
     msg = None
     attrs = {}
@@ -2051,7 +2063,7 @@ def parseAttributes(request, attrstring, endtoken=None, extension=None):
     return attrs, msg or ''
 
 
-class ParameterParser:
+class ParameterParser(object):
     """ MoinMoin macro parameter parser
 
         Parses a given parameter string, separates the individual parameters
@@ -2182,7 +2194,7 @@ class ParameterParser:
                 raise ValueError("only named parameters allowed after first named parameter")
             else:
                 nr = i
-                if nr not in self.param_dict.values():
+                if nr not in list(self.param_dict.values()):
                     fixed_count = nr + 1
                 parameter_list[nr] = self._check_type(pvalue, ptype, self.param_list[nr])
 
@@ -2329,12 +2341,12 @@ def getUnicodeIndexGroup(name):
     """
     c = name[0]
     if u'\uAC00' <= c <= u'\uD7AF': # Hangul Syllables
-        return unichr(0xac00 + (int(ord(c) - 0xac00) / 588) * 588)
+        return chr(0xac00 + (old_div(int(ord(c) - 0xac00), 588)) * 588)
     else:
         return c.upper() # we put lower and upper case words into the same index group
 
 
-def isStrictWikiname(name, word_re=re.compile(ur"^(?:[%(u)s][%(l)s]+){2,}$" % {'u': config.chars_upper, 'l': config.chars_lower})):
+def isStrictWikiname(name, word_re=re.compile(r"^(?:[%(u)s][%(l)s]+){2,}$" % {'u': config.chars_upper, 'l': config.chars_lower})):
     """
     Check whether this is NOT an extended name.
 
@@ -2457,7 +2469,7 @@ def anchor_name_from_text(text):
           valid ID/name, it will return it without modification (identity
           transformation).
     '''
-    quoted = urllib.quote_plus(text.encode('utf-7'), safe=':')
+    quoted = urllib.parse.quote_plus(text.encode('utf-7'), safe=':')
     res = quoted.replace('%', '.').replace('+', '_')
     if not res[:1].isalpha():
         return 'A%s' % res
@@ -2510,7 +2522,7 @@ def createTicket(request, tm=None, action=None, pagename=None):
     """
     if tm is None:
         # for age-check of ticket
-        tm = "%010x" % time.time()
+        tm = "%010x" % int(time.time())
 
     # make the ticket very specific:
     if pagename is None:
@@ -2536,12 +2548,12 @@ def createTicket(request, tm=None, action=None, pagename=None):
 
     hmac_data = []
     for value in [tm, pagename, action, sid, uid, ]:
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             value = value.encode('utf-8')
         hmac_data.append(value)
 
-    h = hmac.new(request.cfg.secrets['wikiutil/tickets'],
-                 ''.join(hmac_data), digestmod=hashlib.sha1)
+    h = hmac.new(request.cfg.secrets['wikiutil/tickets'].encode("utf8"),
+                 b''.join(hmac_data), digestmod=hashlib.sha1)
     return "%s.%s" % (tm, h.hexdigest())
 
 
@@ -2568,8 +2580,8 @@ def checkTicket(request, ticket):
 
 def renderText(request, Parser, text):
     """executes raw wiki markup with all page elements"""
-    import StringIO
-    out = StringIO.StringIO()
+    import io
+    out = io.StringIO()
     request.redirect(out)
     wikiizer = Parser(text, request)
     wikiizer.format(request.formatter, inhibit_p=True)

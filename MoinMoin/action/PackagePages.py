@@ -10,7 +10,11 @@
                 2007-2009 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
-import cStringIO
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+import io
 import os
 import zipfile
 from datetime import datetime
@@ -26,7 +30,7 @@ from MoinMoin.search import searchPages
 class ActionError(Exception):
     pass
 
-class PackagePages:
+class PackagePages(object):
     def __init__(self, pagename, request):
         self.request = request
         self.pagename = pagename
@@ -80,7 +84,7 @@ class PackagePages:
             raise ActionError
 
         request = self.request
-        filelike = cStringIO.StringIO()
+        filelike = io.StringIO()
         package = self.collectpackage(unpackLine(pagelist, ","), filelike, target, include_attachments)
         request.headers['Content-Type'] = 'application/zip'
         request.headers['Content-Length'] = filelike.tell()

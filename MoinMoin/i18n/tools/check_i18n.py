@@ -25,6 +25,8 @@ TODO: fix it for the changed i18n stuff of moin 1.6
 """
 from __future__ import print_function
 
+from builtins import str
+from builtins import object
 output_encoding = 'utf-8'
 
 # These lead to crashes (MemoryError - due to missing codecs?)
@@ -38,7 +40,7 @@ blacklist_langs = []
 import sys, os, compiler
 from compiler.ast import Name, Const, CallFunc, Getattr
 
-class TextFinder:
+class TextFinder(object):
     """ Walk through AST tree and collect text from gettext calls
 
     Find all calls to gettext function in the source tree and collect
@@ -180,7 +182,7 @@ def visit(path, visitor):
 # MoinMoin specific stuff follows
 
 
-class Report:
+class Report(object):
     """Language status report"""
     def __init__(self, lang, sourceDict):
         self.__lang = lang
@@ -315,7 +317,7 @@ if __name__ == '__main__':
     if sys.argv[1:]:
         languages = sys.argv[1:]
     else:
-        languages = i18n.languages.keys()
+        languages = list(i18n.languages.keys())
         for lang in blacklist_langs:
             # problems, maybe due to encoding?
             if lang in languages:

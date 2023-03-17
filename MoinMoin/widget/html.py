@@ -6,6 +6,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
+from builtins import object
 from MoinMoin import wikiutil
 
 # sort attributes or not? (set to 1 by unit tests)
@@ -16,27 +18,27 @@ _SORT_ATTRS = 0
 ### Base Classes
 #############################################################################
 
-class Text:
+class Text(object):
     """ A text node which will be escaped.
     """
     def __init__(self, text):
         self.text = text
 
-    def __unicode__(self):
+    def __str__(self):
         return wikiutil.escape(self.text)
 
 
-class Raw:
+class Raw(object):
     """ Raw HTML code.
     """
     def __init__(self, markup):
         self.markup = markup
 
-    def __unicode__(self):
+    def __str__(self):
         return self.markup
 
 
-class Element:
+class Element(object):
     """ Abstract base class for HTML elements.
     """
 
@@ -74,7 +76,7 @@ class Element:
 
     def _openingtag(self):
         result = [self.tagname()]
-        attrs = self.attrs.items()
+        attrs = list(self.attrs.items())
         if _SORT_ATTRS:
             attrs.sort()
         for key, val in attrs:
@@ -86,7 +88,7 @@ class Element:
                 result.append(u'%s="%s"' % (key, wikiutil.escape(val, 1)))
         return ' '.join(result)
 
-    def __unicode__(self):
+    def __str__(self):
         raise NotImplementedError
 
 
@@ -94,7 +96,7 @@ class EmptyElement(Element):
     """ HTML elements with an empty content model.
     """
 
-    def __unicode__(self):
+    def __str__(self):
         return u"<%s>" % self._openingtag()
 
 
@@ -116,10 +118,10 @@ class CompositeElement(Element):
             self.append(child)
         return self
 
-    def __unicode__(self):
+    def __str__(self):
         childout = []
         for c in self.children:
-            co = unicode(c)
+            co = str(c)
             childout.append(co)
         return "<%s>%s</%s>" % (
             self._openingtag(),
@@ -437,7 +439,7 @@ class LABEL(CompositeElement):
 
     def _openingtag(self):
         result = [self.tagname()]
-        attrs = self.attrs.items()
+        attrs = list(self.attrs.items())
         if _SORT_ATTRS:
             attrs.sort()
         for key, val in attrs:

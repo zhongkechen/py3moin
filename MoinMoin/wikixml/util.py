@@ -42,7 +42,7 @@ class XMLGenerator(saxutils.XMLGenerator):
 
     def startDocument(self):
         saxutils.XMLGenerator.startDocument(self)
-        for prefix, uri in self.xmlns.items():
+        for prefix, uri in list(self.xmlns.items()):
             self.startPrefixMapping(prefix or None, uri)
 
     def endDocument(self):

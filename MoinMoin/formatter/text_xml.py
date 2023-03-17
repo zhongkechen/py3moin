@@ -208,7 +208,7 @@ class Formatter(FormatterBase):
     def image(self, src=None, **kw):
         valid_attrs = ['src', 'width', 'height', 'alt', 'title']
         attrs = {'src': src}
-        for key, value in kw.items():
+        for key, value in list(kw.items()):
             if key in valid_attrs:
                 attrs[key] = value
         return FormatterBase.image(self, **attrs) + '</img>'

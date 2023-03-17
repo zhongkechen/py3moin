@@ -137,6 +137,12 @@
 # lambda x: ''.join(map(chr, x))
 #
 from __future__ import print_function
+from __future__ import division
+from builtins import chr
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 def make_string(seq):
     str = ""
     for c in seq:
@@ -416,7 +422,7 @@ def nikon_ev_bias(seq):
     else:
         ret_str = "+"
     b = seq[2]	# Assume third value means the step size
-    whole = a / b
+    whole = old_div(a, b)
     a = a % b
     if whole != 0:
         ret_str = ret_str + str(whole) + " "
@@ -1100,7 +1106,7 @@ def gcd(a, b):
     else:
         return gcd(b, a % b)
 
-class Ratio:
+class Ratio(object):
     def __init__(self, num, den):
         self.num = num
         self.den = den
@@ -1114,11 +1120,11 @@ class Ratio:
     def reduce_size(self):
         div = gcd(self.num, self.den)
         if div > 1:
-            self.num = self.num / div
-            self.den = self.den / div
+            self.num = old_div(self.num, div)
+            self.den = old_div(self.den, div)
 
 # for ease of dealing with tags
-class IFD_Tag:
+class IFD_Tag(object):
     def __init__(self, printable, tag, field_type, values, field_offset,
                  field_length):
         # printable version of data
@@ -1144,7 +1150,7 @@ class IFD_Tag:
                                         self.field_offset)
 
 # class that handles an EXIF header
-class EXIF_header:
+class EXIF_header(object):
     def __init__(self, file, endian, offset, fake_exif, debug=0):
         self.file = file
         self.endian = endian
@@ -1590,7 +1596,7 @@ if __name__ == '__main__':
             print('No EXIF information found')
             continue
 
-        x=data.keys()
+        x=list(data.keys())
         x.sort()
         for i in x:
             if i in ('JPEGThumbnail', 'TIFFThumbnail'):

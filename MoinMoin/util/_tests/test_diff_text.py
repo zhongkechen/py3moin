@@ -6,9 +6,10 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 from MoinMoin.util import diff_text
 
-class TestDiffText:
+class TestDiffText(object):
 
     def testDiff(self):
         """ util.diff_text.diff: test correct diff calculation """

@@ -7,8 +7,10 @@ MoinMoin - MailImport script
 """
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
 import sys
-import xmlrpclib
+import xmlrpc.client
 
 from MoinMoin.script import MoinScript, fatal
 
@@ -48,9 +50,9 @@ General syntax: moin [options] maint mailimport [mailimport-options]
         secret = mailimportconf.mail_import_secret
         url = mailimportconf.mail_import_url
 
-        s = xmlrpclib.ServerProxy(url)
+        s = xmlrpc.client.ServerProxy(url)
 
-        result = s.ProcessMail(secret, xmlrpclib.Binary(input.read()))
+        result = s.ProcessMail(secret, xmlrpc.client.Binary(input.read()))
 
         if result != "OK":
             print(result, file=sys.stderr)

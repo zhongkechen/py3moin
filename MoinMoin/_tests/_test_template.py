@@ -11,6 +11,7 @@
 """
 
 # include here the module that you want to test:
+from builtins import object
 from MoinMoin import module_tested
 
 

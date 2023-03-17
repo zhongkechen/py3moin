@@ -9,7 +9,7 @@ from warnings import warn
 # site
 # pkg
 from passlib.utils import to_unicode, right_pad_string
-from passlib.utils.compat import unicode
+from passlib.utils.compat import str
 from passlib.crypto.digest import lookup_hash
 md4 = lookup_hash("md4").const
 import passlib.utils.handlers as uh
@@ -117,7 +117,7 @@ class lmhash(uh.TruncateMixin, uh.HasEncodingContext, uh.StaticHandler):
         # http://www.freerainbowtables.com/phpBB3/viewtopic.php?t=387&p=12163
         from passlib.crypto.des import des_encrypt_block
         MAGIC = cls._magic
-        if isinstance(secret, unicode):
+        if isinstance(secret, str):
             # perform uppercasing while we're still unicode,
             # to give a better shot at getting non-ascii chars right.
             # (though some codepages do NOT upper-case the same as unicode).

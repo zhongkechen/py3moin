@@ -11,6 +11,9 @@
                 2006-2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import re
 
 from MoinMoin import PageEditor
@@ -115,7 +118,7 @@ class PageGraphicalEditor(PageEditor.PageEditor):
             self.set_raw_body(preview, modified=1)
 
         # send header stuff
-        lock_timeout = self.lock.timeout / 60
+        lock_timeout = old_div(self.lock.timeout, 60)
         lock_page = wikiutil.escape(self.page_name, quote=1)
         lock_expire = _("Your edit lock on %(lock_page)s has expired!") % {'lock_page': lock_page}
         lock_mins = _("Your edit lock on %(lock_page)s will expire in # minutes.") % {'lock_page': lock_page}
@@ -234,7 +237,7 @@ Please review the page and save then. Do not save this page as it is!""")
         # http://fplanque.net/2003/Articles/iecsstextarea/
         request.write('<fieldset style="border:none;padding:0;">')
 
-        request.write(unicode(html.INPUT(type="hidden", name="action", value="edit")))
+        request.write(str(html.INPUT(type="hidden", name="action", value="edit")))
 
         # Send revision of the page our edit is based on
         request.write('<input type="hidden" name="rev" value="%d">' % (rev, ))
@@ -249,7 +252,7 @@ Please review the page and save then. Do not save this page as it is!""")
         # Save backto in a hidden input
         backto = request.values.get('backto')
         if backto:
-            request.write(unicode(html.INPUT(type="hidden", name="backto", value=backto)))
+            request.write(str(html.INPUT(type="hidden", name="backto", value=backto)))
 
         # button bar
         button_spellcheck = '<input class="button" type="submit" name="button_spellcheck" value="%s">' % _('Check Spelling')
@@ -377,7 +380,7 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
         cat_pages.insert(0, ('', _('<No addition>')))
         request.write("<p>")
         request.write(_('Add to: %(category)s') % {
-            'category': unicode(web.makeSelection('category', cat_pages)),
+            'category': str(web.makeSelection('category', cat_pages)),
         })
         if self.cfg.mail_enabled:
             request.write('''

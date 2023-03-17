@@ -7,6 +7,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
 import os
 
 from MoinMoin import wikiutil, config
@@ -71,7 +72,7 @@ class Load(ActionBase):
             except pg.EditConflict as e:
                 msg = e.message
             except pg.SaveError as msg:
-                msg = unicode(msg)
+                msg = str(msg)
         else:
             msg = _("Pagename not specified!")
         return status, msg

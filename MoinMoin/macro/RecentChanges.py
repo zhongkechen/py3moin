@@ -7,6 +7,10 @@
     @copyright: 2000-2004 Juergen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import division
+from past.builtins import cmp
+from builtins import range
+from past.utils import old_div
 import time
 
 from MoinMoin import util, wikiutil
@@ -98,7 +102,7 @@ def format_page_edits(macro, lines, bookmark_usecs):
     # print time of change
     d['time_html'] = None
     if request.cfg.changed_time_fmt:
-        tdiff = long(tnow - wikiutil.version2timestamp(long(line.ed_time_usecs))) / 60 # has to be long for py 2.2.x
+        tdiff = old_div(int(tnow - wikiutil.version2timestamp(int(line.ed_time_usecs))), 60) # has to be long for py 2.2.x
         if tdiff < 100:
             d['time_html'] = _("%(mins)dm ago") % {
                 'mins': tdiff}
@@ -115,7 +119,7 @@ def format_page_edits(macro, lines, bookmark_usecs):
                 if not name in counters:
                     counters[name] = []
                 counters[name].append(idx+1)
-            poslist = [(v, k) for k, v in counters.items()]
+            poslist = [(v, k) for k, v in list(counters.items())]
             poslist.sort()
             d['editors'] = []
             for positions, name in poslist:
@@ -304,7 +308,7 @@ def macro_RecentChanges(macro, abandoned=False):
             this_day = day
             for p in pages:
                 ignore_pages[p] = None
-            pages = pages.values()
+            pages = list(pages.values())
             pages.sort(cmp_lines)
             pages.reverse()
 
@@ -346,7 +350,7 @@ def macro_RecentChanges(macro, abandoned=False):
             # but above does not trigger if we have the first day in wiki history
             for p in pages:
                 ignore_pages[p] = None
-            pages = pages.values()
+            pages = list(pages.values())
             pages.sort(cmp_lines)
             pages.reverse()
 

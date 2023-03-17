@@ -10,7 +10,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import time, urllib
+from future import standard_library
+standard_library.install_aliases()
+import time, urllib.request, urllib.parse, urllib.error
 
 from MoinMoin import caching
 from MoinMoin.util import timefuncs
@@ -25,7 +27,7 @@ def execute(pagename, request):
             data = cache.content()
         else:
             data = {'lastmod': ''}
-        uo = urllib.URLopener()
+        uo = urllib.request.URLopener()
         uo.version = 'MoinMoin SisterPage list fetcher 1.0'
         lastmod = data['lastmod']
         if lastmod:

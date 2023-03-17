@@ -40,12 +40,14 @@
 """
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
 from_encoding = 'iso8859-1'
 #from_encoding = 'utf-8'
 
 to_encoding = 'utf-8'
 
-import os, os.path, sys, urllib
+import os, os.path, sys, urllib.request, urllib.parse, urllib.error
 
 # Insert THIS moin dir first into sys path, or you would run another
 # version of moin!

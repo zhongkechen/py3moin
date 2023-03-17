@@ -20,12 +20,14 @@ use a Config class to define the required configuration within the test class.
 @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
 import atexit
 import sys
+import os.path
 
-import py
+import pytest
 
-rootdir = py.magic.autopath().dirpath()
+rootdir = os.path.abspath(os.path.dirname(__file__))
 moindir = rootdir.join("..")
 sys.path.insert(0, str(moindir))
 
@@ -56,7 +58,7 @@ try:
         coverage.erase()
         coverage.start()
 
-    py.test.config.addoptions('MoinMoin options', py.test.config.Option('-C',
+    pytest.config.addoptions('MoinMoin options', pytest.config.Option('-C',
         '--coverage', action='callback', callback=callback,
         help='Output information about code coverage (slow!)'))
 
@@ -74,16 +76,33 @@ def init_test_request(given_config=None, static_state=[False]):
     return request
 
 
-# py.test customization starts here
+# pytest customization starts here
 
-# py.test-1.0 provides "funcargs" natively
+# pytest-1.0 provides "funcargs" natively
+@pytest.hookimpl(optionalhook=True)
 def pytest_funcarg__request(request):
-    # note the naminng clash: py.test's funcarg-request object
+    # note the naminng clash: pytest's funcarg-request object
     # and the request we provide are totally separate things
-    cls = request._pyfuncitem.getparent(py.test.collect.Module)
+    cls = request._pyfuncitem.getparent(pytest.Module)
     return cls.request
 
-class MoinTestFunction(py.test.collect.Function):
+
+@pytest.fixture
+def req(request):
+    marker = request.node.get_closest_marker("wiki_config")
+    if marker:
+        class config(wikiconfig.Config):
+            pass
+
+        for k, v in marker.kwargs.items():
+            setattr(config, k, v)
+    else:
+        config = wikiconfig.Config
+
+    return init_test_request(config)
+
+
+class MoinTestFunction(pytest.Function):
     def execute(self, target, *args):
         request = self.parent.request
         co = target.__code__
@@ -93,7 +112,7 @@ class MoinTestFunction(py.test.collect.Function):
             target(*args)
 
 
-class MoinClassCollector(py.test.collect.Class):
+class MoinClassCollector(pytest.Class):
     Function = MoinTestFunction
 
     def setup(self):
@@ -109,7 +128,7 @@ class MoinClassCollector(py.test.collect.Class):
         super(MoinClassCollector, self).setup()
 
 
-class Module(py.test.collect.Module):
+class Module(pytest.Module):
     Class = MoinClassCollector
     Function = MoinTestFunction
 

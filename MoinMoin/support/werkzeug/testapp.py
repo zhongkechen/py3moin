@@ -9,6 +9,7 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from builtins import str
 import base64
 import os
 import sys
@@ -178,7 +179,7 @@ def render_testapp(req):
         )
 
     wsgi_env = []
-    sorted_environ = sorted(req.environ.items(), key=lambda x: repr(x[0]).lower())
+    sorted_environ = sorted(list(req.environ.items()), key=lambda x: repr(x[0]).lower())
     for key, value in sorted_environ:
         wsgi_env.append(
             "<tr><th>%s<td><code>%s</code>"

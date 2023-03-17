@@ -47,6 +47,9 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
+from builtins import str
+from builtins import range
+from builtins import object
 import sys, os, errno, signal, time
 
 
@@ -54,7 +57,7 @@ class Error(Exception):
     """ Daemon error """
 
 
-class Daemon:
+class Daemon(object):
     """ A background process
 
     Represent a background process, which may be running or not. The
@@ -171,7 +174,7 @@ class Daemon:
         """
         pid = None
         try:
-            pid = int(file(self.pidFile).read())
+            pid = int(open(self.pidFile).read())
         except IOError as err:
             if err.errno != errno.ENOENT:
                 raise

@@ -1,3 +1,4 @@
+from builtins import bytes
 import sys
 
 PY2 = sys.version_info[0] == 2
@@ -26,7 +27,7 @@ if not PY2:
 
 
 else:
-    text_type = unicode  # noqa: F821
+    text_type = str  # noqa: F821
 
     def to_bytes(x, encoding=_default_encoding, errors="strict"):
         if x is None:
@@ -35,7 +36,7 @@ else:
         if isinstance(x, (bytes, bytearray, buffer)):  # noqa: F821
             return bytes(x)
 
-        if isinstance(x, unicode):  # noqa: F821
+        if isinstance(x, str):  # noqa: F821
             return x.encode(encoding, errors)
 
         raise TypeError("Expected bytes")

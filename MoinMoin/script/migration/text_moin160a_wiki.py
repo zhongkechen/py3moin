@@ -7,6 +7,11 @@
     @license: GNU GPL, see COPYING for details.
 """
 from __future__ import absolute_import
+from __future__ import division
+from builtins import zip
+from builtins import map
+from builtins import object
+from past.utils import old_div
 import hashlib
 import re
 
@@ -15,7 +20,7 @@ from MoinMoin import config, macro
 
 Dependencies = []
 
-class Parser:
+class Parser(object):
     """
         Object that turns Wiki markup into HTML.
 
@@ -35,9 +40,9 @@ class Parser:
     # quoted strings (we require that there is at least one char (that is not the quoting char)
     # inside to not confuse stuff like '''Contact:''' (just a bold Contact:) with interwiki markup
     # OtherWiki:'Page with blanks'
-    sq_string = ur"('[^']+?')" # single quoted string
-    dq_string = ur"(\"[^\"]+?\")" # double quoted string
-    q_string = ur"(%s|%s)" % (sq_string, dq_string) # quoted string
+    sq_string = r"('[^']+?')" # single quoted string
+    dq_string = r"(\"[^\"]+?\")" # double quoted string
+    q_string = r"(%s|%s)" % (sq_string, dq_string) # quoted string
     attachment_schemas = ["attachment", "inline", "drawing"]
     punct_pattern = re.escape(u'''"\'}]|:,.)?!''')
     punct_no_quote_pattern = re.escape(u'''}]|:,.)?!''')
@@ -46,28 +51,28 @@ class Parser:
             (config.url_schemas and u'|' + u'|'.join(config.url_schemas) or ''))
 
     # some common rules
-    word_rule = ur'(?:(?<![%(u)s%(l)s])|^)%(parent)s(?:%(subpages)s(?:[%(u)s][%(l)s]+){2,})+(?![%(u)s%(l)s]+)' % {
+    word_rule = r'(?:(?<![%(u)s%(l)s])|^)%(parent)s(?:%(subpages)s(?:[%(u)s][%(l)s]+){2,})+(?![%(u)s%(l)s]+)' % {
         'u': config.chars_upper,
         'l': config.chars_lower,
         'subpages': wikiutil.CHILD_PREFIX + '?',
-        'parent': ur'(?:%s)?' % re.escape(PARENT_PREFIX),
+        'parent': r'(?:%s)?' % re.escape(PARENT_PREFIX),
     }
-    url_rule = ur'%(url_guard)s(%(url)s)\:(([^\s\<%(punct)s]|([%(punctnq)s][^\s\<%(punct)s]))+|%(q_string)s)' % {
-        'url_guard': ur'(^|(?<!\w))',
+    url_rule = r'%(url_guard)s(%(url)s)\:(([^\s\<%(punct)s]|([%(punctnq)s][^\s\<%(punct)s]))+|%(q_string)s)' % {
+        'url_guard': r'(^|(?<!\w))',
         'url': url_pattern,
         'punct': punct_pattern,
         'punctnq': punct_no_quote_pattern,
         'q_string': q_string,
     }
 
-    ol_rule = ur"^\s+(?:[0-9]+|[aAiI])\.(?:#\d+)?\s"
-    dl_rule = ur"^\s+.*?::\s"
+    ol_rule = r"^\s+(?:[0-9]+|[aAiI])\.(?:#\d+)?\s"
+    dl_rule = r"^\s+.*?::\s"
 
     # this is used inside <pre> / parser sections (we just want to know when it's over):
-    pre_formatting_rules = ur"""(?P<pre>(\}\}\}))"""
+    pre_formatting_rules = r"""(?P<pre>(\}\}\}))"""
 
     # the big, fat, ugly one ;)
-    formatting_rules = ur"""(?P<ent_numeric>&#(\d{1,5}|x[0-9a-fA-F]+);)
+    formatting_rules = r"""(?P<ent_numeric>&#(\d{1,5}|x[0-9a-fA-F]+);)
 (?:(?P<emph_ibb>'''''(?=[^']+'''))
 (?P<emph_ibi>'''''(?=[^']+''))
 (?P<emph_ib_or_bi>'{5}(?=[^']))
@@ -119,7 +124,7 @@ class Parser:
                        "ul ol dl dt dd li li_none indent "
                        "macro parser pre")
     no_new_p_before = no_new_p_before.split()
-    no_new_p_before = dict(zip(no_new_p_before, [1] * len(no_new_p_before)))
+    no_new_p_before = dict(list(zip(no_new_p_before, [1] * len(no_new_p_before))))
 
     def __init__(self, raw, request, **kw):
         self.raw = raw
@@ -344,7 +349,7 @@ class Parser:
         if word.startswith(wikiutil.PARENT_PREFIX):
             if not text:
                 text = word
-            word = '/'.join(filter(None, self.formatter.page.page_name.split('/')[:-1] + [word[wikiutil.PARENT_PREFIX_LEN:]]))
+            word = '/'.join([_f for _f in self.formatter.page.page_name.split('/')[:-1] + [word[wikiutil.PARENT_PREFIX_LEN:]] if _f])
 
         if not text:
             # if a simple, self-referencing link, emit it as plain text
@@ -756,7 +761,7 @@ class Parser:
                     # add center alignment if we don't have some alignment already
                     attrs['align'] = '"center"'
                 if 'colspan' not in attrs:
-                    attrs['colspan'] = '"%d"' % (word.count("|")/2)
+                    attrs['colspan'] = '"%d"' % (old_div(word.count("|"),2))
 
             # return the complete cell markup
             result.append(self.formatter.table_cell(1, attrs) + attrerr)
@@ -909,7 +914,7 @@ class Parser:
     def replace(self, match, inhibit_p=False):
         """ Replace match using type name """
         result = []
-        for type, hit in match.groupdict().items():
+        for type, hit in list(match.groupdict().items()):
             if hit is not None and not type in ["hmarker", ]:
 
                 ##result.append(u'<span class="info">[replace: %s: "%s"]</span>' % (type, hit))
@@ -948,7 +953,7 @@ class Parser:
         # prepare regex patterns
         rules = self.formatting_rules.replace('\n', '|')
         if self.cfg.bang_meta:
-            rules = ur'(?P<notword>!%(word_rule)s)|%(rules)s' % {
+            rules = r'(?P<notword>!%(word_rule)s)|%(rules)s' % {
                 'word_rule': self.word_rule,
                 'rules': rules,
             }
@@ -958,7 +963,7 @@ class Parser:
         pre_scan_re = re.compile(pre_rules, re.UNICODE)
         number_re = re.compile(self.ol_rule, re.UNICODE)
         term_re = re.compile(self.dl_rule, re.UNICODE)
-        indent_re = re.compile(ur"^\s*", re.UNICODE)
+        indent_re = re.compile(r"^\s*", re.UNICODE)
         eol_re = re.compile(r'\r?\n', re.UNICODE)
         self.request.clock.stop('compile_huge_and_ugly')
 

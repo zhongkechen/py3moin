@@ -22,13 +22,16 @@
     @license: BSD, see COPYING for details.
 """
 
+from builtins import chr
+from builtins import range
+from builtins import object
 import re
 import sys
 
 __version__ = '1.1'
 
 
-class Rules:
+class Rules(object):
     """Hold all the rules for generating regular expressions."""
 
     # For the inline elements:
@@ -144,13 +147,13 @@ class Rules:
                            self.escape, self.char]
         if wiki_words:
             import unicodedata
-            up_case = u''.join(unichr(i) for i in xrange(sys.maxunicode)
-                               if unicodedata.category(unichr(i))=='Lu')
-            self.wiki = ur'''(?P<wiki>[%s]\w+[%s]\w+)''' % (up_case, up_case)
+            up_case = u''.join(chr(i) for i in range(sys.maxunicode)
+                               if unicodedata.category(chr(i))=='Lu')
+            self.wiki = r'''(?P<wiki>[%s]\w+[%s]\w+)''' % (up_case, up_case)
             inline_elements.insert(3, self.wiki)
         self.inline_re = c('|'.join(inline_elements), re.X | re.U)
 
-class Parser:
+class Parser(object):
     """
     Parse the raw text and create a document object
     that can be converted into output using Emitter.
@@ -388,7 +391,7 @@ class Parser:
         """Invoke appropriate _*_repl method. Called for every matched group."""
 
         groups = match.groupdict()
-        for name, text in groups.iteritems():
+        for name, text in list(groups.items()):
             if text is not None:
                 replace = getattr(self, '_%s_repl' % name)
                 replace(groups)
@@ -414,7 +417,7 @@ class Parser:
 
 ### The document model
 
-class DocNode:
+class DocNode(object):
     """
     A node in the document.
     """

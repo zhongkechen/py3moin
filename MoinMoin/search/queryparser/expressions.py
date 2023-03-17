@@ -11,6 +11,8 @@
     @license: GNU GPL, see COPYING for details
 """
 
+from builtins import str
+from builtins import object
 import re
 
 from MoinMoin import log
@@ -48,7 +50,7 @@ class BaseExpression(object):
         @param use_re: treat pattern as re of plain text, bool
         @param case: do case sensitive search, bool
         """
-        self._pattern = unicode(pattern)
+        self._pattern = str(pattern)
         self.negated = 0
         self.use_re = use_re
         self.case = case
@@ -61,8 +63,8 @@ class BaseExpression(object):
 
         self.pattern, self.search_re = self._build_re(self._pattern, use_re=use_re, case=case)
 
-    def __str__(self):
-        return unicode(self).encode(config.charset, 'replace')
+    def __bytes__(self):
+        return str(self).encode(config.charset, 'replace')
 
     def negate(self):
         """ Negate the result of this term """
@@ -145,7 +147,7 @@ class BaseExpression(object):
                             queries.append(connection.query_field(field_to_check, term))
             else:
                 # Check all fields
-                for field, terms in data.iteritems():
+                for field, terms in list(data.items()):
                     for term in terms:
                         if self.search_re.match(term):
                             queries.append(connection.query_field(field_to_check, term))
@@ -155,9 +157,9 @@ class BaseExpression(object):
     def xapian_need_postproc(self):
         return self.case
 
-    def __unicode__(self):
+    def __str__(self):
         neg = self.negated and '-' or ''
-        return u'%s%s"%s"' % (neg, self._tag, unicode(self._pattern))
+        return u'%s%s"%s"' % (neg, self._tag, str(self._pattern))
 
 
 class AndExpression(BaseExpression):
@@ -180,10 +182,10 @@ class AndExpression(BaseExpression):
     def costs(self):
         return sum([t.costs for t in self._subterms])
 
-    def __unicode__(self):
+    def __str__(self):
         result = ''
         for t in self._subterms:
-            result += self.operator + unicode(t)
+            result += self.operator + str(t)
         return u'[' + result[len(self.operator):] + u']'
 
     def _filter(self, terms, name):

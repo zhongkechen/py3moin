@@ -10,7 +10,12 @@
 """
 
 from __future__ import print_function
+from __future__ import division
 
+from builtins import next
+from builtins import str
+from past.utils import old_div
+from builtins import object
 import re
 import sys
 import time
@@ -386,7 +391,7 @@ def using(_other, **kwargs):
     return callback
 
 
-class default:
+class default(object):
     """
     Indicates a state or state action (e.g. #pop) to apply.
     For example default('#pop') is equivalent to ('', Token, '#pop')
@@ -864,8 +869,8 @@ class ProfilingRegexLexer(RegexLexer):
             yield tok
         rawdata = self.__class__._prof_data.pop()
         data = sorted(((s, repr(r).strip('u\'').replace('\\\\', '\\')[:65],
-                        n, 1000 * t, 1000 * t / n)
-                       for ((s, r), (n, t)) in rawdata.items()),
+                        n, 1000 * t, old_div(1000 * t, n))
+                       for ((s, r), (n, t)) in list(rawdata.items())),
                       key=lambda x: x[self._prof_sort_index],
                       reverse=True)
         sum_total = sum(x[3] for x in data)

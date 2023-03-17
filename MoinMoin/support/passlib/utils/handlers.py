@@ -2,7 +2,9 @@
 #=============================================================================
 # imports
 #=============================================================================
-from __future__ import with_statement
+
+from builtins import str
+from builtins import object
 # core
 import inspect
 import logging; log = logging.getLogger(__name__)
@@ -28,7 +30,7 @@ from passlib.utils.binary import (
     ALL_BYTE_VALUES,
 )
 from passlib.utils.compat import join_byte_values, irange, u, native_string_types, \
-                                 uascii_to_str, join_unicode, unicode, str_to_uascii, \
+                                 uascii_to_str, join_unicode, str, str_to_uascii, \
                                  join_unicode, unicode_or_bytes_types, PY2, int_types
 from passlib.utils.decor import classproperty, deprecated_method
 # local
@@ -125,7 +127,7 @@ def validate_secret(secret):
 
 def to_unicode_for_identify(hash):
     """convert hash to unicode for identify method"""
-    if isinstance(hash, unicode):
+    if isinstance(hash, str):
         return hash
     elif isinstance(hash, bytes):
         # try as utf-8, but if it fails, use foolproof latin-1,
@@ -154,12 +156,12 @@ def parse_mc2(hash, prefix, sep=_UDOLLAR, handler=None):
     """
     # detect prefix
     hash = to_unicode(hash, "ascii", "hash")
-    assert isinstance(prefix, unicode)
+    assert isinstance(prefix, str)
     if not hash.startswith(prefix):
         raise exc.InvalidHashError(handler)
 
     # parse 2-part hash or 1-part config string
-    assert isinstance(sep, unicode)
+    assert isinstance(sep, str)
     parts = hash[len(prefix):].split(sep)
     if len(parts) == 2:
         salt, chk = parts
@@ -193,12 +195,12 @@ def parse_mc3(hash, prefix, sep=_UDOLLAR, rounds_base=10,
     """
     # detect prefix
     hash = to_unicode(hash, "ascii", "hash")
-    assert isinstance(prefix, unicode)
+    assert isinstance(prefix, str)
     if not hash.startswith(prefix):
         raise exc.InvalidHashError(handler)
 
     # parse 3-part hash or 2-part config string
-    assert isinstance(sep, unicode)
+    assert isinstance(sep, str)
     parts = hash[len(prefix):].split(sep)
     if len(parts) == 3:
         rounds, salt, chk = parts
@@ -308,7 +310,7 @@ def render_mc3(ident, rounds, salt, checksum, sep=u("$"), rounds_base=10):
         rounds = u("%x") % rounds
     else:
         assert rounds_base == 10
-        rounds = unicode(rounds)
+        rounds = str(rounds)
     if checksum:
         parts = [ident, rounds, sep, salt, sep, checksum]
     else:
@@ -336,12 +338,12 @@ def mask_value(value, show=4, pct=0.125, char=u"*"):
     """
     if value is None:
         return None
-    if not isinstance(value, unicode):
+    if not isinstance(value, str):
         if isinstance(value, bytes):
             from passlib.utils.binary import ab64_encode
             value = ab64_encode(value).decode("ascii")
         else:
-            value = unicode(value)
+            value = str(value)
     size = len(value)
     show = min(show, int(size * pct))
     return value[:show] + char * (size - show)
@@ -642,7 +644,7 @@ class GenericHandler(MinimalHandler):
             if not isinstance(checksum, bytes):
                 raise exc.ExpectedTypeError(checksum, "bytes", "checksum")
 
-        elif not isinstance(checksum, unicode):
+        elif not isinstance(checksum, str):
             if isinstance(checksum, bytes) and relaxed:
                 warn("checksum should be unicode, not bytes", PasslibHashWarning)
                 checksum = checksum.decode("ascii")
@@ -1447,9 +1449,9 @@ class HasSalt(GenericHandler):
             if not isinstance(salt, bytes):
                 raise exc.ExpectedTypeError(salt, "bytes", "salt")
         else:
-            if not isinstance(salt, unicode):
+            if not isinstance(salt, str):
                 # NOTE: allowing bytes under py2 so salt can be native str.
-                if isinstance(salt, bytes) and (PY2 or relaxed):
+                if isinstance(salt, bytes):
                     salt = salt.decode("ascii")
                 else:
                     raise exc.ExpectedTypeError(salt, "unicode", "salt")
@@ -2324,7 +2326,7 @@ class SubclassBackendMixin(BackendMixin):
         # modify <cls> to remove existing backend mixins, and insert the new one
         update_mixin_classes(cls,
             add=mixin_cls,
-            remove=mixin_map.values(),
+            remove=list(mixin_map.values()),
             append=True, before=SubclassBackendMixin,
             dryrun=dryrun,
         )

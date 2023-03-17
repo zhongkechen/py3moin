@@ -15,6 +15,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
 from MoinMoin import wikiutil
 from MoinMoin.action import AttachFile
 
@@ -50,7 +51,7 @@ def _check_param_value(param, value, valuetype):
     else:
         return ""
 
-def macro_EmbedObject(macro, target=wikiutil.required_arg(unicode), pagename=None,
+def macro_EmbedObject(macro, target=wikiutil.required_arg(str), pagename=None,
                       width=wikiutil.UnitArgument(None, float, ['px', 'em', 'pt', 'in', 'mm', '%'], defaultunit='px'),
                       height=wikiutil.UnitArgument(None, float, ['px', 'em', 'pt', 'in', 'mm', '%'], defaultunit='px'),
                       alt=u'',

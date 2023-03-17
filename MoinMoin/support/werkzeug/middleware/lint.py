@@ -12,6 +12,9 @@ common HTTP errors such as non-empty responses for 304 status codes.
 :copyright: 2007 Pallets
 :license: BSD-3-Clause
 """
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 from warnings import warn
 
 from .._compat import implements_iterator
@@ -24,7 +27,7 @@ from ..wsgi import FileWrapper
 try:
     from urllib.parse import urlparse
 except ImportError:
-    from urlparse import urlparse
+    from urllib.parse import urlparse
 
 
 class WSGIWarning(Warning):
@@ -131,7 +134,7 @@ class GuardedIterator(object):
     def __init__(self, iterator, headers_set, chunks):
         self._iterator = iterator
         if PY2:
-            self._next = iter(iterator).next
+            self._next = iter(iterator).__next__
         else:
             self._next = iter(iterator).__next__
         self.closed = False

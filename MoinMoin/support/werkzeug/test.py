@@ -9,6 +9,10 @@
     :license: BSD-3-Clause
 """
 from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import mimetypes
 import sys
 from io import BytesIO
@@ -50,12 +54,12 @@ from .wsgi import get_current_url
 try:
     from urllib.request import Request as U2Request
 except ImportError:
-    from urllib2 import Request as U2Request
+    from urllib.request import Request as U2Request
 
 try:
     from .http.cookiejar import CookieJar
 except ImportError:
-    from cookielib import CookieJar
+    from http.cookiejar import CookieJar
 
 
 def stream_encode_multipart(

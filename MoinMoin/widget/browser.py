@@ -7,6 +7,10 @@
                 2010 MoinMoin:EugeneSyromyatnikov
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import next
+from builtins import str
+from builtins import range
+from past.builtins import basestring
 from MoinMoin.widget import base
 from MoinMoin import wikiutil
 
@@ -225,9 +229,9 @@ class DataBrowserWidget(base.Widget):
                 for idx in range(len(row)):
                     if filters[idx]:
                         if isinstance(row[idx], tuple):
-                            data = unicode(row[idx][1])
+                            data = str(row[idx][1])
                         else:
-                            data = unicode(row[idx])
+                            data = str(row[idx])
                         if data != '' and filters[idx] == self._notempty:
                             continue
                         if data == '' and filters[idx] == self._empty:
@@ -243,11 +247,11 @@ class DataBrowserWidget(base.Widget):
                         continue
                     cell_attrs = {'class': 'column%d' % idx}
                     if isinstance(row[idx], tuple):
-                        result.append(fmt.table_cell(1, cell_attrs, abbr=unicode(row[idx][1])))
-                        result.append(unicode(row[idx][0]))
+                        result.append(fmt.table_cell(1, cell_attrs, abbr=str(row[idx][1])))
+                        result.append(str(row[idx][0]))
                     else:
                         result.append(fmt.table_cell(1, cell_attrs))
-                        result.append(unicode(row[idx]))
+                        result.append(str(row[idx]))
                     result.append(fmt.table_cell(0))
                 result.append(fmt.table_row(0))
 

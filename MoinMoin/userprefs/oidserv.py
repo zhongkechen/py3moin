@@ -6,6 +6,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
 from MoinMoin import wikiutil, user
 from MoinMoin.widget import html
 from MoinMoin.userprefs import UserPrefBase
@@ -110,4 +111,4 @@ class Settings(UserPrefBase):
         label = _("Cancel")
         form.append(html.INPUT(type="submit", name='cancel', value=label))
         self._make_row('', [form])
-        return unicode(ret)
+        return str(ret)

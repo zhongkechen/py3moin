@@ -8,6 +8,7 @@
                 2006 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import str
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
 from MoinMoin.web.utils import check_surge_protect
@@ -179,7 +180,7 @@ def execute(pagename, request):
 
         except pg.SaveError as msg:
             # Show the error message
-            request.theme.add_msg(unicode(msg), "error")
+            request.theme.add_msg(str(msg), "error")
             # And show the editor again
             pg.sendEditor(preview=savetext, comment=comment, staytop=1)
             return

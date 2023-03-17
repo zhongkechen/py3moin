@@ -6,8 +6,11 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import re
-from StringIO import StringIO
+from io import StringIO
 
 from werkzeug.wrappers import Request as RequestBase
 from werkzeug.wrappers import BaseResponse, ETagResponseMixin, \

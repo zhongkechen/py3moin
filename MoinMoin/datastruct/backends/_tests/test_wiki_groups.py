@@ -8,16 +8,13 @@ MoinMoin - MoinMoin.backends.wiki_group tests
             2009 by MoinMoin:DmitrijsMilajevs
 @license: GNU GPL, see COPYING for details.
 """
-
-from py.test import raises
-import re, shutil
+import pytest
 
 from MoinMoin.datastruct.backends._tests import GroupsBackendTest
-from MoinMoin.datastruct import WikiGroups
 from MoinMoin import Page, security
-from MoinMoin.PageEditor import PageEditor
 from MoinMoin.user import User
 from MoinMoin._tests import append_page, become_trusted, create_page, create_random_string_list, nuke_page, nuke_user, wikiconfig
+
 
 
 class TestWikiGroupBackend(GroupsBackendTest):
@@ -25,24 +22,26 @@ class TestWikiGroupBackend(GroupsBackendTest):
     # Suppose that default configuration for the groups is used which
     # is WikiGroups backend.
 
-    def setup_class(self):
-        become_trusted(self.request)
+    @pytest.fixture(autouse=True)
+    def setup_class(self, req):
+        become_trusted(req)
 
-        for group, members in self.test_groups.iteritems():
+        for group, members in list(self.test_groups.items()):
             page_text = ' * %s' % '\n * '.join(members)
-            create_page(self.request, group, page_text)
+            create_page(req, group, page_text)
 
-    def teardown_class(self):
-        become_trusted(self.request)
+        yield
+
+        become_trusted(req)
 
         for group in self.test_groups:
-            nuke_page(self.request, group)
+            nuke_page(req, group)
 
-    def test_rename_group_page(self):
+    def test_rename_group_page(self, req):
         """
         Tests if the groups cache is refreshed after renaming a Group page.
         """
-        request = self.request
+        request = req
         become_trusted(request)
 
         page = create_page(request, u'SomeGroup', u" * ExampleUser")
@@ -53,11 +52,11 @@ class TestWikiGroupBackend(GroupsBackendTest):
 
         assert result is True
 
-    def test_copy_group_page(self):
+    def test_copy_group_page(self, req):
         """
         Tests if the groups cache is refreshed after copying a Group page.
         """
-        request = self.request
+        request = req
         become_trusted(request)
 
         page = create_page(request, u'SomeGroup', u" * ExampleUser")
@@ -70,11 +69,11 @@ class TestWikiGroupBackend(GroupsBackendTest):
 
         assert result is True
 
-    def test_appending_group_page(self):
+    def test_appending_group_page(self, req):
         """
         Test scalability by appending a name to a large list of group members.
         """
-        request = self.request
+        request = req
         become_trusted(request)
 
         # long list of users
@@ -87,11 +86,11 @@ class TestWikiGroupBackend(GroupsBackendTest):
 
         assert result
 
-    def test_user_addition_to_group_page(self):
+    def test_user_addition_to_group_page(self, req):
         """
         Test addition of a username to a large list of group members.
         """
-        request = self.request
+        request = req
         become_trusted(request)
 
         # long list of users
@@ -110,12 +109,12 @@ class TestWikiGroupBackend(GroupsBackendTest):
 
         assert result
 
-    def test_member_removed_from_group_page(self):
+    def test_member_removed_from_group_page(self, req):
         """
         Tests appending a member to a large list of group members and
         recreating the page without the member.
         """
-        request = self.request
+        request = req
         become_trusted(request)
 
         # long list of users
@@ -133,11 +132,11 @@ class TestWikiGroupBackend(GroupsBackendTest):
 
         assert not result
 
-    def test_group_page_user_addition_trivial_change(self):
+    def test_group_page_user_addition_trivial_change(self, req):
         """
         Test addition of a user to a group page by trivial change.
         """
-        request = self.request
+        request = req
         become_trusted(request)
 
         test_user = create_random_string_list(length=15, count=1)[0]
@@ -155,13 +154,13 @@ class TestWikiGroupBackend(GroupsBackendTest):
 
         assert result
 
-    def test_wiki_backend_page_acl_append_page(self):
+    def test_wiki_backend_page_acl_append_page(self, req):
         """
         Test if the wiki group backend works with acl code.
         First check acl rights of a user that is not a member of group
         then add user member to a page group and check acl rights
         """
-        request = self.request
+        request = req
         become_trusted(request)
 
         create_page(request, u'NewGroup', u" * ExampleUser")
@@ -181,11 +180,11 @@ class TestWikiGroupBackend(GroupsBackendTest):
         assert not has_rights_before, 'AnotherUser has no read rights because in the beginning he is not a member of a group page NewGroup'
         assert has_rights_after, 'AnotherUser must have read rights because after appendage he is member of NewGroup'
 
-    def test_simple_group_page(self):
+    def test_simple_group_page(self, req):
         """
         Tests if a simple group page is evaluated correctly.
         """
-        request = self.request
+        request = req
         become_trusted(request)
         group_name = u'SimpleGroup'
         page_text = u"""\
@@ -197,11 +196,11 @@ class TestWikiGroupBackend(GroupsBackendTest):
         assert group_members == set([u'FirstUser', u'SecondUser', u'LastUser'])
         nuke_page(request, group_name)
 
-    def test_complex_group_page(self):
+    def test_complex_group_page(self, req):
         """
         Tests if a complex group page is evaluated correctly.
         """
-        request = self.request
+        request = req
         become_trusted(request)
         group_name = u'ComplexGroup'
         page_text = u"""\
@@ -214,6 +213,7 @@ class TestWikiGroupBackend(GroupsBackendTest):
         group_members = set(request.groups[group_name])
         assert group_members == set([u'FirstUser', u'SecondUser', u'LastUser'])
         nuke_page(request, group_name)
+
 
 coverage_modules = ['MoinMoin.datastruct.backends.wiki_groups']
 

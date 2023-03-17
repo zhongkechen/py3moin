@@ -6,15 +6,16 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 from  MoinMoin.formatter.groups import Formatter
 from MoinMoin.Page import Page
 from MoinMoin._tests import become_trusted, create_page, nuke_page
 
 class TestGroupFormatterWikiMarkup(object):
 
-    def get_members(self, text):
-        request = self.request
-        formatter = Formatter(self.request)
+    def get_members(self, req, text):
+        request = req
+        formatter = Formatter(req)
 
         become_trusted(request)
         create_page(request, u'TestPageGroup', text)
@@ -24,39 +25,39 @@ class TestGroupFormatterWikiMarkup(object):
 
         return formatter.members
 
-    def test_CamelCase(self):
+    def test_CamelCase(self, req):
         text = """
  * CamelCase
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 1
         assert u'CamelCase' in members
 
-    def test_extended_name(self):
+    def test_extended_name(self, req):
         text = """
  * extended name
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 1
         assert u'extended name' in members
 
-    def test_extended_link(self):
+    def test_extended_link(self, req):
         text = """
  * [[extended link]]
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 1
         assert u'extended link' in members
 
-    def test_extended_link_with_label(self):
+    def test_extended_link_with_label(self, req):
         text = """
  * [[extended link| label]]
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 1
         assert u'extended link' in members
 
-    def test_ignore_not_first_level_list(self):
+    def test_ignore_not_first_level_list(self, req):
         text = """
  * first level
   * second level
@@ -65,12 +66,12 @@ class TestGroupFormatterWikiMarkup(object):
      * and then some...
  * again first level
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 2
         assert 'first level' in members
         assert 'again first level' in members
 
-    def test_indented_list(self):
+    def test_indented_list(self, req):
         text = """
     * first level
      * second level
@@ -79,36 +80,36 @@ class TestGroupFormatterWikiMarkup(object):
         * and then some...
     * again first level
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 2
         assert 'first level' in members
         assert 'again first level' in members
 
-    def test_ignore_other(self):
+    def test_ignore_other(self, req):
         text = """
 = ignore this =
  * take this
 
 Ignore previous line and this text.
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 1
         assert u'take this' in members
 
-    def test_strip_whitespace(self):
+    def test_strip_whitespace(self, req):
         text = """
  *   take this
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 1
         assert u'take this' in members
 
 
 class TestGroupFormatterCreole(object):
 
-    def get_members(self, text):
-        request = self.request
-        formatter = Formatter(self.request)
+    def get_members(self, req, text):
+        request = req
+        formatter = Formatter(req)
 
         become_trusted(request)
         create_page(request, u'TestPageGroup', "#FORMAT creole \n" + text)
@@ -118,39 +119,39 @@ class TestGroupFormatterCreole(object):
 
         return formatter.members
 
-    def test_CamelCase(self):
+    def test_CamelCase(self, req):
         text = """
  * CamelCase
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 1
         assert u'CamelCase' in members
 
-    def test_extended_name(self):
+    def test_extended_name(self, req):
         text = """
  * extended name
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 1
         assert u'extended name' in members
 
-    def test_extended_link(self):
+    def test_extended_link(self, req):
         text = """
  * [[extended link]]
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 1
         assert u'extended link' in members
 
-    def test_extended_link_with_label(self):
+    def test_extended_link_with_label(self, req):
         text = """
  * [[FrontPage|named link]]
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 1
         assert u'FrontPage' in members
 
-    def test_ignore_not_first_level_list(self):
+    def test_ignore_not_first_level_list(self, req):
         text = """
 * first level
 ** second level
@@ -159,12 +160,12 @@ class TestGroupFormatterCreole(object):
 ***** and then some...
 * again first level
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 2
         assert 'first level' in members
         assert 'again first level' in members
 
-    def test_indented_list(self):
+    def test_indented_list(self, req):
         text = """
     * first level
     ** second level
@@ -173,27 +174,27 @@ class TestGroupFormatterCreole(object):
     ***** and then some...
     * again first level
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 2
         assert 'first level' in members
         assert 'again first level' in members
 
-    def test_ignore_other(self):
+    def test_ignore_other(self, req):
         text = """
 = ignore this =
  * take this
 
 Ignore previous line and this text.
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 1
         assert u'take this' in members
 
-    def test_strip_whitespace(self):
+    def test_strip_whitespace(self, req):
         text = """
  *   take this
 """
-        members = self.get_members(text)
+        members = self.get_members(req, text)
         assert len(members) == 1
         assert u'take this' in members
 

@@ -24,6 +24,12 @@
 #
 # $Id$
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import chr
+from builtins import str
+from builtins import range
+from builtins import object
 from future.utils import raise_
 __author__ = 'Allan Saddi <allan@saddi.com>'
 __version__ = '$Revision$'
@@ -40,7 +46,7 @@ import time
 import traceback
 
 # Unfortunately, for now, threads are required.
-import thread
+import _thread
 import threading
 
 from flup.server import NoDefault
@@ -428,7 +434,7 @@ class InputStream(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         r = self.readline()
         if not r:
             raise StopIteration
@@ -815,7 +821,7 @@ class BaseAJPServer(object):
         self._allowedServers = allowedServers
 
         # Used to force single-threadedness.
-        self._appLock = thread.allocate_lock()
+        self._appLock = _thread.allocate_lock()
 
         self.logger = logging.getLogger(LoggerName)
         self.logger.setLevel(loggingLevel)

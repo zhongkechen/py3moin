@@ -7,18 +7,20 @@
 """
 from __future__ import print_function
 
-import py
+from builtins import range
+from builtins import object
+import pytest
 
 from MoinMoin.Page import Page
 from MoinMoin import wikiutil
 
 
-class TestFormatter:
-    def testSyntaxReferenceDomXml(self):
-        py.test.skip("domxml <p> generation is broken")
+class TestFormatter(object):
+    def testSyntaxReferenceDomXml(self, req):
+        pytest.skip("domxml <p> generation is broken")
         f_name = 'dom_xml'
         try:
-            formatter = wikiutil.importPlugin(self.request.cfg, "formatter", f_name, "Formatter")
+            formatter = wikiutil.importPlugin(req.cfg, "formatter", f_name, "Formatter")
         except wikiutil.PluginAttributeError:
             pass
         else:
@@ -26,11 +28,11 @@ class TestFormatter:
             self.formatPage("HelpOnMoinWikiSyntax", formatter)
             print("Done.")
 
-    def testSyntaxReferenceDocBook(self):
-        py.test.skip("docbook is broken")
+    def testSyntaxReferenceDocBook(self, req):
+        pytest.skip("docbook is broken")
         f_name = 'text_docbook'
         try:
-            formatter = wikiutil.importPlugin(self.request.cfg, "formatter", f_name, "Formatter")
+            formatter = wikiutil.importPlugin(req.cfg, "formatter", f_name, "Formatter")
         except wikiutil.PluginAttributeError:
             pass
         else:
@@ -38,8 +40,8 @@ class TestFormatter:
             self.formatPage("HelpOnMoinWikiSyntax", formatter)
             print("Done.")
 
-    def testSyntaxReferenceOthers(self):
-        formatters = wikiutil.getPlugins("formatter", self.request.cfg)
+    def testSyntaxReferenceOthers(self, req):
+        formatters = wikiutil.getPlugins("formatter", req.cfg)
 
         # we have separate tests for those:
         formatters.remove('text_docbook')
@@ -47,39 +49,39 @@ class TestFormatter:
 
         for f_name in formatters:
             try:
-                formatter = wikiutil.importPlugin(self.request.cfg, "formatter", f_name, "Formatter")
+                formatter = wikiutil.importPlugin(req.cfg, "formatter", f_name, "Formatter")
             except wikiutil.PluginAttributeError:
                 pass
             else:
                 print("Formatting using %r" % formatter)
-                self.formatPage("HelpOnMoinWikiSyntax", formatter)
+                self.formatPage(req, "HelpOnMoinWikiSyntax", formatter)
                 print("Done.")
 
-    def formatPage(self, pagename, formatter):
+    def formatPage(self, req, pagename, formatter):
         """Parse a page. Should not raise an exception if the API of the
         formatter is correct.
         """
 
-        self.request.reset()
-        page = Page(self.request, pagename, formatter=formatter)
-        self.request.formatter = page.formatter = formatter(self.request)
-        self.request.page = page
+        req.reset()
+        page = Page(req, pagename, formatter=formatter)
+        req.formatter = page.formatter = formatter(req)
+        req.page = page
         #page.formatter.setPage(page)
         #page.hilite_re = None
 
-        return self.request.redirectedOutput(page.send_page, content_only=1)
+        return req.redirectedOutput(page.send_page, content_only=1)
 
 
-class TestIdIdempotency:
-    def test_sanitize_to_id_idempotent(self):
+class TestIdIdempotency(object):
+    def test_sanitize_to_id_idempotent(self, req):
         def _verify(formatter, id):
             origid = formatter.sanitize_to_id(id)
             id = origid
-            for i in xrange(3):
+            for i in range(3):
                 id = formatter.sanitize_to_id(id)
                 assert id == origid
 
-        formatters = wikiutil.getPlugins("formatter", self.request.cfg)
+        formatters = wikiutil.getPlugins("formatter", req.cfg)
 
         testids = [
             r"tho/zeequeen&angu\za",
@@ -103,13 +105,14 @@ class TestIdIdempotency:
 
         for f_name in formatters:
             try:
-                formatter = wikiutil.importPlugin(self.request.cfg, "formatter",
+                formatter = wikiutil.importPlugin(req.cfg, "formatter",
                                                   f_name, "Formatter")
-                f = formatter(self.request)
+                f = formatter(req)
                 for id in testids:
                     yield _verify, f, id
             except wikiutil.PluginAttributeError:
                 pass
+
 
 coverage_modules = ['MoinMoin.formatter',
                     'MoinMoin.formatter.text_html',

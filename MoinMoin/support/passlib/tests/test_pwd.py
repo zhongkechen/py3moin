@@ -3,6 +3,8 @@
 # imports
 #=============================================================================
 # core
+from builtins import next
+from builtins import range
 import itertools
 import logging; log = logging.getLogger(__name__)
 # site

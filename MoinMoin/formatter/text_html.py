@@ -5,6 +5,7 @@
     @copyright: 2000-2004 by Juergen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import str
 import os.path, re
 
 from MoinMoin import log
@@ -262,11 +263,11 @@ class Formatter(FormatterBase):
         # namespaces, and merging some values like css classes).
         attributes = {} # dict of key=(namespace,name): value=attribute_value
         if attr:
-            for a, v in attr.items():
+            for a, v in list(attr.items()):
                 a_ns, a_name = rewrite_attribute_name(a)
                 extend_attribute_dictionary(attributes, a_ns, a_name, v)
         if kw:
-            for a, v in kw.items():
+            for a, v in list(kw.items()):
                 a_ns, a_name = rewrite_attribute_name(a)
                 extend_attribute_dictionary(attributes, a_ns, a_name, v)
 
@@ -307,11 +308,11 @@ class Formatter(FormatterBase):
             #  * Those in any other non-HTML namespace, including xml:
 
             xmlnslist = ['%s="%s"' % (k[1], wikiutil.escape(v, 1))
-                         for k, v in attributes.items() if not k[0]]
+                         for k, v in list(attributes.items()) if not k[0]]
             htmllist = ['%s="%s"' % (k[1], wikiutil.escape(v, 1))
-                        for k, v in attributes.items() if k[0] == 'html']
+                        for k, v in list(attributes.items()) if k[0] == 'html']
             otherlist = ['%s:%s="%s"' % (k[0], k[1], wikiutil.escape(v, 1))
-                         for k, v in attributes.items() if k[0] and k[0] != 'html']
+                         for k, v in list(attributes.items()) if k[0] and k[0] != 'html']
 
             # Join all these lists together in a space-separated string.  Also
             # prefix the whole thing with a space too.
@@ -1214,7 +1215,7 @@ document.write('<a href="#" onclick="return togglenumber(\'%s\', %d, %d);" \
 
         result = {}
         s = [] # we collect synthesized style in s
-        for key, val in attrs.items():
+        for key, val in list(attrs.items()):
             # Ignore keys that don't start with prefix
             if prefix and key[:len(prefix)] != prefix:
                 continue

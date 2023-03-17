@@ -11,6 +11,7 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from builtins import object
 import re
 
 
@@ -193,10 +194,10 @@ class UserAgent(object):
     def __str__(self):
         return self.string
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.browser)
 
-    __bool__ = __nonzero__
+    __nonzero__ = __bool__
 
     def __repr__(self):
         return "<%s %r/%s>" % (self.__class__.__name__, self.browser, self.version)

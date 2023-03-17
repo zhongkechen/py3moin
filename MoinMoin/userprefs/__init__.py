@@ -7,6 +7,7 @@
     @copyright: 2007 MoinMoin:Johannesberg
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import object
 from MoinMoin.util import pysupport
 from MoinMoin.widget import html
 

@@ -8,6 +8,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
 import re, zipfile
 
 from MoinMoin import log

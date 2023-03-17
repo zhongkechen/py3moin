@@ -8,6 +8,7 @@ XXX: add this module to public docs?
 #==========================================================================
 from __future__ import absolute_import
 # core
+from builtins import str
 import logging; log = logging.getLogger(__name__)
 from warnings import warn
 # pkg

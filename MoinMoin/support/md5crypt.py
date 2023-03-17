@@ -39,8 +39,10 @@ apache_md5_crypt() provides a function compatible with Apache's
 """
 from __future__ import print_function
 
+from builtins import chr
+from builtins import range
 MAGIC = '$1$'                   # Magic string
-ITOA64 = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+ITOA64 = b"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 try:
     import hashlib
@@ -52,10 +54,10 @@ except ImportError:
 
 
 def to64 (v, n):
-    ret = ''
+    ret = b''
     while (n - 1 >= 0):
         n = n - 1
-        ret = ret + ITOA64[v & 0x3f]
+        ret = ret + ITOA64[v & 0x3f].to_bytes(1, "little")
         v = v >> 6
     return ret
 
@@ -76,9 +78,11 @@ def unix_md5_crypt(pw, salt, magic=None):
 
 
     # salt can have up to 8 characters:
-    import string
-    salt = string.split(salt, '$', 1)[0]
+    salt = salt.split(b'$', 1)[0]
     salt = salt[:8]
+
+    if isinstance(magic, str):
+        magic = magic.encode("ascii")
 
     ctx = pw + magic + salt
 
@@ -98,9 +102,9 @@ def unix_md5_crypt(pw, salt, magic=None):
     i = len(pw)
     while i:
         if i & 1:
-            ctx = ctx + chr(0)  #if ($i & 1) { $ctx->add(pack("C", 0)); }
+            ctx = ctx + chr(0).encode("utf8")  #if ($i & 1) { $ctx->add(pack("C", 0)); }
         else:
-            ctx = ctx + pw[0]
+            ctx = ctx + pw[0:1]
         i = i >> 1
 
     md5 = hash_md5()
@@ -113,7 +117,7 @@ def unix_md5_crypt(pw, salt, magic=None):
     # my question: WTF???
 
     for i in range(1000):
-        ctx1 = ''
+        ctx1 = b''
         if i & 1:
             ctx1 = ctx1 + pw
         else:
@@ -138,32 +142,32 @@ def unix_md5_crypt(pw, salt, magic=None):
 
     # Final xform
 
-    passwd = ''
+    passwd = b''
 
-    passwd = passwd + to64((int(ord(final[0])) << 16)
-                           |(int(ord(final[6])) << 8)
-                           |(int(ord(final[12]))),4)
+    passwd = passwd + to64((int((final[0])) << 16)
+                           |(int((final[6])) << 8)
+                           |(int((final[12]))),4)
 
-    passwd = passwd + to64((int(ord(final[1])) << 16)
-                           |(int(ord(final[7])) << 8)
-                           |(int(ord(final[13]))), 4)
+    passwd = passwd + to64((int((final[1])) << 16)
+                           |(int((final[7])) << 8)
+                           |(int((final[13]))), 4)
 
-    passwd = passwd + to64((int(ord(final[2])) << 16)
-                           |(int(ord(final[8])) << 8)
-                           |(int(ord(final[14]))), 4)
+    passwd = passwd + to64((int((final[2])) << 16)
+                           |(int((final[8])) << 8)
+                           |(int((final[14]))), 4)
 
-    passwd = passwd + to64((int(ord(final[3])) << 16)
-                           |(int(ord(final[9])) << 8)
-                           |(int(ord(final[15]))), 4)
+    passwd = passwd + to64((int((final[3])) << 16)
+                           |(int((final[9])) << 8)
+                           |(int((final[15]))), 4)
 
-    passwd = passwd + to64((int(ord(final[4])) << 16)
-                           |(int(ord(final[10])) << 8)
-                           |(int(ord(final[5]))), 4)
+    passwd = passwd + to64((int((final[4])) << 16)
+                           |(int((final[10])) << 8)
+                           |(int((final[5]))), 4)
 
-    passwd = passwd + to64((int(ord(final[11]))), 2)
+    passwd = passwd + to64((int((final[11]))), 2)
 
 
-    return magic + salt + '$' + passwd
+    return magic + salt + b'$' + passwd
 
 
 ## assign a wrapper function:

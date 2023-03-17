@@ -10,6 +10,7 @@
     @license: GNU GPL, see COPYING for details
 """
 
+from builtins import str
 from MoinMoin import log
 logging = log.getLogger(__name__)
 
@@ -57,7 +58,7 @@ def _get_searcher(request, query, sort='weight', mtime=None, historysearch=None,
     return searcher
 
 def _parse_query(query, **kw):
-    if isinstance(query, str) or isinstance(query, unicode):
+    if isinstance(query, str) or isinstance(query, str):
         query = QueryParser(**kw).parse_query(query)
 
     return query

@@ -1,3 +1,5 @@
+from builtins import map
+from builtins import object
 from ..utils import cached_property
 from .auth import WWWAuthenticateMixin
 from .base_response import BaseResponse

@@ -9,6 +9,11 @@
     :license: BSD, see LICENSE for details.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import map
+from builtins import chr
+from builtins import object
 import re
 import sys
 
@@ -224,7 +229,7 @@ def unirange(a, b):
 
     if sys.maxunicode > 0xffff:
         # wide build
-        return u'[%s-%s]' % (unichr(a), unichr(b))
+        return u'[%s-%s]' % (chr(a), chr(b))
     else:
         # narrow build stores surrogates, and the 're' module handles them
         # (incorrectly) as characters.  Since there is still ordering among
@@ -238,18 +243,18 @@ def unirange(a, b):
         ah, al = _surrogatepair(a)
         bh, bl = _surrogatepair(b)
         if ah == bh:
-            return u'(?:%s[%s-%s])' % (unichr(ah), unichr(al), unichr(bl))
+            return u'(?:%s[%s-%s])' % (chr(ah), chr(al), chr(bl))
         else:
             buf = []
             buf.append(u'%s[%s-%s]' %
-                       (unichr(ah), unichr(al),
-                        ah == bh and unichr(bl) or unichr(0xdfff)))
+                       (chr(ah), chr(al),
+                        ah == bh and chr(bl) or chr(0xdfff)))
             if ah - bh > 1:
                 buf.append(u'[%s-%s][%s-%s]' %
-                           unichr(ah+1), unichr(bh-1), unichr(0xdc00), unichr(0xdfff))
+                           chr(ah+1), chr(bh-1), chr(0xdc00), chr(0xdfff))
             if ah != bh:
                 buf.append(u'%s[%s-%s]' %
-                           (unichr(bh), unichr(0xdc00), unichr(bl)))
+                           (chr(bh), chr(0xdc00), chr(bl)))
 
             return u'(?:' + u'|'.join(buf) + u')'
 
@@ -348,20 +353,20 @@ def terminal_encoding(term):
 # Python 2/3 compatibility
 
 if sys.version_info < (3, 0):
-    unichr = unichr
+    chr = chr
     xrange = xrange
-    string_types = (str, unicode)
-    text_type = unicode
+    string_types = (str, str)
+    text_type = str
     u_prefix = 'u'
     iteritems = dict.iteritems
     itervalues = dict.itervalues
-    import StringIO
-    import cStringIO
+    import io
+    import io
     # unfortunately, io.StringIO in Python 2 doesn't accept str at all
-    StringIO = StringIO.StringIO
-    BytesIO = cStringIO.StringIO
+    StringIO = io.StringIO
+    BytesIO = io.StringIO
 else:
-    unichr = chr
+    chr = chr
     xrange = range
     string_types = (str,)
     text_type = str

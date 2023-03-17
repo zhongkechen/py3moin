@@ -20,7 +20,7 @@ def macro_OrphanedPages(macro):
     pages = macro.request.rootpage.getPageDict()
     orphaned = {}
     orphaned.update(pages)
-    for page in pages.values():
+    for page in list(pages.values()):
         links = page.getPageLinks(macro.request)
         for link in links:
             if link in orphaned:
@@ -34,7 +34,7 @@ def macro_OrphanedPages(macro):
         result.append(f.paragraph(0))
     else:
         # return a list of page links
-        orphanednames = orphaned.keys()
+        orphanednames = list(orphaned.keys())
         orphanednames.sort()
         result.append(f.number_list(1))
         for name in orphanednames:

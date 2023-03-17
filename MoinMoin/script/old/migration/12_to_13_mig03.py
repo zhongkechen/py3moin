@@ -49,7 +49,10 @@
 """
 from __future__ import print_function
 
-import os, sys, shutil, urllib
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+import os, sys, shutil, urllib.request, urllib.parse, urllib.error
 
 sys.path.insert(0, '../../../..')
 from MoinMoin import wikiutil
@@ -104,7 +107,7 @@ def convert_editlog(file_from, file_to, dir_to):
         data = l.split('\t')
         pagename = data[0]
         timestamp = data[2]
-        data[2] = str(long(float(timestamp))) # we only want integer (must be long for py 2.2.x)
+        data[2] = str(int(float(timestamp))) # we only want integer (must be long for py 2.2.x)
         data = '\t'.join(data)
 
         f = open(file_to, 'a')

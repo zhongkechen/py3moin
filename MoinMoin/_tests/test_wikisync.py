@@ -6,7 +6,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import py
+from builtins import object
+import pytest
 
 from MoinMoin.PageEditor import PageEditor
 from MoinMoin.wikisync import TagStore, BOTH
@@ -17,10 +18,11 @@ class TestUnsafeSync(object):
         to create pages without cluttering page revision currently, so we have to use
         the testwiki. """
 
-    def setup_method(self, method):
-        if not getattr(self.request.cfg, 'is_test_wiki', False):
-            py.test.skip('This test needs to be run using the test wiki.')
-        self.page = PageEditor(self.request, "FrontPage")
+    @pytest.fixture(autouse=True)
+    def setup_method(self, req):
+        if not getattr(req.cfg, 'is_test_wiki', False):
+            pytest.skip('This test needs to be run using the test wiki.')
+        self.page = PageEditor(req, "FrontPage")
 
     def testBasicTagThings(self):
         tags = TagStore(self.page)

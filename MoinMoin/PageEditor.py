@@ -15,7 +15,12 @@
                 2007-2013 by MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import division
 
+from builtins import next
+from builtins import str
+from builtins import object
+from past.utils import old_div
 import os, time, codecs, errno
 
 
@@ -230,7 +235,7 @@ class PageEditor(Page):
             self.set_raw_body(preview, modified=1)
 
         # send header stuff
-        lock_timeout = self.lock.timeout / 60
+        lock_timeout = old_div(self.lock.timeout, 60)
         lock_page = wikiutil.escape(self.page_name, quote=1)
         lock_expire = _("Your edit lock on %(lock_page)s has expired!") % {'lock_page': lock_page}
         lock_mins = _("Your edit lock on %(lock_page)s will expire in # minutes.") % {'lock_page': lock_page}
@@ -347,7 +352,7 @@ Please review the page and save then. Do not save this page as it is!""")
         # http://fplanque.net/2003/Articles/iecsstextarea/
         request.write('<fieldset style="border:none;padding:0;">')
 
-        request.write(unicode(html.INPUT(type="hidden", name="action", value="edit")))
+        request.write(str(html.INPUT(type="hidden", name="action", value="edit")))
 
         # Send revision of the page our edit is based on
         request.write('<input type="hidden" name="rev" value="%d">' % (rev, ))
@@ -358,7 +363,7 @@ Please review the page and save then. Do not save this page as it is!""")
         # Save backto in a hidden input
         backto = request.values.get('backto')
         if backto:
-            request.write(unicode(html.INPUT(type="hidden", name="backto", value=backto)))
+            request.write(str(html.INPUT(type="hidden", name="backto", value=backto)))
 
         # button bar
         button_spellcheck = '<input class="button" type="submit" name="button_spellcheck" value="%s" onClick="flgChange = false;">' % _('Check Spelling')
@@ -463,7 +468,7 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
         cat_pages.insert(0, ('', _('<No addition>')))
         request.write("<p>")
         request.write(_('Add to: %(category)s') % {
-            'category': unicode(web.makeSelection('category', cat_pages)),
+            'category': str(web.makeSelection('category', cat_pages)),
         })
 
         if self.cfg.mail_enabled:
@@ -591,7 +596,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             if newpage.exists(includeDeleted=1):
                 return False, pageexists_error
             else:
-                return False, _('Could not copy page because of file system error: %s.') % unicode(err)
+                return False, _('Could not copy page because of file system error: %s.') % str(err)
 
     def renamePage(self, newpagename, comment=u''):
         """ Rename the current version of the page (making a backup before deletion
@@ -665,7 +670,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             if newpage.exists(includeDeleted=1):
                 return False, pageexists_error
             else:
-                return False, _('Could not rename page because of file system error: %s.') % unicode(err)
+                return False, _('Could not rename page because of file system error: %s.') % str(err)
 
 
     def revertPage(self, revision, comment=u''):
@@ -763,8 +768,8 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             tz = u.tz_offset
             # round to minutes
             tz -= tz % 60
-            minutes = tz / 60
-            hours = minutes / 60
+            minutes = old_div(tz, 60)
+            hours = old_div(minutes, 60)
             minutes -= hours * 60
 
             # construct the offset
@@ -954,7 +959,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             os.mkdir(pagedir)
         if not os.path.exists(revdir):
             os.mkdir(revdir)
-            f = file(cfn, 'w')
+            f = open(cfn, 'w')
             f.write('%08d\n' % 0)
             f.close()
 
@@ -978,7 +983,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
                 raise self.CouldNotLock(_("Page could not get locked. Missing 'current' file?"))
 
             # increment rev number of current(-locked) page
-            f = file(clfn)
+            f = open(clfn)
             revstr = f.read()
             f.close()
             try:
@@ -992,7 +997,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             revstr = '%08d' % rev
             # write the current page rev to a temporary file
             try:
-                f = file(cltfn, 'w')
+                f = open(cltfn, 'w')
                 f.write(revstr+'\n')
                 f.close()
             except IOError as err:
@@ -1187,7 +1192,7 @@ Please review the page and save then. Do not save this page as it is!""")
         return msg
 
 
-class PageLock:
+class PageLock(object):
     """ PageLock - Lock pages """
     # TODO: race conditions throughout, need to lock file during queries & update
     def __init__(self, pageobj):
@@ -1246,7 +1251,7 @@ class PageLock:
 
             msg = []
             if self.owner is not None and -10800 < secs_valid < 0:
-                mins_ago = secs_valid / -60
+                mins_ago = old_div(secs_valid, -60)
                 msg.append(_(
                     "The lock of %(owner)s timed out %(mins_ago)d minute(s) ago,"
                     " and you were granted the lock for this page."
@@ -1265,7 +1270,7 @@ class PageLock:
                 ))
             result = 1, '\n'.join(msg)
         else:
-            mins_valid = (secs_valid+59) / 60
+            mins_valid = old_div((secs_valid+59), 60)
             if self.locktype == 'lock':
                 # lock out user
                 timestamp_until = self.request.user.getFormattedDateTime(self.timestamp+secs_valid)

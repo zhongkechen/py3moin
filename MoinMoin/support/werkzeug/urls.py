@@ -15,6 +15,12 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from builtins import bytes
+from builtins import next
+from builtins import chr
+from builtins import filter
+from builtins import range
+from builtins import object
 import codecs
 import os
 import re
@@ -396,7 +402,7 @@ def _unquote_to_bytes(string, unsafe=""):
         hex_to_byte = _unquote_maps[unsafe]
     except KeyError:
         hex_to_byte = _unquote_maps[unsafe] = {
-            h: b for h, b in _hextobyte.items() if b not in unsafe
+            h: b for h, b in list(_hextobyte.items()) if b not in unsafe
         }
 
     for group in groups:
@@ -1117,7 +1123,7 @@ class Href(object):
             query, path = path[-1], path[:-1]
         elif query:
             query = dict(
-                [(k.endswith("_") and k[:-1] or k, v) for k, v in query.items()]
+                [(k.endswith("_") and k[:-1] or k, v) for k, v in list(query.items())]
             )
         path = "/".join(
             [

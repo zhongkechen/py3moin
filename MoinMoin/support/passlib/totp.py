@@ -3,6 +3,10 @@
 # imports
 #=============================================================================
 from __future__ import absolute_import, division, print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 from passlib.utils.compat import PY3
 # core
 import base64
@@ -17,8 +21,8 @@ import re
 if PY3:
     from urllib.parse import urlparse, parse_qsl, quote, unquote
 else:
-    from urllib import quote, unquote
-    from urlparse import urlparse, parse_qsl
+    from urllib.parse import quote, unquote
+    from urllib.parse import urlparse, parse_qsl
 from warnings import warn
 # site
 try:
@@ -37,7 +41,7 @@ from passlib.exc import TokenError, MalformedTokenError, InvalidTokenError, Used
 from passlib.utils import (to_unicode, to_bytes, consteq,
                            getrandbytes, rng, SequenceMixin, xor_bytes, getrandstr)
 from passlib.utils.binary import BASE64_CHARS, b32encode, b32decode
-from passlib.utils.compat import (u, unicode, native_string_types, bascii_to_str, int_types, num_types,
+from passlib.utils.compat import (u, str, native_string_types, bascii_to_str, int_types, num_types,
                                   irange, byte_elem_value, UnicodeIO, suppress_cause)
 from passlib.utils.decor import hybrid_method, memoized_property
 from passlib.crypto.digest import lookup_hash, compile_hmac, pbkdf2_hmac
@@ -67,7 +71,7 @@ __all__ = [
 #       this was fixed by https://bugs.python.org/issue9374, in 2.7.4 release.
 #=============================================================================
 if sys.version_info < (2,7,4):
-    from urlparse import uses_query
+    from urllib.parse import uses_query
     if "otpauth" not in uses_query:
         uses_query.append("otpauth")
         log.debug("registered 'otpauth' scheme with urlparse.uses_query")
@@ -333,7 +337,7 @@ class AppWallet(object):
         if source is None:
             return {}
         elif isinstance(source, dict):
-            source = source.items()
+            source = list(source.items())
         # XXX: could support iterable of (tag,value) pairs, but not yet needed...
         # elif check_type and (isinstance(source, str) or not isinstance(source, Iterable)):
         elif check_type:

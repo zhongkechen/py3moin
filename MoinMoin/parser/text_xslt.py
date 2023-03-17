@@ -16,13 +16,16 @@
 """
 
 # cStringIO cannot be used because it doesn't handle Unicode.
-import StringIO
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+import io
 
 from MoinMoin import caching, config, wikiutil, Page
 
 Dependencies = []
 
-class Parser:
+class Parser(object):
     """ Send XML file formatted via XSLT. """
     caching = 1
     Dependencies = Dependencies
@@ -80,7 +83,7 @@ class Parser:
                         self.supportedSchemes.append(base_scheme)
 
                 # setting up vars for xslt Processor
-                out_file = StringIO.StringIO()
+                out_file = io.StringIO()
                 wiki_resolver = MoinResolver(
                                     handlers={self.base_scheme: self._resolve_page, },
                                     base_scheme=self.base_scheme)
@@ -128,7 +131,7 @@ class Parser:
             pagename = uri[len(base_uri):]
             page = Page.Page(self.request, pagename)
             if page.exists():
-                result = StringIO.StringIO(page.getPageText().encode(config.charset))
+                result = io.StringIO(page.getPageText().encode(config.charset))
             else:
                 raise Uri.UriException(Uri.UriException.RESOURCE_ERROR, loc=uri,
                                        msg='Page does not exist')

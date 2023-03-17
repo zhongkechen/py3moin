@@ -8,9 +8,12 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import time, re
-import urlparse
-import urllib, urllib2
+import urllib.parse
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse
 
 from MoinMoin import log
 logging = log.getLogger(__name__)
@@ -33,7 +36,7 @@ class PyCAS(object):
 
     def login_url(self, service):
         """Return the login URL for the given service."""
-        url = self.server_url + self.login_path + '?service=' + urllib.quote_plus(service)
+        url = self.server_url + self.login_path + '?service=' + urllib.parse.quote_plus(service)
         if self.renew:
             url += "&renew=true"
         return url
@@ -42,19 +45,19 @@ class PyCAS(object):
         """Return the logout URL."""
         url = self.server_url + self.logout_path
         if redirect_url:
-            url += '?url=' + urllib.quote_plus(redirect_url)
+            url += '?url=' + urllib.parse.quote_plus(redirect_url)
         return url
 
     def validate_url(self, service, ticket):
         """Return the validation URL for the given service. (For CAS 1.0)"""
-        url = self.server_url + self.validate_path + '?service=' + urllib.quote_plus(service) + '&ticket=' + urllib.quote_plus(ticket)
+        url = self.server_url + self.validate_path + '?service=' + urllib.parse.quote_plus(service) + '&ticket=' + urllib.parse.quote_plus(ticket)
         if self.renew:
             url += "&renew=true"
         return url
 
     def validate_ticket(self, service, ticket):
         """Validate the given ticket against the given service."""
-        f = urllib2.urlopen(self.validate_url(service, ticket))
+        f = urllib.request.urlopen(self.validate_url(service, ticket))
         valid = f.readline()
         valid = valid.strip() == 'yes'
         user = f.readline().strip()
@@ -77,7 +80,7 @@ class CASAuth(BaseAuth):
         ticket = request.args.get('ticket')
         action = request.args.get("action", [])
         logoutRequest = request.args.get('logoutRequest', [])
-        url = request.url_root + urllib.quote_plus(request.path.encode('utf-8'))
+        url = request.url_root + urllib.parse.quote_plus(request.path.encode('utf-8'))
 
         # # handle logout request from CAS
         # if logoutRequest:
@@ -112,7 +115,7 @@ class CASAuth(BaseAuth):
 
     def logout(self, request, user_obj, **kw):
         if self.name and user_obj and user_obj.auth_method == self.name:
-            url = request.url_root + urllib.quote_plus(request.path.encode('utf-8'))
+            url = request.url_root + urllib.parse.quote_plus(request.path.encode('utf-8'))
             request.http_redirect(self.cas.logout_url(url))
 
             user_obj.valid = False

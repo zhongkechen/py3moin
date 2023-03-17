@@ -10,7 +10,7 @@ import warnings
 # site
 # pkg
 from passlib import hash
-from passlib.utils.compat import unicode
+from passlib.utils.compat import str
 from passlib.tests.utils import HandlerCase, TEST_MODE
 from passlib.tests.test_handlers import UPASS_TABLE, PASS_TABLE_UTF8
 # module
@@ -303,7 +303,7 @@ class _base_argon2_test(HandlerCase):
         
         # check supported type_values
         for value in cls.type_values:
-            self.assertIsInstance(value, unicode)
+            self.assertIsInstance(value, str)
         self.assertTrue("i" in cls.type_values)
         self.assertTrue("d" in cls.type_values)
         

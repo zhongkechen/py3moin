@@ -167,17 +167,17 @@ General syntax: moin [options] account check [check-options]
         print(" %-20s %-30r %-35r - keeping%s!" % (uid, u.name, u.email, self.hasmagicpage(uid) and " (magicpage)" or ""))
 
     def make_users_unique(self):
-        for name, uids in self.names.items():
+        for name, uids in list(self.names.items()):
             if len(uids) > 1:
                 self.process(uids)
 
     def make_emails_unique(self):
-        for email, uids in self.emails.items():
+        for email, uids in list(self.emails.items()):
             if len(uids) > 1:
                 self.process(uids)
 
     def make_WikiNames(self):
-        for uid, u in self.users.items():
+        for uid, u in list(self.users.items()):
             if u.disabled:
                 continue
             if not wikiutil.isStrictWikiname(u.name):
@@ -191,7 +191,7 @@ General syntax: moin [options] account check [check-options]
                         u.save()
 
     def remove_passwords(self):
-        for uid, u in self.users.items():
+        for uid, u in list(self.users.items()):
             # user.User already clears the old cleartext passwords on loading,
             # so nothing to do here!
             if self.options.save:

@@ -26,9 +26,15 @@
                 2007-2008 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import division
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.utils import old_div
+from builtins import object
 import os, time, zipfile, errno, datetime
-from StringIO import StringIO
+from io import StringIO
 import tarfile
 
 from werkzeug.http import http_date
@@ -160,8 +166,8 @@ def getFilename(request, pagename, filename):
         @rtype: string (in config.charset encoding)
         @return: complete path/filename of attached file
     """
-    if isinstance(filename, unicode):
-        filename = filename.encode(config.charset)
+    if isinstance(filename, bytes):
+        filename = filename.decode(config.charset)
     return os.path.join(getAttachDir(request, pagename, create=1), filename)
 
 
@@ -195,10 +201,10 @@ def info(pagename, request):
 
 
 def _write_stream(content, stream, bufsize=8192):
-    if hasattr(content, 'read'): # looks file-like
+    if hasattr(content, 'read'):  # looks file-like
         import shutil
         shutil.copyfileobj(content, stream, bufsize)
-    elif isinstance(content, str):
+    elif isinstance(content, bytes):
         stream.write(content)
     else:
         msg = "unsupported content object: %r" % content
@@ -598,7 +604,7 @@ def _do_multifile(pagename, request):
 def _get_files(request, pagename):
     attach_dir = getAttachDir(request, pagename)
     if os.path.isdir(attach_dir):
-        files = [fn.decode(config.charset) for fn in os.listdir(attach_dir)]
+        files = [fn for fn in os.listdir(attach_dir)]
         files.sort()
     else:
         files = []
@@ -772,7 +778,7 @@ def _do_upload(pagename, request):
     upload_form(pagename, request, msg)
 
 
-class ContainerItem:
+class ContainerItem(object):
     """ A storage container (multiple objects in 1 tarfile) """
 
     def __init__(self, request, pagename, containername):
@@ -811,7 +817,7 @@ class ContainerItem:
     def put(self, member, content, content_length=None):
         """ save data into a container's member """
         tf = tarfile.TarFile(self.container_filename, mode='a')
-        if isinstance(member, unicode):
+        if isinstance(member, str):
             member = member.encode('utf-8')
         ti = tarfile.TarInfo(member)
         if isinstance(content, str):
@@ -1156,12 +1162,12 @@ def _do_unzip(pagename, request, overwrite=False):
             msg = _("Attachment '%(filename)s' not unzipped because some files in the zip "
                     "are either not in the same directory or exceeded the single file size limit (%(maxsize_file)d kB)."
                    ) % {'filename': filename,
-                        'maxsize_file': request.cfg.unzip_single_file_size / 1000, }
+                        'maxsize_file': old_div(request.cfg.unzip_single_file_size, 1000), }
         elif total_size > request.cfg.unzip_attachments_space:
             msg = _("Attachment '%(filename)s' not unzipped because it would have exceeded "
                     "the per page attachment storage size limit (%(size)d kB).") % {
                         'filename': filename,
-                        'size': request.cfg.unzip_attachments_space / 1000, }
+                        'size': old_div(request.cfg.unzip_attachments_space, 1000), }
         elif total_count > request.cfg.unzip_attachments_count:
             msg = _("Attachment '%(filename)s' not unzipped because it would have exceeded "
                     "the per page attachment count limit (%(count)d).") % {
@@ -1233,7 +1239,7 @@ def send_viewfile(pagename, request):
             try:
                 # rU: universal newline support so that even a \r is considered a valid line separator.
                 # CSV exported by office (on Mac?) has \r line separators.
-                content = file(fpath, 'rU').read()
+                content = open(fpath, 'rU').read()
                 content = wikiutil.decodeUnknownInput(content)
                 colorizer = Parser(content, request, filename=filename)
                 colorizer.format(request.formatter)

@@ -2,7 +2,8 @@
 #=============================================================================
 # imports
 #=============================================================================
-from __future__ import with_statement
+
+from builtins import str
 # core
 from logging import getLogger
 import os

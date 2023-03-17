@@ -1,3 +1,4 @@
+from builtins import object
 from ..useragents import UserAgent
 from ..utils import cached_property
 

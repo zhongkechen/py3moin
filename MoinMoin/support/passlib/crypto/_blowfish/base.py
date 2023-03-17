@@ -3,6 +3,7 @@
 # imports
 #=============================================================================
 # core
+from builtins import object
 import struct
 # pkg
 from passlib.utils import repeat_string

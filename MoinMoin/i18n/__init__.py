@@ -25,8 +25,12 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import os, gettext, glob
-from StringIO import StringIO
+from io import BytesIO, StringIO
 
 from MoinMoin import log
 logging = log.getLogger(__name__)
@@ -81,15 +85,15 @@ def i18n_init(request):
             for lang_file in glob.glob(po_filename(request, language='*', domain='MoinMoin')): # XXX only MoinMoin domain for now
                 language, domain, ext = os.path.basename(lang_file).split('.')
                 t = Translation(language, domain)
-                f = file(lang_file)
+                f = open(lang_file)
                 t.load_po(f)
                 f.close()
                 logging.debug("loading translation %r" % language)
                 encoding = 'utf-8'
                 _languages[language] = {}
-                for key, value in t.info.items():
+                for key, value in list(t.info.items()):
                     #logging.debug("meta key %s value %r" % (key, value))
-                    _languages[language][key] = value.decode(encoding)
+                    _languages[language][key] = value
                 for pagename in strings.all_pages:
                     try:
                         pagename_translated = t.translation._catalog[pagename]
@@ -125,18 +129,17 @@ def bot_translations(request):
     """
     translations = {}
     po_dir = os.path.join('i18n', 'jabberbot')
-    encoding = 'utf-8'
 
     for lang_file in glob.glob(po_filename(request, i18n_dir=po_dir, language='*', domain='JabberBot')):
         language, domain, ext = os.path.basename(lang_file).split('.')
         t = Translation(language, domain)
-        f = file(lang_file)
+        f = open(lang_file)
         t.load_po(f)
         f.close()
         t.loadLanguage(request, trans_dir=po_dir)
         translations[language] = {}
 
-        for key, text in t.raw.items():
+        for key, text in list(t.raw.items()):
             translations[language][key] = text
 
     return translations
@@ -159,7 +162,7 @@ class Translation(object):
         mf = MsgFmt()
         mf.read_po(f.readlines())
         mo_data = mf.generate_mo()
-        f = StringIO(mo_data)
+        f = BytesIO(mo_data)
         self.load_mo(f)
         f.close()
 
@@ -236,7 +239,7 @@ class Translation(object):
 
         if needsupdate:
             logging.debug("langfilename %s needs update" % langfilename)
-            f = file(langfilename)
+            f = open(langfilename)
             self.load_po(f)
             f.close()
             trans = self.translation

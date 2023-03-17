@@ -12,6 +12,7 @@
                 2005-2009 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import object
 import os, re
 
 from MoinMoin import log

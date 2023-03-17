@@ -21,7 +21,7 @@ def execute(pagename, request):
 
     # Get page dict readable by current user
     pages = request.rootpage.getPageDict()
-    pagelist = pages.keys()
+    pagelist = list(pages.keys())
     pagelist.sort()
 
     for name in pagelist:

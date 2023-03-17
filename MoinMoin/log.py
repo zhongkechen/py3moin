@@ -58,6 +58,9 @@
 # See http://www.python.org/doc/lib/logging-config-fileformat.html
 # We just use stderr output by default, if you want anything else,
 # you will have to configure logging.
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 logging_config = """\
 [DEFAULT]
 # Default loglevel, to adjust verbosity: DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -138,7 +141,7 @@ def load_config(conf_fname=None):
             err_msg = str(err)
     if not configured:
         # load builtin fallback logging config
-        from StringIO import StringIO
+        from io import StringIO
         f = StringIO(logging_config)
         try:
             logging.config.fileConfig(f)
@@ -166,7 +169,7 @@ def getLogger(name):
     if not configured:
         load_config()
     logger = logging.getLogger(name)
-    for levelnumber, levelname in logging._levelNames.items():
+    for levelnumber, levelname in list(logging._levelToName.items()):
         if isinstance(levelnumber, int): # that list has also the reverse mapping...
             setattr(logger, levelname, levelnumber)
     return logger

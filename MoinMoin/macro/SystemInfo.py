@@ -9,17 +9,21 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 Dependencies = ['pages']
 
 import sys, os
-from StringIO import StringIO
+from io import StringIO
 
 from MoinMoin import wikiutil, version
 from MoinMoin import action, macro, parser
 from MoinMoin.logfile import editlog, eventlog
 from MoinMoin.Page import Page
 
-class SystemInfo:
+class SystemInfo(object):
     def __init__(self, macro):
         self.macro = macro
         self.request = macro.request

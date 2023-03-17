@@ -1,8 +1,12 @@
 """tests for passlib.utils.scrypt"""
+from __future__ import division
 #=============================================================================
 # imports
 #=============================================================================
 # core
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from binascii import hexlify
 import hashlib
 import logging; log = logging.getLogger(__name__)
@@ -519,7 +523,7 @@ class _CommonScryptTest(TestCase):
 
         # reject r*p >= 2**30
         self.assertRaises(ValueError, run_scrypt, (1<<30), p=1)
-        self.assertRaises(ValueError, run_scrypt, (1<<30) / 2, p=2)
+        self.assertRaises(ValueError, run_scrypt, old_div((1<<30), 2), p=2)
 
     def test_p_param(self):
         """'p' (parallelism) parameter"""
@@ -535,7 +539,7 @@ class _CommonScryptTest(TestCase):
 
         # reject r*p >= 2**30
         self.assertRaises(ValueError, run_scrypt, (1<<30), r=1)
-        self.assertRaises(ValueError, run_scrypt, (1<<30) / 2, r=2)
+        self.assertRaises(ValueError, run_scrypt, old_div((1<<30), 2), r=2)
 
     def test_keylen_param(self):
         """'keylen' parameter"""

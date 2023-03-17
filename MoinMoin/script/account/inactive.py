@@ -6,9 +6,11 @@ MoinMoin - find inactive users (and disable / remove them)
 @license: GNU GPL, see COPYING for details.
 """
 
-from __future__ import with_statement
+
 from __future__ import print_function
 
+from past.builtins import execfile
+from builtins import input
 import sys, os
 
 from MoinMoin.script import MoinScript, log
@@ -109,7 +111,7 @@ General syntax: moin [options] account inactive [inactive-options]
             def check_interactive(u):
                 if self.options.interactive:
                     prompt = "%s %r %r %r disabled=%r (y/N)? " % (u.id, u.name, u.email, u.jid, u.disabled)
-                    return raw_input(prompt).strip() in ['y', 'Y', ]
+                    return input(prompt).strip() in ['y', 'Y', ]
                 else:
                     return True
 

@@ -8,6 +8,9 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import codecs
 import inspect
 import json
@@ -293,7 +296,7 @@ class Traceback(object):
             }
         ).encode("utf-8")
         try:
-            from urllib2 import urlopen
+            from urllib.request import urlopen
         except ImportError:
             from urllib.request import urlopen
         rv = urlopen("https://api.github.com/gists", data=data)
@@ -489,7 +492,7 @@ class Frame(object):
     @cached_property
     def is_library(self):
         return any(
-            self.filename.startswith(path) for path in sysconfig.get_paths().values()
+            self.filename.startswith(path) for path in list(sysconfig.get_paths().values())
         )
 
     def render_text(self):

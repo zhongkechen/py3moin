@@ -34,7 +34,7 @@ warn("the 'passlib.win32' module is deprecated, and will be removed in "
 from binascii import hexlify
 # site
 # pkg
-from passlib.utils.compat import unicode
+from passlib.utils.compat import str
 from passlib.crypto.des import des_encrypt_block
 from passlib.hash import nthash
 # local
@@ -57,7 +57,7 @@ def raw_lmhash(secret, encoding="ascii", hex=False):
     #       as well as a path for getting the encoding,
     #       letting this default to "ascii" to prevent incorrect hashes
     #       from being made w/o user explicitly choosing an encoding.
-    if isinstance(secret, unicode):
+    if isinstance(secret, str):
         secret = secret.encode(encoding)
     ns = secret.upper()[:14] + b"\x00" * (14-len(secret))
     out = des_encrypt_block(ns[:7], LM_MAGIC) + des_encrypt_block(ns[7:], LM_MAGIC)

@@ -7,19 +7,21 @@
 """
 from __future__ import print_function
 
-from xmlrpclib import Fault
+from future import standard_library
+standard_library.install_aliases()
+from xmlrpc.client import Fault
 
 from MoinMoin.user import User
 from MoinMoin.xmlrpc import XmlRpcBase
 
 
-def test_fault_serialization(request):
+def test_fault_serialization(req):
     """test MoinMoin.xmlrpc.xmlrpc_system_multicall Fault serialization"""
 
     def xmlrpc_return_fault():
         return Fault(666, "Fault description")
 
-    xmlrpc = XmlRpcBase(request)
+    xmlrpc = XmlRpcBase(req)
     xmlrpc.xmlrpc_return_fault = xmlrpc_return_fault
     args = [{'methodName': 'return_fault', 'params': []}]
 
@@ -31,10 +33,12 @@ def test_fault_serialization(request):
     assert type(result[0]) is dict
     assert "faultCode" in result[0] and "faultString" in result[0]
 
-def test_getAuthToken(request):
+
+def test_getAuthToken(req):
     """ Tests if getAuthToken passes without crashing """
-    xmlrpc = XmlRpcBase(request)
+    xmlrpc = XmlRpcBase(req)
     assert xmlrpc.xmlrpc_getAuthToken("Foo", "bar") == ""
+
 
 coverage_modules = ['MoinMoin.xmlrpc']
 

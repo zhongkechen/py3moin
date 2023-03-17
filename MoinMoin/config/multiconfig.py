@@ -8,6 +8,11 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
 import hashlib
 import re
 import os
@@ -201,7 +206,7 @@ def _(text):
     return text
 
 
-class CacheClass:
+class CacheClass(object):
     """ just a container for stuff we cache """
     pass
 
@@ -383,7 +388,7 @@ class ConfigFunctionality(object):
 
         # if we are to use the jabber bot, instantiate a server object for future use
         if self.jabber_enabled:
-            from xmlrpclib import Server
+            from xmlrpc.client import Server
             self.notification_server = Server(self.notification_bot_uri, )
 
         # Cache variables for the properties below
@@ -460,7 +465,7 @@ class ConfigFunctionality(object):
         secret = ''
         for varname in varnames:
             var = getattr(self, varname, None)
-            if isinstance(var, (str, unicode)):
+            if isinstance(var, (str, str)):
                 secret += repr(var)
         return secret
 
@@ -574,19 +579,19 @@ file. It should match the actual charset of the configuration file.
             attr = getattr(self, name, None)
             if attr:
                 # Try to decode strings
-                if isinstance(attr, str):
+                if isinstance(attr, bytes):
                     try:
-                        setattr(self, name, unicode(attr, charset))
+                        setattr(self, name, str(attr, charset))
                     except UnicodeError:
                         raise error.ConfigurationError(message %
                                                        {'name': name})
                 # Look into lists and try to decode strings inside them
                 elif isinstance(attr, list):
-                    for i in xrange(len(attr)):
+                    for i in range(len(attr)):
                         item = attr[i]
-                        if isinstance(item, str):
+                        if isinstance(item, bytes):
                             try:
-                                attr[i] = unicode(item, charset)
+                                attr[i] = str(item, charset)
                             except UnicodeError:
                                 raise error.ConfigurationError(message %
                                                                {'name': name})
@@ -641,7 +646,7 @@ also the spelling of the directory name.
             imp.acquire_lock()
             try:
                 for pdir in plugin_dirs:
-                    csum = 'p_%s' % hashlib.new('sha1', pdir).hexdigest()
+                    csum = 'p_%s' % hashlib.new('sha1', pdir.encode("utf8")).hexdigest()
                     modname = '%s.%s' % (self.siteid, csum)
                     # If the module is not loaded, try to load it
                     if not modname in sys.modules:
@@ -681,7 +686,7 @@ that the data/plugin directory has an __init__.py file.
         them from this base class.
         """
         # user checkbox defaults
-        for key, value in DefaultConfig.user_checkbox_defaults.items():
+        for key, value in list(DefaultConfig.user_checkbox_defaults.items()):
             if key not in self.user_checkbox_defaults:
                 self.user_checkbox_defaults[key] = value
 
@@ -728,8 +733,8 @@ def _default_password_checker(cfg, request, username, password,
        username_lower in password_lower or password_lower in username_lower:
         return _("Password is too easy (password contains name or name contains password).")
 
-    keyboards = (ur"`1234567890-=qwertyuiop[]\asdfghjkl;'zxcvbnm,./", # US kbd
-                 ur"^1234567890ß´qwertzuiopü+asdfghjklöä#yxcvbnm,.-", # german kbd
+    keyboards = (r"`1234567890-=qwertyuiop[]\asdfghjkl;'zxcvbnm,./", # US kbd
+                 r"^1234567890ß´qwertzuiopü+asdfghjklöä#yxcvbnm,.-", # german kbd
                 ) # add more keyboards!
     for kbd in keyboards:
         rev_kbd = kbd[::-1]
@@ -1070,13 +1075,13 @@ options_no_group_name = {
     # the group 'all' shall match all, while the group 'key' shall match the key only
     # e.g. CategoryFoo -> group 'all' ==  CategoryFoo, group 'key' == Foo
     # moin's code will add ^ / $ at beginning / end when needed
-    ('page_category_regex', ur'(?P<all>Category(?P<key>(?!Template)\S+))',
+    ('page_category_regex', r'(?P<all>Category(?P<key>(?!Template)\S+))',
      'Pagenames exactly matching this regex are regarded as Wiki categories [Unicode]'),
-    ('page_dict_regex', ur'(?P<all>(?P<key>\S+)Dict)',
+    ('page_dict_regex', r'(?P<all>(?P<key>\S+)Dict)',
      'Pagenames exactly matching this regex are regarded as pages containing variable dictionary definitions [Unicode]'),
-    ('page_group_regex', ur'(?P<all>(?P<key>\S+)Group)',
+    ('page_group_regex', r'(?P<all>(?P<key>\S+)Group)',
      'Pagenames exactly matching this regex are regarded as pages containing group definitions [Unicode]'),
-    ('page_template_regex', ur'(?P<all>(?P<key>\S+)Template)',
+    ('page_template_regex', r'(?P<all>(?P<key>\S+)Template)',
      'Pagenames exactly matching this regex are regarded as pages containing templates for new pages [Unicode]'),
 
     ('page_local_spelling_words', u'LocalSpellingWords',

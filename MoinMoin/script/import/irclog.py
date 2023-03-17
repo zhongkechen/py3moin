@@ -9,6 +9,7 @@ MoinMoin - Push files into the wiki.
 from __future__ import print_function
 
 # this function generates a pagename from the file name
+from builtins import object
 def filename_function(filename):
     filename = filename.lstrip('#')
     splitted = filename.split('.')

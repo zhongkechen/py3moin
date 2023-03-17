@@ -10,12 +10,17 @@
 
 """
 
-from py.test import raises
+from builtins import object
+
+import pytest
+from pytest import raises
 
 from MoinMoin import security
-from MoinMoin.datastruct import GroupDoesNotExistError
+from MoinMoin._tests import become_trusted, create_page, nuke_page
+from MoinMoin.datastruct import GroupDoesNotExistError, ConfigGroups
 
 
+@pytest.mark.wiki_config(groups=lambda s, r: ConfigGroups(r, GroupsBackendTest.test_groups))
 class GroupsBackendTest(object):
 
     test_groups = {u'EditorGroup': [u'AdminGroup', u'John', u'JoeDoe', u'Editor1', u'John'],
@@ -38,44 +43,44 @@ class GroupsBackendTest(object):
                        u'EmptyGroup': [],
                        u'CheckNotExistingGroup': [u'NotExistingGroup']}
 
-    def test_contains(self):
+    def test_contains(self, req):
         """
         Test group_wiki Backend and Group containment methods.
         """
-        groups = self.request.groups
+        groups = req.groups
 
-        for group, members in self.expanded_groups.iteritems():
+        for group, members in list(self.expanded_groups.items()):
             assert group in groups
             for member in members:
                 assert member in groups[group]
 
         raises(GroupDoesNotExistError, lambda: groups[u'NotExistingGroup'])
 
-    def test_contains_group(self):
-        groups = self.request.groups
+    def test_contains_group(self, req):
+        groups = req.groups
 
         assert u'AdminGroup' in groups[u'EditorGroup']
         assert u'EditorGroup' not in groups[u'AdminGroup']
 
-    def test_iter(self):
-        groups = self.request.groups
+    def test_iter(self, req):
+        groups = req.groups
 
-        for group, members in self.expanded_groups.iteritems():
+        for group, members in list(self.expanded_groups.items()):
             returned_members = list(groups[group])
             assert len(returned_members) == len(members)
             for member in members:
                 assert member in returned_members
 
-    def test_get(self):
-        groups = self.request.groups
+    def test_get(self, req):
+        groups = req.groups
 
         assert groups.get(u'AdminGroup')
         assert u'NotExistingGroup' not in groups
         assert groups.get(u'NotExistingGroup') is None
         assert groups.get(u'NotExistingGroup', []) == []
 
-    def test_groups_with_member(self):
-        groups = self.request.groups
+    def test_groups_with_member(self, req):
+        groups = req.groups
 
         john_groups = list(groups.groups_with_member(u'John'))
         assert 2 == len(john_groups)
@@ -83,12 +88,12 @@ class GroupsBackendTest(object):
         assert u'AdminGroup' in john_groups
         assert u'ThirdGroup' not in john_groups
 
-    def test_backend_acl_allow(self):
+    def test_backend_acl_allow(self, req):
         """
         Test if the wiki group backend works with acl code.
         Check user which has rights.
         """
-        request = self.request
+        request = req
 
         acl_rights = ["AdminGroup:admin,read,write"]
         acl = security.AccessControlList(request.cfg, acl_rights)
@@ -97,12 +102,12 @@ class GroupsBackendTest(object):
             for permission in ["read", "write", "admin"]:
                 assert acl.may(request, u"Admin1", permission), '%s must have %s permission because he is member of the AdminGroup' % (user, permission)
 
-    def test_backend_acl_deny(self):
+    def test_backend_acl_deny(self, req):
         """
         Test if the wiki group backend works with acl code.
         Check user which does not have rights.
         """
-        request = self.request
+        request = req
 
         acl_rights = ["AdminGroup:read,write"]
         acl = security.AccessControlList(request.cfg, acl_rights)
@@ -114,8 +119,8 @@ class GroupsBackendTest(object):
         assert u'Admin1' in request.groups['AdminGroup']
         assert not acl.may(request, u"Admin1", "admin")
 
-    def test_backend_acl_with_all(self):
-        request = self.request
+    def test_backend_acl_with_all(self, req):
+        request = req
 
         acl_rights = ["EditorGroup:read,write,delete,admin All:read"]
         acl = security.AccessControlList(request.cfg, acl_rights)
@@ -128,8 +133,8 @@ class GroupsBackendTest(object):
         for permission in ["write", "delete", "admin"]:
             assert not acl.may(request, u"Someone", permission)
 
-    def test_backend_acl_not_existing_group(self):
-        request = self.request
+    def test_backend_acl_not_existing_group(self, req):
+        request = req
         assert u'NotExistingGroup' not in request.groups
 
         acl_rights = ["NotExistingGroup:read,write,delete,admin All:read"]
@@ -138,7 +143,7 @@ class GroupsBackendTest(object):
         assert not acl.may(request, u"Someone", "write")
 
 
-class DictsBackendTest(object):
+class DictsBackendTest:
 
     dicts = {u'SomeTestDict': {u'First': u'first item',
                                u'text with spaces': u'second item',
@@ -147,9 +152,40 @@ class DictsBackendTest(object):
              u'SomeOtherTestDict': {u'One': '1',
                                     u'Two': '2'}}
 
-    def test_getitem(self):
+    @pytest.fixture(autouse=True)
+    def setup_class(self, req):
+        request = req
+        become_trusted(request)
+
+        text = '''
+Text ignored
+ * list items ignored
+  * Second level list ignored
+ First:: first item
+ text with spaces:: second item
+
+Empty lines ignored, so is this text
+Next line has key with empty value
+ Empty string::\x20
+ Last:: last item
+'''
+        create_page(request, u'SomeTestDict', text)
+
+        text = """
+ One:: 1
+ Two:: 2
+"""
+        create_page(request, u'SomeOtherTestDict', text)
+
+        yield
+
+        become_trusted(req)
+        nuke_page(req, u'SomeTestDict')
+        nuke_page(req, u'SomeOtherTestDict')
+
+    def test_getitem(self, req):
         expected_dicts = self.dicts
-        dicts = self.request.dicts
+        dicts = req.dicts
 
         for dict_name, expected_dict in expected_dicts.items():
             test_dict = dicts[dict_name]
@@ -157,24 +193,24 @@ class DictsBackendTest(object):
             for key, value in expected_dict.items():
                 assert test_dict[key] == value
 
-    def test_contains(self):
-        dicts = self.request.dicts
+    def test_contains(self, req):
+        dicts = req.dicts
 
         for key in self.dicts:
             assert key in dicts
 
         assert u'SomeNotExistingDict' not in dicts
 
-    def test_update(self):
-        dicts = self.request.dicts
+    def test_update(self, req):
+        dicts = req.dicts
 
         d = {}
         d.update(dicts['SomeTestDict'])
 
         assert u'First' in d
 
-    def test_get(self):
-        dicts = self.request.dicts
+    def test_get(self, req):
+        dicts = req.dicts
 
         for dict_name in self.dicts:
             assert dicts.get(dict_name)
@@ -182,7 +218,6 @@ class DictsBackendTest(object):
         assert u'SomeNotExistingDict' not in dicts
         assert dicts.get(u'SomeNotExistingDict') is None
         assert dicts.get(u'SomeNotExistingDict', {}) == {}
-
 
         for dict_name, expected_dict in self.dicts.items():
             test_dict = dicts[dict_name]

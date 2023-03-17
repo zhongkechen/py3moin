@@ -20,6 +20,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
+from builtins import object
 import os, time, codecs, base64
 import hashlib
 import hmac
@@ -211,7 +213,7 @@ def addLowerCaseKeys(cache):
     for attrname in CACHED_USER_ATTRS:
         attr2id = c[attrname]
         attr2id_lower = c[attrname + "_lower"] = {}
-        for key, value in attr2id.iteritems():
+        for key, value in list(attr2id.items()):
             attr2id_lower[key.lower()] = value
     return c
 
@@ -262,7 +264,7 @@ def getUserIdentification(request, username=None):
     return username or (request.cfg.show_hosts and request.remote_addr) or _("<unknown>")
 
 
-def encodePassword(cfg, pwd, salt=None, scheme=None):
+def encodePassword(cfg, pwd, salt: bytes = None, scheme=None):
     """ Encode a cleartext password using the default algorithm.
 
     @param cfg: the wiki config
@@ -284,10 +286,10 @@ def encodePassword(cfg, pwd, salt=None, scheme=None):
         pwd = pwd.encode('utf-8')
         if salt is None:
             salt = random_string(20)
-        assert isinstance(salt, str)
+        assert isinstance(salt, bytes)
         hash = hashlib.new('sha1', pwd)
         hash.update(salt)
-        return '{SSHA}' + base64.encodestring(hash.digest() + salt).rstrip()
+        return '{SSHA}' + base64.encodebytes(hash.digest() + salt).decode("ascii").rstrip()
     else:
         # should never happen as we check the value of cfg.password_scheme
         raise NotImplementedError
@@ -416,7 +418,7 @@ def encodeDict(items):
     @return: dict encoded as unicode
     """
     line = []
-    for key, value in items.items():
+    for key, value in list(items.items()):
         item = u'%s:%s' % (key, value)
         line.append(item)
     line = '\t'.join(line)
@@ -439,7 +441,7 @@ def decodeDict(line):
     return items
 
 
-class User:
+class User(object):
     """ A MoinMoin User """
 
     def __init__(self, request, id=None, name="", password=None, auth_username="", **kw):
@@ -629,7 +631,7 @@ class User:
                 del user_data[key]
 
         # Copy user data into user object
-        for key, val in user_data.items():
+        for key, val in list(user_data.items()):
             vars(self)[key] = val
 
         self.tz_offset = int(self.tz_offset)
@@ -713,14 +715,14 @@ class User:
                 else:
                     # a password hash to be checked by legacy, builtin code
                     if scheme == '{SSHA}':
-                        d = base64.decodestring(d)
+                        d = base64.b64decode(d)
                         salt = d[20:]
                         hash = hashlib.new('sha1', password.encode('utf-8'))
                         hash.update(salt)
-                        enc = base64.encodestring(hash.digest() + salt).rstrip()
+                        enc = base64.b64encode(hash.digest() + salt).rstrip()
 
                     elif scheme == '{SHA}':
-                        enc = base64.encodestring(
+                        enc = base64.b64encode(
                             hashlib.new('sha1', password.encode('utf-8')).digest()).rstrip()
 
                     elif scheme == '{APR1}':
@@ -738,13 +740,13 @@ class User:
                             return False, False
                         # d is 2 characters salt + 11 characters hash
                         salt = d[:2]
-                        enc = crypt.crypt(password.encode('utf-8'), salt.encode('ascii'))
+                        enc = crypt.crypt(password, salt).encode("utf8")
 
                     else:
                         logging.error('in user profile %r, password hash with unknown scheme encountered: %r' % (self.id, scheme))
                         raise NotImplementedError
 
-                    if safe_str_equal(epwd, scheme + enc):
+                    if safe_str_equal(epwd, scheme.encode("ascii") + enc):
                         password_correct = True
                         recompute_hash = scheme != wanted_scheme
 
@@ -757,7 +759,7 @@ class User:
 
     def persistent_items(self):
         """ items we want to store into the user profile """
-        return [(key, value) for key, value in vars(self).items()
+        return [(key, value) for key, value in list(vars(self).items())
                     if key not in self._cfg.user_transient_fields and key[0] != '_']
 
     def save(self):
@@ -793,7 +795,7 @@ class User:
             elif isinstance(value, dict):
                 key += '{}'
                 value = encodeDict(value)
-            line = u"%s=%s" % (key, unicode(value))
+            line = u"%s=%s" % (key, str(value))
             line = line.replace('\n', ' ').replace('\r', ' ') # no lineseps
             data.write(line + '\n')
         data.close()
@@ -855,7 +857,7 @@ class User:
         """
         if self.valid:
             interwikiname = self._cfg.interwikiname or u''
-            bookmark = unicode(tm)
+            bookmark = str(tm)
             self.bookmarks[interwikiname] = bookmark
             self.save()
 
@@ -1036,7 +1038,7 @@ class User:
         # first remove all old entries mapping to this userid:
         for attrname in CACHED_USER_ATTRS:
             attr2id = cache[attrname]
-            for key, value in attr2id.items():
+            for key, value in list(attr2id.items()):
                 if value == userid:
                     del attr2id[key]
 

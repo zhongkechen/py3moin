@@ -1,5 +1,9 @@
 # flake8: noqa
 # This whole file is full of lint errors
+from future import standard_library
+standard_library.install_aliases()
+from builtins import bytes
+from builtins import next
 import functools
 import operator
 import sys
@@ -7,7 +11,7 @@ import sys
 try:
     import builtins
 except ImportError:
-    import __builtin__ as builtins
+    import builtins as builtins
 
 
 PY2 = sys.version_info[0] == 2
@@ -16,10 +20,10 @@ WIN = sys.platform.startswith("win")
 _identity = lambda x: x
 
 if PY2:
-    unichr = unichr
-    text_type = unicode
-    string_types = (str, unicode)
-    integer_types = (int, long)
+    chr = chr
+    text_type = str
+    string_types = (str, str)
+    integer_types = (int, int)
 
     iterkeys = lambda d, *args, **kwargs: d.iterkeys(*args, **kwargs)
     itervalues = lambda d, *args, **kwargs: d.itervalues(*args, **kwargs)
@@ -55,8 +59,8 @@ if PY2:
         return cls
 
     def implements_to_string(cls):
-        cls.__unicode__ = cls.__str__
-        cls.__str__ = lambda x: x.__unicode__().encode("utf-8")
+        cls.__str__ = cls.__str__
+        cls.__str__ = lambda x: x.__str__().encode("utf-8")
         return cls
 
     def native_string_result(func):
@@ -70,12 +74,12 @@ if PY2:
         del cls.__bool__
         return cls
 
-    from itertools import imap, izip, ifilter
+    
 
     range_type = xrange
 
-    from StringIO import StringIO
-    from cStringIO import StringIO as BytesIO
+    from io import StringIO
+    from io import StringIO as BytesIO
 
     NativeStringIO = BytesIO
 
@@ -114,7 +118,7 @@ if PY2:
             return None
         if isinstance(x, (bytes, bytearray, buffer)):
             return bytes(x)
-        if isinstance(x, unicode):
+        if isinstance(x, str):
             return x.encode(charset, errors)
         raise TypeError("Expected bytes")
 
@@ -125,7 +129,7 @@ if PY2:
 
 
 else:
-    unichr = chr
+    chr = chr
     text_type = str
     string_types = (str,)
     integer_types = (int,)

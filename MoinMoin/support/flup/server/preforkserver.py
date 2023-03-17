@@ -25,6 +25,7 @@ from __future__ import print_function
 #
 # $Id$
 
+from builtins import object
 __author__ = 'Allan Saddi <allan@saddi.com>'
 __version__ = '$Revision$'
 
@@ -136,7 +137,7 @@ class PreforkServer(object):
                 if not self._spawnChild(sock): break
 
             # Wait on any socket activity from live children.
-            r = [x['file'] for x in self._children.values()
+            r = [x['file'] for x in list(self._children.values())
                  if x['file'] is not None]
 
             if len(r) == len(self._children) and not self._children_to_purge:
@@ -167,7 +168,7 @@ class PreforkServer(object):
                         continue
                     raise
                 # Try to match it with a child. (Do we need a reverse map?)
-                for pid,d in self._children.items():
+                for pid,d in list(self._children.items()):
                     if child is d['file']:
                         if state:
                             # Set availability status accordingly.
@@ -187,7 +188,7 @@ class PreforkServer(object):
                 self._last_purge = time.time()
 
                 # Try to match it with a child. (Do we need a reverse map?)
-                for pid,d in self._children.items():
+                for pid,d in list(self._children.items()):
                     if child is d['file']:
                         d['file'].close()
                         d['file'] = None
@@ -198,7 +199,7 @@ class PreforkServer(object):
             self._reapChildren()
 
             # See who and how many children are available.
-            availList = filter(lambda x: x[1]['avail'], self._children.items())
+            availList = [x for x in list(self._children.items()) if x[1]['avail']]
             avail = len(availList)
 
             if avail < self._minSpare:
@@ -236,7 +237,7 @@ class PreforkServer(object):
         Any children remaining after 10 seconds is SIGKILLed.
         """
         # Let all children know it's time to go.
-        for pid,d in self._children.items():
+        for pid,d in list(self._children.items()):
             if d['file'] is not None:
                 d['file'].close()
                 d['file'] = None
@@ -270,7 +271,7 @@ class PreforkServer(object):
         signal.signal(signal.SIGALRM, oldSIGALRM)
 
         # Forcefully kill any remaining children.
-        for pid in self._children.keys():
+        for pid in list(self._children.keys()):
             try:
                 os.kill(pid, signal.SIGKILL)
             except OSError as e:
@@ -320,7 +321,7 @@ class PreforkServer(object):
             # Restore signal handlers.
             self._restoreSignalHandlers()
             # Close copies of child sockets.
-            for f in [x['file'] for x in self._children.values()
+            for f in [x['file'] for x in list(self._children.values())
                       if x['file'] is not None]:
                 f.close()
             self._children = {}
@@ -430,7 +431,7 @@ class PreforkServer(object):
         pass
 
     def _usr1Handler(self, signum, frame):
-        self._children_to_purge = [x['file'] for x in self._children.values()
+        self._children_to_purge = [x['file'] for x in list(self._children.values())
                                    if x['file'] is not None]
 
     def _installSignalHandlers(self):

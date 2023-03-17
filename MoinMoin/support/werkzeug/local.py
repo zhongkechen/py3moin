@@ -8,6 +8,15 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from __future__ import division
+from past.builtins import cmp
+from future import standard_library
+standard_library.install_aliases()
+from builtins import hex
+from builtins import oct
+from builtins import str
+from past.utils import old_div
+from builtins import object
 import copy
 from functools import update_wrapper
 
@@ -22,7 +31,7 @@ try:
     from greenlet import getcurrent as get_ident
 except ImportError:
     try:
-        from thread import get_ident
+        from _thread import get_ident
     except ImportError:
         from _thread import get_ident
 
@@ -58,7 +67,7 @@ class Local(object):
         object.__setattr__(self, "__ident_func__", get_ident)
 
     def __iter__(self):
-        return iter(self.__storage__.items())
+        return iter(list(self.__storage__.items()))
 
     def __call__(self, proxy):
         """Create a proxy for a name."""
@@ -329,9 +338,9 @@ class LocalProxy(object):
         except RuntimeError:
             return False
 
-    def __unicode__(self):
+    def __str__(self):
         try:
-            return unicode(self._get_current_object())  # noqa
+            return str(self._get_current_object())  # noqa
         except RuntimeError:
             return repr(self)
 
@@ -397,7 +406,7 @@ class LocalProxy(object):
     __invert__ = lambda x: ~(x._get_current_object())
     __complex__ = lambda x: complex(x._get_current_object())
     __int__ = lambda x: int(x._get_current_object())
-    __long__ = lambda x: long(x._get_current_object())  # noqa
+    __long__ = lambda x: int(x._get_current_object())  # noqa
     __float__ = lambda x: float(x._get_current_object())
     __oct__ = lambda x: oct(x._get_current_object())
     __hex__ = lambda x: hex(x._get_current_object())
@@ -408,7 +417,7 @@ class LocalProxy(object):
     __radd__ = lambda x, o: o + x._get_current_object()
     __rsub__ = lambda x, o: o - x._get_current_object()
     __rmul__ = lambda x, o: o * x._get_current_object()
-    __rdiv__ = lambda x, o: o / x._get_current_object()
+    __rdiv__ = lambda x, o: old_div(o, x._get_current_object())
     if PY2:
         __rtruediv__ = lambda x, o: x._get_current_object().__rtruediv__(o)
     else:

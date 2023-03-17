@@ -8,6 +8,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
 from MoinMoin import events, wikiutil
 from MoinMoin.widget import html
 from MoinMoin.userprefs import UserPrefBase
@@ -116,7 +117,7 @@ class Settings(UserPrefBase):
         # It's cosmetic - the check for super-user rights should be performed
         # in event handling code as well!
         allowed = []
-        for key in event_list.keys():
+        for key in list(event_list.keys()):
             if not event_list[key]['superuser'] or super:
                 allowed.append((key, event_list[key]['desc']))
 
@@ -153,7 +154,7 @@ class Settings(UserPrefBase):
                   " to contact you in the general preferences."))])
             self.make_row('', [
                 html.INPUT(type="submit", name="cancel", value=_("Cancel"))])
-            return unicode(self._form)
+            return str(self._form)
 
         self.make_row(_('Subscribed events'), [self._event_select()])
 
@@ -175,7 +176,7 @@ class Settings(UserPrefBase):
             ' ',
             html.INPUT(type="submit", name="cancel", value=_("Cancel"))])
 
-        return unicode(self._form)
+        return str(self._form)
 
     def allowed(self):
         return UserPrefBase.allowed(self) and (

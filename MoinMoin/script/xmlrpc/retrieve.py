@@ -7,7 +7,9 @@ MoinMoin - page contents retriever
 """
 from __future__ import print_function
 
-import xmlrpclib
+from future import standard_library
+standard_library.install_aliases()
+import xmlrpc.client
 
 from MoinMoin.script import MoinScript
 
@@ -35,5 +37,5 @@ General syntax: moin [options] xmlrpc retrieve [retrieve-options]
         self.argv = argv
 
     def mainloop(self):
-        s = xmlrpclib.ServerProxy(self.argv[0])
+        s = xmlrpc.client.ServerProxy(self.argv[0])
         print(s.getPage(self.argv[1]))

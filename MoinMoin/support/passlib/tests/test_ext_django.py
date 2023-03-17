@@ -4,6 +4,7 @@
 #=============================================================================
 # core
 from __future__ import absolute_import, division, print_function
+from builtins import object
 import logging; log = logging.getLogger(__name__)
 import sys
 # site
@@ -83,7 +84,7 @@ if has_min_django:
         # NOTE: this mainly just overrides .save() to test commit behavior.
 
         # NOTE: .Meta.app_label required for django >= 1.9
-        class Meta:
+        class Meta(object):
             app_label = __name__
 
         @memoized_property

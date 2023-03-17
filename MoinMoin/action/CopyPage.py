@@ -26,7 +26,7 @@ class CopyPage(ActionBase):
         _ = self._
         self.form_trigger = 'copy'
         self.form_trigger_label = _('Copy Page')
-        filterfn = re.compile(ur"^%s/.*$" % re.escape(pagename), re.U).match
+        filterfn = re.compile(r"^%s/.*$" % re.escape(pagename), re.U).match
         pages = request.rootpage.getPageList(user='', exists=1, filter=filterfn)
         subpagenames = request.rootpage.getPageList(user='', exists=1, filter=filterfn)
         self.subpages = subpagenames

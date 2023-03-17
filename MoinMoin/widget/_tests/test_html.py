@@ -6,11 +6,13 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import py
+from builtins import str
+from builtins import object
+import pytest
 
 from MoinMoin.widget import html
 
-class TestHTMLWidgets:
+class TestHTMLWidgets(object):
     """widget.html: testing html widgets"""
 
     def testCreate(self):
@@ -28,7 +30,7 @@ class TestHTMLWidgets:
             )
 
         for description, obj, expected in tests:
-            result = unicode(obj)
+            result = str(obj)
             assert result == expected
 
     def testInvalidAttributes(self):
@@ -36,7 +38,7 @@ class TestHTMLWidgets:
 
         TO DO: add tests for all elements by HTML 4 spec.
         """
-        py.test.raises(AttributeError, html.BR, name='foo')
+        pytest.raises(AttributeError, html.BR, name='foo')
 
 
     def testCompositeElements(self):
@@ -59,7 +61,7 @@ class TestHTMLWidgets:
 
         for action, data, expected in actions:
             action(data)
-            result = unicode(element)
+            result = str(element)
             assert result == expected
 
 coverage_modules = ['MoinMoin.widget.html']

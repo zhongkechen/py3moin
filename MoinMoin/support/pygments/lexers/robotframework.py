@@ -23,6 +23,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+from builtins import object
 import re
 
 from pygments.lexer import Lexer
@@ -439,7 +440,7 @@ class KeywordTable(TestCaseTable):
 
 # Following code copied directly from Robot Framework 2.7.5.
 
-class VariableSplitter:
+class VariableSplitter(object):
 
     def __init__(self, string, identifiers):
         self.identifier = None

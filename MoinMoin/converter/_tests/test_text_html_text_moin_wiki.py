@@ -7,10 +7,13 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import py
-#py.test.skip("Many broken tests, much broken code, broken, broken, broken.")
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+import pytest
+#pytest.skip("Many broken tests, much broken code, broken, broken, broken.")
 
-from cStringIO import StringIO
+from io import StringIO
 from MoinMoin.converter import text_html_text_moin_wiki as converter
 from MoinMoin.parser.text_moin_wiki import Parser
 from MoinMoin.formatter.text_gedit import Formatter
@@ -28,13 +31,13 @@ class TestBase(object):
             ret = convert(*func_args)
         except error as e:
             if successful:
-                py.test.fail("fails with parse error: %s" % e)
+                pytest.fail("fails with parse error: %s" % e)
             else:
                 return
         if successful:
             return ret
         else:
-            py.test.fail("doesn't fail with parse error")
+            pytest.fail("doesn't fail with parse error")
 
 
 class MinimalPage(object):
@@ -69,10 +72,10 @@ class MinimalRequest(object):
 
 
 class TestConvertBlockRepeatable(TestBase):
-    def do(self, text, output):
+    def do(self, req, text, output):
         text = text.lstrip('\n')
         output = output.strip('\n')
-        request = MinimalRequest(self.request)
+        request = MinimalRequest(req)
         page = MinimalPage()
         formatter = Formatter(request)
         formatter.setPage(page)
@@ -82,15 +85,15 @@ class TestConvertBlockRepeatable(TestBase):
         out = self.do_convert_real([request, page.page_name, repeat])
         assert text == out
 
-    def testComment01(self):
-        test = ur"""
+    def testComment01(self, req):
+        test = r"""
 ##test
 """
         output = u"""<pre class="comment">\n##test</pre>"""
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testComment02(self):
-        test = ur"""
+    def testComment02(self, req):
+        test = r"""
 ##test
 ##test
 """
@@ -98,80 +101,80 @@ class TestConvertBlockRepeatable(TestBase):
 <pre class="comment">\n##test</pre>
 <pre class="comment">\n##test</pre>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testHeading01(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testHeading01(self, req):
+        pytest.skip('broken test')
+        test = r"""
 = test1 =
 
 """
-        output = ur"""
+        output = r"""
 <h2>test1</h2>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testHeading02(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testHeading02(self, req):
+        pytest.skip('broken test')
+        test = r"""
 = test1 =
 
 == test2 ==
 
 """
-        output = ur"""
+        output = r"""
 <h2>test1</h2>
 <h3>test2</h3>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess01(self):
-        test = ur"""
+    def testListSuccess01(self, req):
+        test = r"""
  * test
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li><p>test </p>
 </li>
 </ul>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess02(self):
-        test = ur"""
+    def testListSuccess02(self, req):
+        test = r"""
  1. test
 
 """
-        output = ur"""
+        output = r"""
 <ol type="1">
 <li><p>test </p>
 </li>
 </ol>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess03(self):
-        test = ur"""
+    def testListSuccess03(self, req):
+        test = r"""
  test:: test
 
 """
-        output = ur"""
+        output = r"""
 <dl>
 <dt>test</dt>
 <dd><p>test </p>
 </dd>
 </dl>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess04(self):
-        test = ur"""
+    def testListSuccess04(self, req):
+        test = r"""
  * test
  * test
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li><p>test </p>
 </li>
@@ -179,15 +182,15 @@ class TestConvertBlockRepeatable(TestBase):
 </li>
 </ul>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess05(self):
-        test = ur"""
+    def testListSuccess05(self, req):
+        test = r"""
  1. test
  1. test
 
 """
-        output = ur"""
+        output = r"""
 <ol type="1">
 <li><p>test </p>
 </li>
@@ -195,15 +198,15 @@ class TestConvertBlockRepeatable(TestBase):
 </li>
 </ol>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess06(self):
-        test = ur"""
+    def testListSuccess06(self, req):
+        test = r"""
  test:: test
  test:: test
 
 """
-        output = ur"""
+        output = r"""
 <dl>
 <dt>test</dt>
 <dd><p>test </p>
@@ -213,16 +216,16 @@ class TestConvertBlockRepeatable(TestBase):
 </dd>
 </dl>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess07(self):
-        test = ur"""
+    def testListSuccess07(self, req):
+        test = r"""
  * test
 
  * test
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li><p>test </p>
 </li>
@@ -232,16 +235,16 @@ class TestConvertBlockRepeatable(TestBase):
 </li>
 </ul>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess08(self):
-        test = ur"""
+    def testListSuccess08(self, req):
+        test = r"""
  1. test
 
  1. test
 
 """
-        output = ur"""
+        output = r"""
 <ol type="1">
 <li><p>test </p>
 </li>
@@ -251,17 +254,17 @@ class TestConvertBlockRepeatable(TestBase):
 </li>
 </ol>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess09(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess09(self, req):
+        pytest.skip('broken test')
+        test = r"""
  test:: test
 
  test:: test
 
 """
-        output = ur"""
+        output = r"""
 <dl>
 <dt>test</dt>
 <dd><p>test </p>
@@ -273,16 +276,16 @@ class TestConvertBlockRepeatable(TestBase):
 </dd>
 </dl>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess10(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess10(self, req):
+        pytest.skip('broken test')
+        test = r"""
  * test
   * test
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li><p>test </p>
 <ul>
@@ -292,16 +295,16 @@ class TestConvertBlockRepeatable(TestBase):
 </li>
 </ul>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess11(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess11(self, req):
+        pytest.skip('broken test')
+        test = r"""
  1. test
   1. test
 
 """
-        output = ur"""
+        output = r"""
 <ol type="1">
 <li><p>test </p>
 <ol type="1">
@@ -311,16 +314,16 @@ class TestConvertBlockRepeatable(TestBase):
 </li>
 </ol>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess12(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess12(self, req):
+        pytest.skip('broken test')
+        test = r"""
  test:: test
   test:: test
 
 """
-        output = ur"""
+        output = r"""
 <dl>
 <dt>test</dt>
 <dd><p>test </p>
@@ -332,16 +335,16 @@ class TestConvertBlockRepeatable(TestBase):
 </dd>
 </dl>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess13(self):
-        test = ur"""
+    def testListSuccess13(self, req):
+        test = r"""
  * test
   * test
  * test
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li><p>test </p>
 <ul>
@@ -353,16 +356,16 @@ class TestConvertBlockRepeatable(TestBase):
 </li>
 </ul>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess14(self):
-        test = ur"""
+    def testListSuccess14(self, req):
+        test = r"""
  1. test
   1. test
  1. test
 
 """
-        output = ur"""
+        output = r"""
 <ol type="1">
 <li><p>test </p>
 <ol type="1">
@@ -374,16 +377,16 @@ class TestConvertBlockRepeatable(TestBase):
 </li>
 </ol>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess15(self):
-        test = ur"""
+    def testListSuccess15(self, req):
+        test = r"""
  test:: test
   test:: test
  test:: test
 
 """
-        output = ur"""
+        output = r"""
 <dl>
 <dt>test</dt>
 <dd><p>test </p>
@@ -398,17 +401,17 @@ class TestConvertBlockRepeatable(TestBase):
 </dd>
 </dl>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess16(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess16(self, req):
+        pytest.skip('broken test')
+        test = r"""
  * test
 
  1. test
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li><p>test </p>
 </li>
@@ -418,17 +421,17 @@ class TestConvertBlockRepeatable(TestBase):
 </li>
 </ol>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess17(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess17(self, req):
+        pytest.skip('broken test')
+        test = r"""
  * test
 
  test:: test
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li><p>test </p>
 </li>
@@ -439,17 +442,17 @@ class TestConvertBlockRepeatable(TestBase):
 </dd>
 </dl>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess18(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess18(self, req):
+        pytest.skip('broken test')
+        test = r"""
  1. test
 
  * test
 
 """
-        output = ur"""
+        output = r"""
 <ol type="1">
 <li><p>test </p>
 </li>
@@ -459,17 +462,17 @@ class TestConvertBlockRepeatable(TestBase):
 </li>
 </ul>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess19(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess19(self, req):
+        pytest.skip('broken test')
+        test = r"""
  1. test
 
  test:: test
 
 """
-        output = ur"""
+        output = r"""
 <ol type="1">
 <li><p>test </p>
 </li>
@@ -480,17 +483,17 @@ class TestConvertBlockRepeatable(TestBase):
 </dd>
 </dl>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess20(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess20(self, req):
+        pytest.skip('broken test')
+        test = r"""
  test:: test
 
  * test
 
 """
-        output = ur"""
+        output = r"""
 <dl>
 <dt>test</dt>
 <dd><p>test </p>
@@ -501,17 +504,17 @@ class TestConvertBlockRepeatable(TestBase):
 </li>
 </ul>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess21(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess21(self, req):
+        pytest.skip('broken test')
+        test = r"""
  test:: test
 
  1. test
 
 """
-        output = ur"""
+        output = r"""
 <dl>
 <dt>test</dt>
 <dd><p>test </p>
@@ -522,16 +525,16 @@ class TestConvertBlockRepeatable(TestBase):
 </li>
 </ol>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess23(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess23(self, req):
+        pytest.skip('broken test')
+        test = r"""
  1. test
   * test
 
 """
-        output = ur"""
+        output = r"""
 <ol type="1">
 <li><p>test </p>
 <ul>
@@ -541,124 +544,124 @@ class TestConvertBlockRepeatable(TestBase):
 </li>
 </ol>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess26(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess26(self, req):
+        pytest.skip('broken test')
+        test = r"""
  * test
 
 test
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li><p>test </p>
 </li>
 </ul>
 <p>test </p>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess28(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess28(self, req):
+        pytest.skip('broken test')
+        test = r"""
  * test
 
  test
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li><p>test </p>
 <p>test </p>
 </li>
 </ul>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess29(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess29(self, req):
+        pytest.skip('broken test')
+        test = r"""
  * test
   * test
  test
 """
-        output = ur"""
+        output = r"""
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testListSuccess30(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testListSuccess30(self, req):
+        pytest.skip('broken test')
+        test = r"""
  * test
   * test
   test
 """
-        output = ur"""
+        output = r"""
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testParagraph1(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testParagraph1(self, req):
+        pytest.skip('broken test')
+        test = r"""
 test
 
 """
-        output = ur"""
+        output = r"""
 <p>test </p>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testParagraph2(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testParagraph2(self, req):
+        pytest.skip('broken test')
+        test = r"""
 test
 
 test
 
 """
-        output = ur"""
+        output = r"""
 <p>test </p>
 <p>test </p>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testPreSuccess1(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testPreSuccess1(self, req):
+        pytest.skip('broken test')
+        test = r"""
 {{{
 test
 }}}
 
 """
-        output = ur"""
+        output = r"""
 <pre>
 test
 </pre>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testPreSuccess2(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testPreSuccess2(self, req):
+        pytest.skip('broken test')
+        test = r"""
 {{{
 test
 test
 }}}
 
 """
-        output = ur"""
+        output = r"""
 <pre>
 test
 test
 </pre>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testPreSuccess3(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testPreSuccess3(self, req):
+        pytest.skip('broken test')
+        test = r"""
 {{{
 test
 
@@ -666,51 +669,51 @@ test
 }}}
 
 """
-        output = ur"""
+        output = r"""
 <pre>
 test
 
 test
 </pre>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testPreSuccess4(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testPreSuccess4(self, req):
+        pytest.skip('broken test')
+        test = r"""
 {{{
  * test
 }}}
 
 """
-        output = ur"""
+        output = r"""
 <pre>
  * test
 </pre>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testPreSuccess5(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testPreSuccess5(self, req):
+        pytest.skip('broken test')
+        test = r"""
 {{{
   }}}
 
 """
-        output = ur"""
+        output = r"""
 <pre>
   </pre>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testPreSuccess6(self):
-        test = ur"""
+    def testPreSuccess6(self, req):
+        test = r"""
  * {{{
 test
 }}}
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li>
 <pre>
@@ -719,17 +722,17 @@ test
 </li>
 </ul>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testPreSuccess7(self):
-        py.test.skip("Broken.")
-        test = ur"""
+    def testPreSuccess7(self, req):
+        pytest.skip("Broken.")
+        test = r"""
  * {{{
    test
    }}}
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li>
 <pre>
@@ -738,17 +741,17 @@ test
 </li>
 </ul>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testPreSuccess8(self):
-        test = ur"""
+    def testPreSuccess8(self, req):
+        test = r"""
  * test
  {{{
 test
 }}}
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li><p>test
 </p>
@@ -758,11 +761,11 @@ test
 </li>
 </ul>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testPreSuccess9(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testPreSuccess9(self, req):
+        pytest.skip('broken test')
+        test = r"""
  * test
 
 {{{
@@ -770,7 +773,7 @@ test
 }}}
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li><p>test </p>
 </li>
@@ -780,10 +783,10 @@ test
 test
 </pre>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testPreSuccess10(self):
-        test = ur"""
+    def testPreSuccess10(self, req):
+        test = r"""
  * {{{{
 {{{
 test
@@ -791,7 +794,7 @@ test
 }}}}
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li>
 <pre>
@@ -803,15 +806,15 @@ test
 </ul>
 """
 
-    def testPreSuccess11(self):
-        test = ur"""
+    def testPreSuccess11(self, req):
+        test = r"""
  * {{{{
 test
 }}}
 }}}}
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li>
 <pre>
@@ -822,15 +825,15 @@ test
 </ul>
 """
 
-    def testPreSuccess12(self):
-        test = ur"""
+    def testPreSuccess12(self, req):
+        test = r"""
  * {{{{
 {{{
 test
 }}}}
 
 """
-        output = ur"""
+        output = r"""
 <ul>
 <li>
 <pre>
@@ -841,26 +844,26 @@ test
 </ul>
 """
 
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testRule1(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testRule1(self, req):
+        pytest.skip('broken test')
+        test = r"""
 ----
 
 """
-        output = ur"""
+        output = r"""
 <hr/>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testTable01(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testTable01(self, req):
+        pytest.skip('broken test')
+        test = r"""
 || ||
 
 """
-        output = ur"""
+        output = r"""
 <div>
 <table>
 <tr>
@@ -871,15 +874,15 @@ test
 </table>
 </div>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testTable02(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testTable02(self, req):
+        pytest.skip('broken test')
+        test = r"""
 ||test||
 
 """
-        output = ur"""
+        output = r"""
 <div>
 <table>
 <tr>
@@ -890,15 +893,15 @@ test
 </table>
 </div>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testTable03(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testTable03(self, req):
+        pytest.skip('broken test')
+        test = r"""
 ||test||test||
 
 """
-        output = ur"""
+        output = r"""
 <table>
 <tr>
 <td>
@@ -911,16 +914,16 @@ test
 </tr>
 </table>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testTable04(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testTable04(self, req):
+        pytest.skip('broken test')
+        test = r"""
 ||test||
 ||test||test||
 
 """
-        output = ur"""
+        output = r"""
 <div>
 <table>
 <tr>
@@ -939,16 +942,16 @@ test
 </table>
 </div>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testTable05(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testTable05(self, req):
+        pytest.skip('broken test')
+        test = r"""
 ||||test||
 ||test||test||
 
 """
-        output = ur"""
+        output = r"""
 <div>
 <table>
 <tr>
@@ -967,28 +970,28 @@ test
 </table>
 </div>
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testTable06(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def testTable06(self, req):
+        pytest.skip('broken test')
+        test = r"""
 ||||test||test||
 ||test||||test||
 
 """
-        output = ur"""
+        output = r"""
 <table><tbody><tr>  <td style="text-align: center;"
 colspan="2"><p class="line862">test</p></td>   <td><p class="line862">test</p></td>
 </tr> <tr>  <td><p class="line862">test</p></td>   <td style="text-align: center;"
 colspan="2"><p class="line862">test</p></td> </tr> </tbody></table>"""
-        self.do(test, output)
+        self.do(req, test, output)
 
 class TestConvertInlineFormatRepeatable(TestBase):
-    def do(self, text, output):
+    def do(self, req, text, output):
         text = text.lstrip('\n')
         output = output.strip('\n')
         output = "<p>%s </p>" % output
-        request = MinimalRequest(self.request)
+        request = MinimalRequest(req)
         page = MinimalPage()
         formatter = Formatter(request)
         formatter.setPage(page)
@@ -999,126 +1002,126 @@ class TestConvertInlineFormatRepeatable(TestBase):
         out = out.rstrip('\n')
         assert text == out
 
-    def testEmphasis01(self):
-        py.test.skip('broken test')
-        test = ur"''test''"
-        output = ur"<em>test</em>"
-        self.do(test, output)
+    def testEmphasis01(self, req):
+        pytest.skip('broken test')
+        test = r"''test''"
+        output = r"<em>test</em>"
+        self.do(req, test, output)
 
-    def testEmphasis02(self):
-        py.test.skip('broken test')
-        test = ur"'''test'''"
-        output = ur"<strong>test</strong>"
-        self.do(test, output)
+    def testEmphasis02(self, req):
+        pytest.skip('broken test')
+        test = r"'''test'''"
+        output = r"<strong>test</strong>"
+        self.do(req, test, output)
 
-    def testEmphasis03(self):
-        py.test.skip('broken test')
-        test = ur"'''''test'''''"
-        output = ur"<em><strong>test</strong></em>"
-        self.do(test, output)
+    def testEmphasis03(self, req):
+        pytest.skip('broken test')
+        test = r"'''''test'''''"
+        output = r"<em><strong>test</strong></em>"
+        self.do(req, test, output)
 
-    def testEmphasis04(self):
-        py.test.skip('broken test')
-        test = ur"''test'''test'''''"
-        output = ur"<em>test<strong>test</strong></em>"
-        self.do(test, output)
+    def testEmphasis04(self, req):
+        pytest.skip('broken test')
+        test = r"''test'''test'''''"
+        output = r"<em>test<strong>test</strong></em>"
+        self.do(req, test, output)
 
-    def testEmphasis05(self):
-        py.test.skip('broken test')
-        test = ur"'''test''test'''''"
-        output = ur"<strong>test<em>test</em></strong>"
-        self.do(test, output)
+    def testEmphasis05(self, req):
+        pytest.skip('broken test')
+        test = r"'''test''test'''''"
+        output = r"<strong>test<em>test</em></strong>"
+        self.do(req, test, output)
 
-    def testEmphasis06(self):
-        py.test.skip('broken test')
-        test = ur"''test'''test'''test''"
-        output = ur"<em>test<strong>test</strong>test</em>"
-        self.do(test, output)
+    def testEmphasis06(self, req):
+        pytest.skip('broken test')
+        test = r"''test'''test'''test''"
+        output = r"<em>test<strong>test</strong>test</em>"
+        self.do(req, test, output)
 
-    def testEmphasis07(self):
-        py.test.skip('broken test')
-        test = ur"'''test''test''test'''"
-        output = ur"<strong>test<em>test</em>test</strong>"
-        self.do(test, output)
+    def testEmphasis07(self, req):
+        pytest.skip('broken test')
+        test = r"'''test''test''test'''"
+        output = r"<strong>test<em>test</em>test</strong>"
+        self.do(req, test, output)
 
-    def testEmphasis08(self):
-        py.test.skip('broken test')
-        test = ur"''test'''''test'''"
-        output = ur"<em>test</em><strong>test</strong>"
-        self.do(test, output)
+    def testEmphasis08(self, req):
+        pytest.skip('broken test')
+        test = r"''test'''''test'''"
+        output = r"<em>test</em><strong>test</strong>"
+        self.do(req, test, output)
 
-    def testEmphasis09(self):
-        py.test.skip('broken test')
-        test = ur"'''test'''''test''"
-        output = ur"<strong>test</strong><em>test</em>"
-        self.do(test, output)
+    def testEmphasis09(self, req):
+        pytest.skip('broken test')
+        test = r"'''test'''''test''"
+        output = r"<strong>test</strong><em>test</em>"
+        self.do(req, test, output)
 
-    def testEmphasis10(self):
-        py.test.skip('broken test')
-        test = ur"'''''test''test'''"
-        output = ur"<strong><em>test</em>test</strong>"
-        self.do(test, output)
+    def testEmphasis10(self, req):
+        pytest.skip('broken test')
+        test = r"'''''test''test'''"
+        output = r"<strong><em>test</em>test</strong>"
+        self.do(req, test, output)
 
-    def testEmphasis11(self):
-        py.test.skip('broken test')
-        test = ur"'''''test'''test''"
-        output = ur"<em><strong>test</strong>test</em>"
-        self.do(test, output)
+    def testEmphasis11(self, req):
+        pytest.skip('broken test')
+        test = r"'''''test'''test''"
+        output = r"<em><strong>test</strong>test</em>"
+        self.do(req, test, output)
 
-    def testFormatBig01(self):
-        py.test.skip('broken test')
-        test = ur"~+test+~"
-        output = ur"<big>test</big>"
-        self.do(test, output)
+    def testFormatBig01(self, req):
+        pytest.skip('broken test')
+        test = r"~+test+~"
+        output = r"<big>test</big>"
+        self.do(req, test, output)
 
-    def testFormatSmall01(self):
-        py.test.skip('broken test')
-        test = ur"~-test-~"
-        output = ur"<small>test</small>"
-        self.do(test, output)
+    def testFormatSmall01(self, req):
+        pytest.skip('broken test')
+        test = r"~-test-~"
+        output = r"<small>test</small>"
+        self.do(req, test, output)
 
-    def testFormatStrike01(self):
-        py.test.skip('broken test')
-        test = ur"--(test)--"
-        output = ur"<strike>test</strike>"
-        self.do(test, output)
+    def testFormatStrike01(self, req):
+        pytest.skip('broken test')
+        test = r"--(test)--"
+        output = r"<strike>test</strike>"
+        self.do(req, test, output)
 
-    def testFormatSub01(self):
-        py.test.skip('broken test')
-        test = ur",,test,,"
-        output = ur"<sub>test</sub>"
-        self.do(test, output)
+    def testFormatSub01(self, req):
+        pytest.skip('broken test')
+        test = r",,test,,"
+        output = r"<sub>test</sub>"
+        self.do(req, test, output)
 
-    def testFormatSup01(self):
-        py.test.skip('broken test')
-        test = ur"^test^"
-        output = ur"<sup>test</sup>"
-        self.do(test, output)
+    def testFormatSup01(self, req):
+        pytest.skip('broken test')
+        test = r"^test^"
+        output = r"<sup>test</sup>"
+        self.do(req, test, output)
 
-    def testFormatUnderline01(self):
-        py.test.skip('broken test')
-        test = ur"__test__"
-        output = ur"<u>test</u>"
-        self.do(test, output)
+    def testFormatUnderline01(self, req):
+        pytest.skip('broken test')
+        test = r"__test__"
+        output = r"<u>test</u>"
+        self.do(req, test, output)
 
-    def testPre01(self):
-        py.test.skip('broken test')
-        test = ur"{{{test}}}"
-        output = ur"<tt>test</tt>"
-        self.do(test, output)
+    def testPre01(self, req):
+        pytest.skip('broken test')
+        test = r"{{{test}}}"
+        output = r"<tt>test</tt>"
+        self.do(req, test, output)
 
-    def testWhitespace01(self):
-        py.test.skip('broken test')
-        test = ur"''test '''test'''''"
-        output = ur"<em>test <strong>test</strong></em>"
-        self.do(test, output)
+    def testWhitespace01(self, req):
+        pytest.skip('broken test')
+        test = r"''test '''test'''''"
+        output = r"<em>test <strong>test</strong></em>"
+        self.do(req, test, output)
 
 class TestConvertInlineItemRepeatable(TestBase):
-    def do(self, text, output):
+    def do(self, req, text, output):
         text = text.lstrip('\n')
         output = output.strip('\n')
         output = "<p>%s </p>" % output
-        request = MinimalRequest(self.request)
+        request = MinimalRequest(req)
         page = MinimalPage()
         formatter = Formatter(request)
         formatter.setPage(page)
@@ -1129,90 +1132,90 @@ class TestConvertInlineItemRepeatable(TestBase):
         out = out.rstrip('\n')
         assert text == out
 
-    def testWikiWord01(self):
-        py.test.skip('broken test')
-        test = ur"WikiWord"
-        output = ur"""<a class="nonexistent" href="./WikiWord">WikiWord</a>"""
-        self.do(test, output)
+    def testWikiWord01(self, req):
+        pytest.skip('broken test')
+        test = r"WikiWord"
+        output = r"""<a class="nonexistent" href="./WikiWord">WikiWord</a>"""
+        self.do(req, test, output)
 
-    def testNoWikiWord01(self):
-        py.test.skip('broken test')
-        test = ur"!WikiWord"
-        output = ur"WikiWord"
-        self.do(test, output)
+    def testNoWikiWord01(self, req):
+        pytest.skip('broken test')
+        test = r"!WikiWord"
+        output = r"WikiWord"
+        self.do(req, test, output)
 
-    def testSmiley01(self):
-        py.test.skip('broken test')
-        test = ur":-)"
-        output = ur"""<img src="/wiki/modern/img/smile.png" alt=":-)" height="15" width="15">"""
-        self.do(test, output)
+    def testSmiley01(self, req):
+        pytest.skip('broken test')
+        test = r":-)"
+        output = r"""<img src="/wiki/modern/img/smile.png" alt=":-)" height="15" width="15">"""
+        self.do(req, test, output)
 
 class TestStrip(object):
-    def do(self, cls, text, output):
-        tree = converter.parse(self.request, text)
+    def do(self, req, cls, text, output):
+        tree = converter.parse(req, text)
         cls().do(tree)
         out = StringIO()
         try:
             import xml.dom.ext
         except ImportError:
-            py.test.skip('xml.dom.ext module is not available')
+            pytest.skip('xml.dom.ext module is not available')
         xml.dom.ext.Print(tree, out)
         assert "<?xml version='1.0' encoding='UTF-8'?>%s" % output == out.getvalue().decode("utf-8")
 
 class TestStripWhitespace(TestStrip):
-    def do(self, text, output):
-        super(TestStripWhitespace, self).do(converter.strip_whitespace, text, output)
+    def do(self, req, text, output):
+        super(TestStripWhitespace, self).do(req, converter.strip_whitespace, text, output)
 
-    def test1(self):
-        test = ur"""
+    def test1(self, req):
+        test = r"""
 <t/>
 """
-        output = ur"""<t/>"""
-        self.do(test, output)
+        output = r"""<t/>"""
+        self.do(req, test, output)
 
-    def test2(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def test2(self, req):
+        pytest.skip('broken test')
+        test = r"""
 <t>
   <z/>
 </t>
 """
-        output = ur"""<t><z/></t>"""
-        self.do(test, output)
+        output = r"""<t><z/></t>"""
+        self.do(req, test, output)
 
-    def test3(self):
-        py.test.skip('broken test')
-        test = ur"""
+    def test3(self, req):
+        pytest.skip('broken test')
+        test = r"""
 <t>
   <z>test</z>
 </t>
 """
-        output = ur"""<t><z>test</z></t>"""
-        self.do(test, output)
+        output = r"""<t><z>test</z></t>"""
+        self.do(req, test, output)
 
-    def test4(self):
-        test = ur"""<p>&nbsp;</p>"""
-        output = ur""""""
-        self.do(test, output)
+    def test4(self, req):
+        test = r"""<p>&nbsp;</p>"""
+        output = r""""""
+        self.do(req, test, output)
 
-    def test5(self):
-        test = ur"""<p>test </p>"""
-        output = ur"""<p>test</p>"""
-        self.do(test, output)
+    def test5(self, req):
+        test = r"""<p>test </p>"""
+        output = r"""<p>test</p>"""
+        self.do(req, test, output)
 
 class TestConvertBrokenBrowser(TestBase):
-    def do(self, text, output):
+    def do(self, req, text, output):
         text = text.strip('\n')
         output = output.strip()
-        request = MinimalRequest(self.request)
+        request = MinimalRequest(req)
         page = MinimalPage()
         out = self.do_convert_real([request, page.page_name, text])
         out = out.strip()
 
         assert output == out
 
-    def testList01(self):
-        test = ur"""
+    def testList01(self, req):
+        test = r"""
 <ul>
 <li>test</li>
 <ul>
@@ -1221,53 +1224,53 @@ class TestConvertBrokenBrowser(TestBase):
 <li>test</li>
 </ul>
 """
-        output = ur"""
+        output = r"""
  * test
   * test
  * test
 
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
 class TestBlanksInTables(TestBase):
-    def do(self, text, output):
+    def do(self, req, text, output):
         text = text.strip('\n')
         output = output.strip('\n')
-        request = MinimalRequest(self.request)
+        request = MinimalRequest(req)
         page = MinimalPage()
         out = self.do_convert_real([request, page.page_name, text])
         out = out.strip()
         assert output == out
 
-    def testTable01(self):
+    def testTable01(self, req):
         # tests empty cells
         test = u"<table><tbody><tr><td>a</td><td></td></tr></tbody></table>"
         output = u"||a|| ||"
 
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testTable02(self):
+    def testTable02(self, req):
         # tests empty cells by br (OOo cut and paste)
         test = u"<table><tbody><tr><td>a</td><td><br /></td></tr></tbody></table>"
         output = u"||a||<<BR>>||"
 
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testTable03(self):
+    def testTable03(self, req):
         # tests linebreak in cells by br
         test = u"<table><tbody><tr><td>a<br />b</td></tr></tbody></table>"
         output = u"||a<<BR>>b||"
 
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testTable04(self):
+    def testTable04(self, req):
         # tests linebreak in cells by br and formatting styles
         test = u"<table><tbody><tr><td><em>a</em><br /><u>b</u><br /><strike>c</strike></td></tr></tbody></table>"
         output = u"||''a''<<BR>>__b__<<BR>>--(c)--||"
 
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testTable05(self):
+    def testTable05(self, req):
         # tests empty cells and formatting style strong
         test = u"""
 <table><tbody>
@@ -1279,16 +1282,16 @@ class TestBlanksInTables(TestBase):
 ||'''a'''|| ||
 || ||'''b'''||
 """
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testTable06(self):
+    def testTable06(self, req):
         # tests linebreak in cells by br
         test = u"<table><tbody><tr><td>a<br /></td></tr></tbody></table>"
         output = u"||a<<BR>>||"
 
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testTable07(self):
+    def testTable07(self, req):
         # tests empty cells from OOo and formatting style strong
         test = u"""
 <table><tbody>
@@ -1302,51 +1305,51 @@ class TestBlanksInTables(TestBase):
 ||''''''||'''b'''||
 """
 
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testTable08(self):
+    def testTable08(self, req):
         # tests line break between two lines in formatted text
         test = u"<table><tbody><tr><td><strong>first line<br />second line</strong></td></tr></tbody></table>"
         output = u"||'''first line<<BR>>second line'''||"
 
-        self.do(test, output)
+        self.do(req, test, output)
 
-    def testTable09(self):
+    def testTable09(self, req):
         # tests line break at beginning of line and formatted text
         test = u"<table><tbody><tr><td><strong><br />line</strong></td></tr></tbody></table>"
         output = u"||'''<<BR>>line'''||"
 
-    def testTable10(self):
+    def testTable10(self, req):
         # tests line break at end of line and formatted text
         test = u"<table><tbody><tr><td><strong>line<br /></strong></td></tr></tbody></table>"
         output = u"||'''line<<BR>>'''||"
 
-    def testTable11(self):
+    def testTable11(self, req):
         # tests line break at beginning before formatted text
         test = u"<table><tbody><tr><td><br /><strong>line</strong></td></tr></tbody></table>"
         output = u"||'<<BR>'''line'''||"
 
-    def testTable12(self):
+    def testTable12(self, req):
         # tests line break after formatted text
         test = u"<table><tbody><tr><td><strong>line</strong><br /></td></tr></tbody></table>"
         output = u"||'''line'''<<BR>>||"
 
-    def testTable13(self):
+    def testTable13(self, req):
         # tests formatted br
         test = u"<table><tbody><tr><td><strong><br /></strong></td></tr></tbody></table>"
         output = u"||''''''||"
 
-    def testTable14(self):
+    def testTable14(self, req):
         # tests br
         test = u"<table><tbody><tr><td><br /></td></tr></tbody></table>"
         output = u"||<<BR>>||"
 
-    def testTable15(self):
+    def testTable15(self, req):
         # tests many br
         test = u"<table><tbody><tr><td><br /><br /><br /></td></tr></tbody></table>"
         output = u"||<<BR>><<BR>><<BR>>||"
 
-        self.do(test, output)
+        self.do(req, test, output)
 
 coverage_modules = ['MoinMoin.converter.text_html_text_moin_wiki']
 

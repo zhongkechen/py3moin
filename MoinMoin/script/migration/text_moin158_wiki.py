@@ -5,7 +5,12 @@
     @copyright: 2000, 2001, 2002 by Jürgen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import division
 
+from builtins import zip
+from builtins import map
+from builtins import object
+from past.utils import old_div
 import os, re
 import hashlib
 from MoinMoin import config, wikiutil
@@ -15,7 +20,7 @@ from MoinMoin.util import web
 
 Dependencies = []
 
-class Parser:
+class Parser(object):
     """
         Object that turns Wiki markup into HTML.
 
@@ -41,25 +46,25 @@ class Parser:
     url_pattern = u'|'.join(url_schemas + attachment_schemas)
 
     # some common rules
-    word_rule = ur'(?:(?<![%(u)s%(l)s])|^)%(parent)s(?:%(subpages)s(?:[%(u)s][%(l)s]+){2,})+(?![%(u)s%(l)s]+)' % {
+    word_rule = r'(?:(?<![%(u)s%(l)s])|^)%(parent)s(?:%(subpages)s(?:[%(u)s][%(l)s]+){2,})+(?![%(u)s%(l)s]+)' % {
         'u': config.chars_upper,
         'l': config.chars_lower,
         'subpages': wikiutil.CHILD_PREFIX + '?',
-        'parent': ur'(?:%s)?' % re.escape(PARENT_PREFIX),
+        'parent': r'(?:%s)?' % re.escape(PARENT_PREFIX),
     }
-    url_rule = ur'%(url_guard)s(%(url)s)\:([^\s\<%(punct)s]|([%(punct)s][^\s\<%(punct)s]))+' % {
+    url_rule = r'%(url_guard)s(%(url)s)\:([^\s\<%(punct)s]|([%(punct)s][^\s\<%(punct)s]))+' % {
         'url_guard': u'(^|(?<!\w))',
         'url': url_pattern,
         'punct': punct_pattern,
     }
 
-    ol_rule = ur"^\s+(?:[0-9]+|[aAiI])\.(?:#\d+)?\s"
-    dl_rule = ur"^\s+.*?::\s"
+    ol_rule = r"^\s+(?:[0-9]+|[aAiI])\.(?:#\d+)?\s"
+    dl_rule = r"^\s+.*?::\s"
 
     config_smileys = dict([(key, None) for key in config.smileys])
 
     # the big, fat, ugly one ;)
-    formatting_rules = ur"""(?P<ent_numeric>&#(\d{1,5}|x[0-9a-fA-F]+);)
+    formatting_rules = r"""(?P<ent_numeric>&#(\d{1,5}|x[0-9a-fA-F]+);)
 (?:(?P<emph_ibb>'''''(?=[^']+'''))
 (?P<emph_ibi>'''''(?=[^']+''))
 (?P<emph_ib_or_bi>'{5}(?=[^']))
@@ -102,14 +107,14 @@ class Parser:
         'dl_rule': dl_rule,
         'url_rule': url_rule,
         'word_rule': word_rule,
-        'smiley': u'|'.join(map(re.escape, config_smileys.keys()))}
+        'smiley': u'|'.join(map(re.escape, list(config_smileys.keys())))}
 
     # Don't start p before these
     no_new_p_before = ("heading rule table tableZ tr td "
                        "ul ol dl dt dd li li_none indent "
                        "macro processor pre")
     no_new_p_before = no_new_p_before.split()
-    no_new_p_before = dict(zip(no_new_p_before, [1] * len(no_new_p_before)))
+    no_new_p_before = dict(list(zip(no_new_p_before, [1] * len(no_new_p_before))))
 
     def __init__(self, raw, request, **kw):
         self.raw = raw
@@ -341,7 +346,7 @@ class Parser:
         if word.startswith(wikiutil.PARENT_PREFIX):
             if not text:
                 text = word
-            word = '/'.join(filter(None, self.formatter.page.page_name.split('/')[:-1] + [word[wikiutil.PARENT_PREFIX_LEN:]]))
+            word = '/'.join([_f for _f in self.formatter.page.page_name.split('/')[:-1] + [word[wikiutil.PARENT_PREFIX_LEN:]] if _f])
 
         if not text:
             # if a simple, self-referencing link, emit it as plain text
@@ -737,7 +742,7 @@ class Parser:
                     # add center alignment if we don't have some alignment already
                     attrs['align'] = '"center"'
                 if 'colspan' not in attrs:
-                    attrs['colspan'] = '"%d"' % (word.count("|")/2)
+                    attrs['colspan'] = '"%d"' % (old_div(word.count("|"),2))
 
             # return the complete cell markup
             result.append(self.formatter.table_cell(1, attrs) + attrerr)
@@ -893,7 +898,7 @@ class Parser:
     def replace(self, match):
         """ Replace match using type name """
         result = []
-        for type, hit in match.groupdict().items():
+        for type, hit in list(match.groupdict().items()):
             if hit is not None and type != "hmarker":
 
                 ###result.append(u'<span class="info">[replace: %s: "%s"]</span>' % (type, hit))
@@ -935,7 +940,7 @@ class Parser:
         # prepare regex patterns
         rules = self.formatting_rules.replace('\n', '|')
         if self.cfg.bang_meta:
-            rules = ur'(?P<notword>!%(word_rule)s)|%(rules)s' % {
+            rules = r'(?P<notword>!%(word_rule)s)|%(rules)s' % {
                 'word_rule': self.word_rule,
                 'rules': rules,
             }

@@ -91,7 +91,7 @@ class PygmentsDoc(Directive):
         out = []
         modules = {}
         moduledocstrings = {}
-        for classname, data in sorted(LEXERS.items(), key=lambda x: x[0]):
+        for classname, data in sorted(list(LEXERS.items()), key=lambda x: x[0]):
             module = data[0]
             mod = __import__(module, None, None, [classname])
             self.filenames.add(mod.__file__)
@@ -113,7 +113,7 @@ class PygmentsDoc(Directive):
                     moddoc = moddoc.decode('utf8')
                 moduledocstrings[module] = moddoc
 
-        for module, lexers in sorted(modules.items(), key=lambda x: x[0]):
+        for module, lexers in sorted(list(modules.items()), key=lambda x: x[0]):
             if moduledocstrings[module] is None:
                 raise Exception("Missing docstring for %s" % (module,))
             heading = moduledocstrings[module].splitlines()[4].strip().rstrip('.')
@@ -127,7 +127,7 @@ class PygmentsDoc(Directive):
         from pygments.formatters import FORMATTERS
 
         out = []
-        for classname, data in sorted(FORMATTERS.items(), key=lambda x: x[0]):
+        for classname, data in sorted(list(FORMATTERS.items()), key=lambda x: x[0]):
             module = data[0]
             mod = __import__(module, None, None, [classname])
             self.filenames.add(mod.__file__)
@@ -145,7 +145,7 @@ class PygmentsDoc(Directive):
         from pygments.filters import FILTERS
 
         out = []
-        for name, cls in FILTERS.items():
+        for name, cls in list(FILTERS.items()):
             self.filenames.add(sys.modules[cls.__module__].__file__)
             docstring = cls.__doc__
             if isinstance(docstring, bytes):

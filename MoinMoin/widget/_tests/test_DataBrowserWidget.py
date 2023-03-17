@@ -6,13 +6,15 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import py
+from builtins import object
+import pytest
 from MoinMoin.util.dataset import TupleDataset, Column
 from MoinMoin.widget.browser import DataBrowserWidget
 
 
 class Test_DataBrowserWidget_sort_table(object):
-    def setup_class(self):
+    @pytest.fixture(autouse=True)
+    def setup_class(self, req):
         # check if state of example changes during tests
         example = [['L1', (u'c', u'c'), (u'1', u'1'),   (u'2', u'2'),           (u'a', u'a'),  (u'4', u'4'),   (u'5', u'5')],
                    ['L2', (u'b', u'b'), (u'10', u'10'), (u'21', u'21'),         (u'B', u'B'),  (u'40', u'40'), (u'10', u'10')],
@@ -30,7 +32,7 @@ class Test_DataBrowserWidget_sort_table(object):
             data.columns.extend([Column(line[0], label=line[0])])
 
         self.data = data
-        self.table = DataBrowserWidget(self.request)
+        self.table = DataBrowserWidget(req)
 
 
     def test_tablecreation(self):

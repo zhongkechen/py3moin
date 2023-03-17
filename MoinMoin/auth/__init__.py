@@ -134,6 +134,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 from MoinMoin import log
 logging = log.getLogger(__name__)
 
@@ -201,7 +202,7 @@ class MultistageRedirectLogin(LoginReturn):
         LoginReturn.__init__(self, None, False, redirect_to=url)
 
 
-class BaseAuth:
+class BaseAuth(object):
     name = None
     login_inputs = []
     logout_possible = False
@@ -331,7 +332,7 @@ class GivenAuth(BaseAuth):
             Note: if you need something more special, you could create your own
                   auth class, inherit from this class and overwrite this function.
         """
-        assert isinstance(name, unicode)
+        assert isinstance(name, str)
         if self.strip_maildomain:
             # split off mail domain, e.g. "user@example.org" -> "user"
             name = name.split(u'@')[0]

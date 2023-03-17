@@ -177,7 +177,7 @@ if __name__ == '__main__':
               '<body>\n' \
               '<p>Hello World!</p>\n' \
               '<table border="1">'
-        names = environ.keys()
+        names = list(environ.keys())
         names.sort()
         for name in names:
             yield '<tr><td>%s</td><td>%s</td></tr>\n' % (

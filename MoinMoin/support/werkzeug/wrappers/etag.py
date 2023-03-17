@@ -1,3 +1,4 @@
+from builtins import object
 from .._compat import string_types
 from .._internal import _get_environ
 from ..datastructures import ContentRange

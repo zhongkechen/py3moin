@@ -6,15 +6,19 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
+from builtins import range
 line_anchors = True
 
 from xml.dom import minidom
 from MoinMoin import wikiutil
 from MoinMoin.formatter import FormatterBase
 
+
 #def print_dom(element, indent=''):
 #    print indent + element.tagName
 #    for child in element.get
+
 
 class Formatter(FormatterBase):
     """ This defines the output interface used all over the rest of the code.
@@ -47,7 +51,7 @@ class Formatter(FormatterBase):
         #'pre': ['p'],
         }
 
-    for i in xrange(2, 7):
+    for i in range(2, 7):
         close_on_open['h%i' % i] = close_on_open['h1']
 
     # if key tag is closed, auto-close all tags in value list if they are open
@@ -84,9 +88,9 @@ class Formatter(FormatterBase):
             FormatterBase.paragraph(self, 1)
         self.tag_stack.append((tag, attrs))
         node = self.document.createElement(tag)
-        for name, value in attrs.items():
+        for name, value in list(attrs.items()):
             if value:
-                node.setAttribute(name, unicode(value))
+                node.setAttribute(name, str(value))
         self.position.appendChild(node)
         self.position = node
         return ''
@@ -108,7 +112,7 @@ class Formatter(FormatterBase):
         """
         self._check_p(tag)
         node = self.document.createElement(tag)
-        for name, value in attrs.items():
+        for name, value in list(attrs.items()):
             if value:
                 node.setAttribute(name, str(value))
         self.position.appendChild(node)
@@ -305,7 +309,7 @@ class Formatter(FormatterBase):
 
     def _check_attrs(self, attrs):
         result = {}
-        for name, value in attrs.iteritems():
+        for name, value in list(attrs.items()):
             result[str(name)] = value
         return result
 

@@ -17,6 +17,8 @@ References
 #=============================================================================
 from __future__ import with_statement, absolute_import
 # core
+from builtins import str
+from builtins import object
 import logging
 log = logging.getLogger(__name__)
 import re
@@ -30,7 +32,7 @@ from passlib import exc
 from passlib.crypto.digest import MAX_UINT32
 from passlib.utils import classproperty, to_bytes, render_bytes
 from passlib.utils.binary import b64s_encode, b64s_decode
-from passlib.utils.compat import u, unicode, bascii_to_str, uascii_to_str, PY2
+from passlib.utils.compat import u, str, bascii_to_str, uascii_to_str, PY2
 import passlib.utils.handlers as uh
 # local
 __all__ = [
@@ -90,7 +92,7 @@ if hasattr(_argon2_cffi, "PasswordHasher"):
     _default_version = _argon2_cffi.low_level.ARGON2_VERSION
 else:
     # use fallback settings (for no backend, or argon2pure)
-    class _DummyCffiHasher:
+    class _DummyCffiHasher(object):
         """
         dummy object to use as source of defaults when argon2_cffi isn't present.
         this tries to mimic the attributes of ``argon2.PasswordHasher()`` which the rest of
@@ -396,7 +398,7 @@ class _Argon2Common(uh.SubclassBackendMixin, uh.ParallelismMixin,
     def from_string(cls, hash):
         # NOTE: assuming hash will be unicode, or use ascii-compatible encoding.
         # TODO: switch to working w/ str or unicode
-        if isinstance(hash, unicode):
+        if isinstance(hash, str):
             hash = hash.encode("utf-8")
         if not isinstance(hash, bytes):
             raise exc.ExpectedStringError(hash, "hash")
@@ -500,7 +502,7 @@ class _Argon2Common(uh.SubclassBackendMixin, uh.ParallelismMixin,
     @classmethod
     def _norm_type(cls, value):
         # type check
-        if not isinstance(value, unicode):
+        if not isinstance(value, str):
             if PY2 and isinstance(value, bytes):
                 value = value.decode('ascii')
             else:

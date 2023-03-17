@@ -2,8 +2,15 @@
 #=============================================================================
 # imports
 #=============================================================================
-from __future__ import with_statement
+
+from __future__ import division
 # core
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from binascii import unhexlify
 import contextlib
 from functools import wraps, partial
@@ -29,7 +36,7 @@ from passlib.tests.backports import TestCase as _TestCase, skip, skipIf, skipUnl
 from passlib.utils import has_rounds_info, has_salt_info, rounds_cost_values, \
                           rng as sys_rng, getrandstr, is_ascii_safe, to_native_str, \
                           repeat_string, tick, batch
-from passlib.utils.compat import iteritems, irange, u, unicode, PY2
+from passlib.utils.compat import iteritems, irange, u, str, PY2
 from passlib.utils.decor import classproperty
 import passlib.utils.handlers as uh
 # local
@@ -219,7 +226,7 @@ def patch_calc_min_rounds(handler):
 #=============================================================================
 def set_file(path, content):
     """set file to specified bytes"""
-    if isinstance(content, unicode):
+    if isinstance(content, str):
         content = content.encode("utf-8")
     with open(path, "wb") as fh:
         fh.write(content)
@@ -277,7 +284,7 @@ def time_call(func, setup=None, maxtime=1, bestof=10):
     while True:
         delta = min(timer.repeat(bestof, number))
         if tick() >= end:
-            return delta/number, int(log(number, 10))
+            return old_div(delta,number), int(log(number, 10))
         number *= 10
 
 def run_with_fixed_seeds(count=128, master_seed=0x243F6A8885A308D3):
@@ -1399,7 +1406,7 @@ class HandlerCase(TestCase):
         if getattr(self.handler, "_salt_is_bytes", False):
             return bytes
         else:
-            return unicode
+            return str
 
     def test_15_salt_type(self):
         """test non-string salt values"""
@@ -1413,12 +1420,12 @@ class HandlerCase(TestCase):
         self.assertRaises(TypeError, self.do_encrypt, 'stub', salt=fake())
 
         # unicode should be accepted only if salt_type is unicode.
-        if salt_type is not unicode:
+        if salt_type is not str:
             self.assertRaises(TypeError, self.do_encrypt, 'stub', salt=u('x') * salt_size)
 
         # bytes should be accepted only if salt_type is bytes,
         # OR if salt type is unicode and running PY2 - to allow native strings.
-        if not (salt_type is bytes or (PY2 and salt_type is unicode)):
+        if not (salt_type is bytes or (PY2 and salt_type is str)):
             self.assertRaises(TypeError, self.do_encrypt, 'stub', salt=b'x' * salt_size)
 
     def test_using_salt_size(self):
@@ -1894,13 +1901,13 @@ class HandlerCase(TestCase):
 
         # check ident_values list
         for value in cls.ident_values:
-            self.assertIsInstance(value, unicode,
+            self.assertIsInstance(value, str,
                                   "cls.ident_values must be unicode:")
         self.assertTrue(len(cls.ident_values)>1,
                         "cls.ident_values must have 2+ elements:")
 
         # check default_ident value
-        self.assertIsInstance(cls.default_ident, unicode,
+        self.assertIsInstance(cls.default_ident, str,
                               "cls.default_ident must be unicode:")
         self.assertTrue(cls.default_ident in cls.ident_values,
                         "cls.default_ident must specify member of cls.ident_values")
@@ -1908,9 +1915,9 @@ class HandlerCase(TestCase):
         # check optional aliases list
         if cls.ident_aliases:
             for alias, ident in iteritems(cls.ident_aliases):
-                self.assertIsInstance(alias, unicode,
+                self.assertIsInstance(alias, str,
                                       "cls.ident_aliases keys must be unicode:") # XXX: allow ints?
-                self.assertIsInstance(ident, unicode,
+                self.assertIsInstance(ident, str,
                                       "cls.ident_aliases values must be unicode:")
                 self.assertTrue(ident in cls.ident_values,
                                 "cls.ident_aliases must map to cls.ident_values members: %r" % (ident,))
@@ -1980,7 +1987,7 @@ class HandlerCase(TestCase):
 
         # check ident aliases are being honored
         if handler.ident_aliases:
-            for alias, ident in handler.ident_aliases.items():
+            for alias, ident in list(handler.ident_aliases.items()):
                 subcls = handler.using(ident=alias)
                 self.assertEqual(subcls.default_ident, ident, msg="alias %r:" % alias)
 
@@ -2539,7 +2546,7 @@ class HandlerCase(TestCase):
         """
         if value is None:
             return
-        self.assertIsInstance(value, unicode)
+        self.assertIsInstance(value, str)
         # assumes mask_value() defaults will never show more than <show> chars (4);
         # and show nothing if size less than 1/<pct> (8).
         ref = value if len(value) < 8 else value[4:]
@@ -2842,7 +2849,7 @@ class HandlerCase(TestCase):
             """
             def gendict(map):
                 out = {}
-                for key, meth in map.items():
+                for key, meth in list(map.items()):
                     func = getattr(self, meth)
                     value = getattr(self, meth)()
                     if value is not None:
@@ -2940,7 +2947,7 @@ class HandlerCase(TestCase):
             result = getrandstr(rng, self.password_alphabet, size)
 
             # trim ones that encode past truncate point.
-            if truncate_size and isinstance(result, unicode):
+            if truncate_size and isinstance(result, str):
                 while len(result.encode("utf-8")) > truncate_size:
                     result = result[:-1]
 

@@ -24,6 +24,7 @@ Connector for Python (CGI and WSGI).
 
 """
 
+from builtins import object
 from time import gmtime, strftime
 import string
 

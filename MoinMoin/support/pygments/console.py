@@ -9,6 +9,7 @@
     :license: BSD, see LICENSE for details.
 """
 
+from builtins import zip
 esc = "\x1b["
 
 codes = {}

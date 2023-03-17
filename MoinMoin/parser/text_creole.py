@@ -22,8 +22,11 @@
 """
 from __future__ import absolute_import
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import re
-import StringIO
+import io
 from MoinMoin import config, wikiutil
 from MoinMoin.macro import Macro
 from MoinMoin import config
@@ -34,7 +37,7 @@ Dependencies = []
 
 _ = lambda x: x
 
-class Parser:
+class Parser(object):
     """
     Glue the DocParser and DocEmitter with the
     MoinMoin current API.
@@ -94,7 +97,7 @@ class MoinRules(CreoleRules):
                                             self.interwiki, self.page]),
                                   re.X | re.U)
 
-class Emitter:
+class Emitter(object):
     """
     Generate the output for the document
     tree consisting of DocNodes.
@@ -417,7 +420,7 @@ class Emitter:
             # and *sometimes* try to write it directly. We need to take both
             # cases into account!
             lines = node.content.split(u'\n')
-            buf = StringIO.StringIO()
+            buf = io.StringIO()
             try:
                 try:
                     self.request.redirect(buf)

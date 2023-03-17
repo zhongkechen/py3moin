@@ -7,9 +7,10 @@ MoinMoin - change or reset the password of a user account
 @license: GNU GPL, see COPYING for details.
 """
 
-from __future__ import with_statement
+
 from __future__ import print_function
 
+from builtins import str
 import sys
 
 from MoinMoin.script import MoinScript, log

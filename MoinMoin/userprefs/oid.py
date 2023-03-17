@@ -5,6 +5,7 @@
     @copyright: 2007     MoinMoin:JohannesBerg
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import str
 import hashlib
 
 from MoinMoin import wikiutil, user
@@ -229,4 +230,4 @@ document.getElementById("openid_message").submit();
         label = _("Cancel")
         form.append(html.INPUT(type="submit", name='cancel', value=label))
         self._make_row('', [form])
-        return unicode(ret)
+        return str(ret)

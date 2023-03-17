@@ -6,13 +6,15 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import py
-
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 from MoinMoin.Page import Page
 
-class TestPage:
-    def testMeta(self):
-        page = Page(self.request, u'FrontPage')
+
+class TestPage(object):
+    def testMeta(self, req):
+        page = Page(req, u'FrontPage')
         meta = page.meta
         for k, v in meta:
             if k == u'format':
@@ -20,53 +22,54 @@ class TestPage:
             elif k == u'language':
                 assert v == u'en'
 
-    def testBody(self):
-        page = Page(self.request, u'FrontPage')
+    def testBody(self, req):
+        page = Page(req, u'FrontPage')
         body = page.body
-        assert type(body) is unicode
+        assert type(body) is str
         assert 'MoinMoin' in body
         assert body.endswith('\n')
         assert '\r' not in body
 
-    def testExists(self):
-        assert Page(self.request, 'FrontPage').exists()
-        assert not Page(self.request, 'ThisPageDoesNotExist').exists()
-        assert not Page(self.request, '').exists()
+    def testExists(self, req):
+        assert Page(req, 'FrontPage').exists()
+        assert not Page(req, 'ThisPageDoesNotExist').exists()
+        assert not Page(req, '').exists()
 
-    def testEditInfoSystemPage(self):
+    def testEditInfoSystemPage(self, req):
         # system pages have no edit-log (and only 1 revision),
         # thus edit_info will return None
-        page = Page(self.request, u'RecentChanges')
+        page = Page(req, u'RecentChanges')
         edit_info = page.edit_info()
         assert edit_info == {}
 
-    def testSplitTitle(self):
-        page = Page(self.request, u"FrontPage")
+    def testSplitTitle(self, req):
+        page = Page(req, u"FrontPage")
         assert page.split_title(force=True) == u'Front Page'
 
-    def testGetRevList(self):
-        page = Page(self.request, u"FrontPage")
+    def testGetRevList(self, req):
+        page = Page(req, u"FrontPage")
         assert 1 in page.getRevList()
 
-    def testGetPageLinks(self):
-        page = Page(self.request, u"FrontPage")
-        assert u'WikiSandBox' in page.getPageLinks(self.request)
+    def testGetPageLinks(self, req):
+        page = Page(req, u"FrontPage")
+        assert u'WikiSandBox' in page.getPageLinks(req)
 
-    def testSendPage(self):
-        page = Page(self.request, u"FrontPage")
-        import StringIO
-        out = StringIO.StringIO()
-        self.request.redirect(out)
+    def testSendPage(self, req):
+        page = Page(req, u"FrontPage")
+        import io
+        out = io.StringIO()
+        req.redirect(out)
         page.send_page(msg=u'Done', emit_headers=False)
         result = out.getvalue()
-        self.request.redirect()
+        req.redirect()
         del out
         assert result.strip().endswith('</html>')
         assert result.strip().startswith('<!DOCTYPE HTML PUBLIC')
 
-class TestRootPage:
-    def testPageList(self):
-        rootpage = self.request.rootpage
+
+class TestRootPage(object):
+    def testPageList(self, req):
+        rootpage = req.rootpage
         pagelist = rootpage.getPageList()
         assert len(pagelist) > 100
         assert u'FrontPage' in pagelist

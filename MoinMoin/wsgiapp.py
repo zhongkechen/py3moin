@@ -6,9 +6,12 @@
                 2008-2008 MoinMoin:FlorianKrupicka
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import str
+from builtins import object
 import os
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
 from MoinMoin.web.contexts import AllContext, Context, XMLRPCContext
@@ -22,7 +25,7 @@ from MoinMoin.action import get_names, get_available_actions
 from MoinMoin.util.abuse import log_attempt
 
 
-def set_umask(new_mask=0o777^config.umask):
+def set_umask(new_mask=0o777 ^ config.umask):
     """ Set the OS umask value (and ignore potential failures on OSes where
         this is not supported).
         Default: the bitwise inverted value of config.umask
@@ -39,8 +42,8 @@ def init(request):
     Wraps an incoming WSGI request in a Context object and initializes
     several important attributes.
     """
-    set_umask() # do it once per request because maybe some server
-                # software sets own umask
+    set_umask()  # do it once per request because maybe some server
+    # software sets own umask
 
     if isinstance(request, Context):
         context, request = request, request.request
@@ -66,6 +69,7 @@ def init(request):
 
     context.clock.stop('init')
     return context
+
 
 def run(context):
     """ Run a context trough the application. """
@@ -95,18 +99,20 @@ def run(context):
         context.finish()
         context.clock.stop('run')
 
+
 def remove_prefix(path, prefix=None):
     """ Remove an url prefix from the path info and return shortened path. """
     # we can have all action URLs like this: /action/ActionName/PageName?action=ActionName&...
     # this is just for robots.txt being able to forbid them for crawlers
     if prefix is not None:
-        prefix = '/%s/' % prefix # e.g. '/action/'
+        prefix = '/%s/' % prefix  # e.g. '/action/'
         if path.startswith(prefix):
             # remove prefix and action name
             path = path[len(prefix):]
             action, path = (path.split('/', 1) + ['', ''])[:2]
             path = '/' + path
     return path
+
 
 def dispatch(request, context, action_name='show'):
     cfg = context.cfg
@@ -139,6 +145,7 @@ def dispatch(request, context, action_name='show'):
         response = response.request
     return response
 
+
 def handle_action(context, pagename, action_name='show'):
     """ Actual dispatcher function for non-XMLRPC actions.
 
@@ -166,13 +173,13 @@ def handle_action(context, pagename, action_name='show'):
     # Complain about unknown actions
     if not action_name in get_names(cfg):
         msg = _("Unknown action %(action_name)s.") % {
-                'action_name': wikiutil.escape(action_name), }
+            'action_name': wikiutil.escape(action_name), }
 
     # Disallow non available actions
     elif action_name[0].isupper() and not action_name in \
-            get_available_actions(cfg, context.page, context.user):
+                                          get_available_actions(cfg, context.page, context.user):
         msg = _("You are not allowed to do %(action_name)s on this page.") % {
-                'action_name': wikiutil.escape(action_name), }
+            'action_name': wikiutil.escape(action_name), }
         if context.user.valid:
             log_attempt(action_name + '/action unavailable', False,
                         context.request, context.user.name, pagename=pagename)
@@ -190,7 +197,7 @@ def handle_action(context, pagename, action_name='show'):
         handler = action.getHandler(context, action_name)
         if handler is None:
             msg = _("You are not allowed to do %(action_name)s on this page.") % {
-                    'action_name': wikiutil.escape(action_name), }
+                'action_name': wikiutil.escape(action_name), }
             if context.user.valid:
                 log_attempt(action_name + '/no handler', False, context.request, context.user.name, pagename=pagename)
             else:
@@ -203,6 +210,7 @@ def handle_action(context, pagename, action_name='show'):
             handler(context.page.page_name, context)
 
     return context
+
 
 def setup_user(context, session):
     """ Try to retrieve a valid user object from the request, be it
@@ -235,6 +243,7 @@ def setup_user(context, session):
 
     return userobj
 
+
 def setup_i18n_preauth(context):
     """ Determine language for the request in absence of any user info. """
     if i18n.languages is None:
@@ -242,10 +251,12 @@ def setup_i18n_preauth(context):
     lang = i18n.requestLanguage(context)
     return lang
 
+
 def setup_i18n_postauth(context):
     """ Determine language for the request after user-id is established. """
     lang = i18n.userLanguage(context) or context.lang
     return lang
+
 
 class Application(object):
     def __init__(self, app_config=None):
@@ -284,5 +295,6 @@ class Application(object):
 
         return response(environ, start_response)
 
-#XXX: default application using the default config from disk
+
+# XXX: default application using the default config from disk
 application = Application()

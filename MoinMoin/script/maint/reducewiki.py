@@ -62,7 +62,7 @@ General syntax: moin [options] maint reducewiki [reducewiki-options]
         # write a "current" file with content "00000001"
         revstr = '%08d' % 1
         cf = os.path.join(pagedir, 'current')
-        file(cf, 'w').write(revstr+'\n')
+        open(cf, 'w').write(revstr+'\n')
 
         # create a single revision 00000001
         revdir = os.path.join(pagedir, 'revisions')

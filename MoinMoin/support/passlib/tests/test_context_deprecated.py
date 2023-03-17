@@ -8,7 +8,7 @@ it's being preserved here to ensure the old api doesn't break
 #=============================================================================
 # imports
 #=============================================================================
-from __future__ import with_statement
+
 # core
 from logging import getLogger
 import os

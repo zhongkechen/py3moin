@@ -7,19 +7,25 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from future import standard_library
+
+standard_library.install_aliases()
+from builtins import str
+from builtins import chr
+from builtins import range
+from builtins import object
 import os, sys, re, random
 
 # do the pickle magic once here, so we can just import from here:
 # cPickle can encode normal and Unicode strings
 # see http://docs.python.org/lib/node66.html
 try:
-    import cPickle as pickle
+    import pickle as pickle
 except ImportError:
     import pickle
 
 # Set pickle protocol, see http://docs.python.org/lib/node64.html
 PICKLE_PROTOCOL = pickle.HIGHEST_PROTOCOL
-
 
 #############################################################################
 ### XML helper functions
@@ -36,6 +42,7 @@ g_charToEntity = {
     '"': '&quot;'
 }
 
+
 def TranslateCDATA(text):
     """
         Convert a string to a CDATA-encoded one
@@ -45,6 +52,7 @@ def TranslateCDATA(text):
     new_string, num_subst = re.subn(g_cdataCharPattern, lambda m, d=g_charToEntity: d[m.group()], new_string)
     new_string, num_subst = re.subn(g_xmlIllegalCharPattern, lambda m: '&#x%02X;' % ord(m.group()), new_string)
     return new_string
+
 
 def TranslateText(text):
     """
@@ -69,19 +77,20 @@ def rangelist(numbers):
     numbers.sort()
     numbers.append(999999)
     pattern = ','
-    for i in range(len(numbers)-1):
+    for i in range(len(numbers) - 1):
         if pattern[-1] == ',':
             pattern = pattern + str(numbers[i])
-            if numbers[i] + 1 == numbers[i+1]:
+            if numbers[i] + 1 == numbers[i + 1]:
                 pattern = pattern + '-'
             else:
                 pattern = pattern + ','
-        elif numbers[i] + 1 != numbers[i+1]:
+        elif numbers[i] + 1 != numbers[i + 1]:
             pattern = pattern + str(numbers[i]) + ','
 
     if pattern[-1] in ',-':
         return pattern[1:-1]
     return pattern[1:]
+
 
 def IsWin9x():
     """ Returns true if run on Windows 95, 98 or ME. """
@@ -93,7 +102,7 @@ def IsWin9x():
     return False
 
 
-class simpleIO:
+class simpleIO(object):
     """ A simple StringIO replacement for code that calls us
         with ascii, Unicode and iso-8859-1 data. Wee, that is fun. """
 
@@ -101,7 +110,7 @@ class simpleIO:
         self.buffer = []
 
     def write(self, foo):
-        if not isinstance(foo, unicode):
+        if not isinstance(foo, str):
             foo = foo.decode("iso-8859-1", "replace")
         self.buffer.append(foo)
 
@@ -112,7 +121,7 @@ class simpleIO:
         self.buffer = None
 
 
-def random_string(length, allowed_chars=None):
+def random_string(length, allowed_chars=None) -> str:
     """ Generate a random string with given length consisting
         of the given characters.
 
@@ -122,6 +131,6 @@ def random_string(length, allowed_chars=None):
         @return: random string
     """
     if allowed_chars is None:
-        return ''.join([chr(random.randint(0, 255)) for dummy in xrange(length)])
+        return ''.join([chr(random.randint(0, 255)) for dummy in range(length)])
 
-    return ''.join([random.choice(allowed_chars) for dummy in xrange(length)])
+    return ''.join([random.choice(allowed_chars) for dummy in range(length)])

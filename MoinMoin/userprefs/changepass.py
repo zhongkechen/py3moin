@@ -8,6 +8,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
 from MoinMoin import user, wikiutil
 from MoinMoin.widget import html
 from MoinMoin.userprefs import UserPrefBase
@@ -91,4 +92,4 @@ class Settings(UserPrefBase):
                 html.INPUT(type="submit", name='cancel', value=_("Cancel")),
               ])
 
-        return unicode(form)
+        return str(form)

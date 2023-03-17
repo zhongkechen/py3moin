@@ -172,11 +172,11 @@ General syntax: moin [options] maint mkpagepacks [mkpagepacks-options]
         except OSError:
             pass
         generate_filename = lambda name: os.path.join(package_path, '%s.zip' % name)
-        [self.packagePages(list(pages), generate_filename(name), "ReplaceUnderlay") for name, pages in pageSets.items()]
+        [self.packagePages(list(pages), generate_filename(name), "ReplaceUnderlay") for name, pages in list(pageSets.items())]
 
         print("Removing pagedirs of packaged pages ...")
         dontkill = set(['LanguageSetup'])
-        [self.removePages(list(pages - dontkill)) for name, pages in pageSets.items()]
+        [self.removePages(list(pages - dontkill)) for name, pages in list(pageSets.items())]
 
         print("Finished.")
 

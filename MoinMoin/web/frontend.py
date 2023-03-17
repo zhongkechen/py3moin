@@ -5,6 +5,7 @@
     @copyright: 2008 MoinMoin:FlorianKrupicka
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import object
 import optparse
 
 from MoinMoin.web.serving import make_application

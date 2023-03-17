@@ -87,7 +87,7 @@ def execute(pagename, request):
     except ValueError:
         underlay = 1
     pages = request.rootpage.getPageDict(include_underlay=underlay)
-    pagelist = pages.keys()
+    pagelist = list(pages.keys())
     pagelist.sort()
     for name in pagelist:
         result.append(sitemap_url(request, pages[name]))

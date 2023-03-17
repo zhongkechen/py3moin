@@ -1,3 +1,4 @@
+from builtins import object
 from .accept import AcceptMixin
 from .auth import AuthorizationMixin
 from .base_request import BaseRequest

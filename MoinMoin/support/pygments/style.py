@@ -9,6 +9,7 @@
     :license: BSD, see LICENSE for details.
 """
 
+from builtins import object
 from pygments.token import Token, STANDARD_TYPES
 from pygments.util import add_metaclass
 

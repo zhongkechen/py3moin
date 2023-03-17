@@ -6,9 +6,10 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 from MoinMoin import util
 
-class TestUtil:
+class TestUtil(object):
 
     def testRangeList(self):
         """ util.rangelist: test correct function for misc. input values """

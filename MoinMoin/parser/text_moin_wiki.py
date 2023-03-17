@@ -7,7 +7,13 @@
                 2007 by MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import division
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import re
 
 from MoinMoin import log
@@ -21,7 +27,7 @@ Dependencies = ['user'] # {{{#!wiki comment ... }}} has different output dependi
 
 _ = lambda x: x
 
-class Parser:
+class Parser(object):
     """
         Parse wiki format markup (and call the formatter to generate output).
 
@@ -55,7 +61,7 @@ class Parser:
     url_scheme = u'|'.join(config.url_schemas)
 
     # some common rules
-    url_rule = ur'''
+    url_rule = r'''
         (?:^|(?<=\W))  # require either beginning of line or some non-alphanum char (whitespace, punctuation) to the left
         (?P<url_target>  # capture whole url there
          (?P<url_scheme>%(url_scheme)s)  # some scheme
@@ -73,7 +79,7 @@ class Parser:
     # interwiki_wiki name starts with an uppercase letter A-Z. Later, the code
     # also checks whether the wiki name is in the interwiki map (if not, it renders
     # normal text, no link):
-    interwiki_rule = ur'''
+    interwiki_rule = r'''
         (?:^|(?<=\W))  # require either beginning of line or some non-alphanum char (whitespace, punctuation) to the left
         (?P<interwiki_wiki>[A-Z][a-zA-Z]+)  # interwiki wiki name
         \:
@@ -88,7 +94,7 @@ class Parser:
     }
 
     # BE CAREFUL: if you do changes to word_rule, consider doing them also to word_rule_js (see below)
-    word_rule = ur'''
+    word_rule = r'''
         (?:
          (?<![%(u)s%(l)s/])  # require anything not upper/lower/slash before
          |
@@ -124,13 +130,13 @@ class Parser:
     # simplified word_rule for FCKeditor's "unlink" plugin (puts a ! in front of a WikiName if WikiName matches word_rule_js),
     # because JavaScript can not use group names and verbose regular expressions!
     word_rule_js = (
-        ur'''(?:(?<![%(u)s%(l)s/])|^)'''
-        ur'''(?:'''
-         ur'''(?:(%(parent)s)*|((?<!%(child)s)%(child)s)?)'''
-         ur'''(((?<!%(child)s)%(child)s)?(?:[%(u)s][%(l)s]+){2,})+'''
-         ur'''(?:\#(?:\S+))?'''
-        ur''')'''
-        ur'''(?:(?![%(u)s%(l)s/])|$)'''
+        r'''(?:(?<![%(u)s%(l)s/])|^)'''
+        r'''(?:'''
+         r'''(?:(%(parent)s)*|((?<!%(child)s)%(child)s)?)'''
+         r'''(((?<!%(child)s)%(child)s)?(?:[%(u)s][%(l)s]+){2,})+'''
+         r'''(?:\#(?:\S+))?'''
+        r''')'''
+        r'''(?:(?![%(u)s%(l)s/])|$)'''
     ) % {
         'u': config.chars_upper,
         'l': config.chars_lower,
@@ -216,7 +222,7 @@ class Parser:
     transclude_desc_re = re.compile(transclude_desc_rules, re.VERBOSE|re.UNICODE)
 
     # lists:
-    ol_rule = ur"""
+    ol_rule = r"""
         ^\s+  # indentation
         (?:[0-9]+|[aAiI])\. # arabic, alpha, roman counting
         (?:\#\d+)?  # optional start number
@@ -224,7 +230,7 @@ class Parser:
     """
     ol_re = re.compile(ol_rule, re.VERBOSE|re.UNICODE)
 
-    dl_rule = ur"""
+    dl_rule = r"""
         ^\s+  # indentation
         .*?::  # definition term::
         \s  # require on blank afterwards
@@ -232,12 +238,12 @@ class Parser:
     dl_re = re.compile(dl_rule, re.VERBOSE|re.UNICODE)
 
     # others
-    indent_re = re.compile(ur"^\s*", re.UNICODE)
+    indent_re = re.compile(r"^\s*", re.UNICODE)
     eol_re = re.compile(r'\r?\n', re.UNICODE)
 
     # this is used inside parser/pre sections (we just want to know when it's over):
     parser_unique = u''
-    parser_scan_rule = ur"""
+    parser_scan_rule = r"""
 (?P<parser_end>
     %s\}\}\}  # in parser/pre, we only look for the end of the parser/pre
 )
@@ -246,7 +252,7 @@ class Parser:
 
     # the big, fat, less ugly one ;)
     # please be very careful: blanks and # must be escaped with \ !
-    scan_rules = ur"""
+    scan_rules = r"""
 (?P<emph_ibb>
     '''''(?=[^']+''')  # italic on, bold on, ..., bold off
 )|(?P<emph_ibi>
@@ -391,7 +397,7 @@ class Parser:
                        "ul ol dl dt dd li li_none indent "
                        "macro parser")
     no_new_p_before = no_new_p_before.split()
-    no_new_p_before = dict(zip(no_new_p_before, [1] * len(no_new_p_before)))
+    no_new_p_before = dict(list(zip(no_new_p_before, [1] * len(no_new_p_before))))
 
     def __init__(self, raw, request, **kw):
         self.raw = raw
@@ -679,7 +685,7 @@ class Parser:
             # we ignore fixed and trailing args and only use kw args:
             if acceptable_attrs is None:
                 acceptable_attrs = []
-            for key, val in kw.items():
+            for key, val in list(kw.items()):
                 # wikiutil.escape for key/val must be done by (html) formatter!
                 if key in acceptable_attrs:
                     # tag attributes must be string type
@@ -1183,7 +1189,7 @@ class Parser:
                     # add center alignment if we don't have some alignment already
                     attrs['align'] = '"center"'
                 if 'colspan' not in attrs:
-                    attrs['colspan'] = '"%d"' % (word.count("|")/2)
+                    attrs['colspan'] = '"%d"' % (old_div(word.count("|"),2))
 
             # return the complete cell markup
             result.append(self.formatter.table_cell(1, attrs) + attrerr)
@@ -1383,7 +1389,7 @@ class Parser:
 
     def _replace(self, match):
         """ Same as replace() but with no magic """
-        for name, text in match.groupdict().iteritems():
+        for name, text in list(match.groupdict().items()):
             if text is not None:
                 # Get replace method and replace text
                 replace_func = getattr(self, '_%s_repl' % name)
@@ -1393,7 +1399,7 @@ class Parser:
     def replace(self, match, inhibit_p=False):
         """ Replace match using type name """
         result = []
-        for type, hit in match.groupdict().items():
+        for type, hit in list(match.groupdict().items()):
             if hit is not None and not type in ["hmarker", ]:
 
                 ##result.append(u'<span class="info">[replace: %s: "%s"]</span>' % (type, hit))

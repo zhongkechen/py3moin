@@ -8,6 +8,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
+from builtins import range
+from builtins import object
 from MoinMoin import log
 logging = log.getLogger(__name__)
 
@@ -21,7 +24,7 @@ class LogMissing(LogError):
     """ Raised when the log is missing """
 
 
-class LineBuffer:
+class LineBuffer(object):
     """
     Reads lines from a file
         self.len      number of lines in self.lines
@@ -69,7 +72,7 @@ class LineBuffer:
 
         lengthpreviousline = 0
         offset = begin
-        for i in xrange(linecount+1):
+        for i in range(linecount+1):
             offset += lengthpreviousline
             lengthpreviousline = offsets[i]
             offsets[i] = offset
@@ -77,10 +80,10 @@ class LineBuffer:
         self.offsets = offsets
         self.len = linecount
         # Decode lines after offset in file is calculated
-        self.lines = [unicode(line.rstrip('\n'), config.charset) for line in lines]
+        self.lines = [str(line.rstrip(b'\n'), config.charset) for line in lines]
 
 
-class LogFile:
+class LogFile(object):
     """
     .filter: function that gets the values from .parser.
              must return True to keep it or False to remove it
@@ -144,16 +147,16 @@ class LogFile:
             try:
                 # Open the file (NOT using codecs.open, it breaks our offset calculation. We decode it later.).
                 # Use binary mode in order to retain \r - otherwise the offset calculation would fail.
-                self._input = file(self.__filename, "rb", )
+                self._input = open(self.__filename, "rb", )
             except IOError as err:
                 if err.errno == errno.ENOENT: # "file not found"
                     # XXX workaround if edit-log does not exist: just create it empty
                     # if this workaround raises another error, we don't catch
                     # it, so the admin will see it.
-                    f = file(self.__filename, "ab")
-                    f.write('')
+                    f = open(self.__filename, "ab")
+                    f.write(b'')
                     f.close()
-                    self._input = file(self.__filename, "rb", )
+                    self._input = open(self.__filename, "rb", )
                 else:
                     logging.error("logfile: %r IOERROR errno %d (%s)" % (self.__filename, err.errno, os.strerror(err.errno)))
                     raise
@@ -190,7 +193,7 @@ class LogFile:
         @rtype: Int
         """
         try:
-            f = file(self.__filename, 'r')
+            f = open(self.__filename, 'r')
             try:
                 count = 0
                 for line in f:
@@ -291,7 +294,7 @@ class LogFile:
         self.peek(1)
         return result
 
-    def next(self):
+    def __next__(self):
         """get next line that passes through the filter
         @return: next entry
         raises StopIteration at file end

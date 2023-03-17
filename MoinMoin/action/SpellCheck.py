@@ -20,6 +20,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from past.builtins import cmp
+from future import standard_library
+standard_library.install_aliases()
 import os, re, codecs
 from MoinMoin import config, wikiutil
 from MoinMoin.Page import Page
@@ -74,18 +77,18 @@ def _loadDict(request):
     """ Load words from words files or cached dict """
     # check for "dbhash" module
     try:
-        import dbhash
+        import dbm.bsd
     except ImportError:
         dbhash = None
 
     # load the words
     cachename = os.path.join(request.cfg.data_dir, 'cache', 'spellchecker.dict')
     if dbhash and os.path.exists(cachename):
-        wordsdict = dbhash.open(cachename, "r")
+        wordsdict = dbm.bsd.open(cachename, "r")
     else:
         wordsfiles = _getWordsFiles(request)
         if dbhash:
-            wordsdict = dbhash.open(cachename, 'n')
+            wordsdict = dbm.bsd.open(cachename, 'n')
         else:
             wordsdict = {}
 
@@ -164,7 +167,7 @@ def checkSpelling(page, request, own_form=1):
         word_re.sub(checkword, line)
 
     if badwords:
-        badwords = badwords.keys()
+        badwords = list(badwords.keys())
         badwords.sort(lambda x, y: cmp(x.lower(), y.lower()))
 
         # build regex recognizing the bad words

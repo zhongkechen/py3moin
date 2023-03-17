@@ -7,12 +7,14 @@
 """
 from __future__ import print_function
 
+from builtins import chr
+from builtins import range
 uppercase = []
 lowercase = []
 digits = []
 space = []
 for code in range(1, 65535):
-    c = unichr(code)
+    c = chr(code)
     str = "\\u%04x" % code
     if c.isupper():
         uppercase.append(str)

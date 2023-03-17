@@ -27,6 +27,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from past.builtins import basestring
 from MoinMoin import wikiutil, search
 
 Dependencies = ["pages"]

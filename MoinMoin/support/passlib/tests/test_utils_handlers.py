@@ -2,7 +2,7 @@
 #=============================================================================
 # imports
 #=============================================================================
-from __future__ import with_statement
+from builtins import object
 # core
 import re
 import hashlib
@@ -13,7 +13,7 @@ import warnings
 from passlib.hash import ldap_md5, sha256_crypt
 from passlib.exc import MissingBackendError, PasslibHashWarning
 from passlib.utils.compat import str_to_uascii, \
-                                 uascii_to_str, unicode
+                                 uascii_to_str, str
 import passlib.utils.handlers as uh
 from passlib.tests.utils import HandlerCase, TestCase
 from passlib.utils.compat import u
@@ -113,7 +113,7 @@ class SkeletonTest(TestCase):
             def genhash(cls, secret, hash):
                 if secret is None:
                     raise TypeError("no secret provided")
-                if isinstance(secret, unicode):
+                if isinstance(secret, str):
                     secret = secret.encode("utf-8")
                 # NOTE: have to support hash=None since this is test of legacy 1.5 api
                 if hash is not None and not cls.identify(hash):
@@ -796,7 +796,7 @@ class UnsaltedHash(uh.StaticHandler):
     checksum_size = 40
 
     def _calc_checksum(self, secret):
-        if isinstance(secret, unicode):
+        if isinstance(secret, str):
             secret = secret.encode("utf-8")
         data = b"boblious" + secret
         return str_to_uascii(hashlib.sha1(data).hexdigest())
@@ -826,7 +826,7 @@ class SaltedHash(uh.HasSalt, uh.GenericHandler):
         return uascii_to_str(hash)
 
     def _calc_checksum(self, secret):
-        if isinstance(secret, unicode):
+        if isinstance(secret, str):
             secret = secret.encode("utf-8")
         data = self.salt.encode("ascii") + secret + self.salt.encode("ascii")
         return str_to_uascii(hashlib.sha1(data).hexdigest())

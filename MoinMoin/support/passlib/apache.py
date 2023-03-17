@@ -3,7 +3,8 @@
 #=============================================================================
 # imports
 #=============================================================================
-from __future__ import with_statement
+
+from builtins import object
 # core
 import logging; log = logging.getLogger(__name__)
 import os
@@ -16,7 +17,7 @@ from passlib.exc import ExpectedStringError
 from passlib.hash import htdigest
 from passlib.utils import render_bytes, to_bytes, is_ascii_codec
 from passlib.utils.decor import deprecated_method
-from passlib.utils.compat import join_bytes, unicode, BytesIO, PY3
+from passlib.utils.compat import join_bytes, str, BytesIO, PY3
 # local
 __all__ = [
     'HtpasswdFile',
@@ -376,7 +377,7 @@ class _CommonFile(object):
         :returns:
             encoded identifer as bytes
         """
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             value = value.encode(self.encoding)
         elif not isinstance(value, bytes):
             raise ExpectedStringError(value, param)
@@ -854,7 +855,7 @@ class HtpasswdFile(_CommonFile):
         hash = self._records.get(user)
         if hash is None:
             return None
-        if isinstance(password, unicode):
+        if isinstance(password, str):
             # NOTE: encoding password to match file, making the assumption
             # that server will use same encoding to hash the password.
             password = password.encode(self.encoding)

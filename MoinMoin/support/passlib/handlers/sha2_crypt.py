@@ -11,7 +11,7 @@ from passlib.utils import safe_crypt, test_crypt, \
                           repeat_string, to_unicode
 from passlib.utils.binary import h64
 from passlib.utils.compat import byte_elem_value, u, \
-                                 uascii_to_str, unicode
+                                 uascii_to_str, str
 import passlib.utils.handlers as uh
 # local
 __all__ = [
@@ -86,7 +86,7 @@ def _raw_sha2_crypt(pwd, salt, rounds, use_512=False):
     #       for details).
 
     # validate secret
-    if isinstance(pwd, unicode):
+    if isinstance(pwd, str):
         # XXX: not sure what official unicode policy is, using this as default
         pwd = pwd.encode("utf-8")
     assert isinstance(pwd, bytes)
@@ -101,7 +101,7 @@ def _raw_sha2_crypt(pwd, salt, rounds, use_512=False):
         # by the handler class.
 
     # validate salt
-    assert isinstance(salt, unicode), "salt not unicode"
+    assert isinstance(salt, str), "salt not unicode"
     salt = salt.encode("ascii")
     salt_len = len(salt)
     assert salt_len < 17, "salt too large"

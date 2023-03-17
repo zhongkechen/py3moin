@@ -32,6 +32,7 @@ and the static files would be served directly by the HTTP server.
 """
 
 
+from builtins import object
 class DispatcherMiddleware(object):
     """Combine multiple applications as a single WSGI application.
     Requests are dispatched to an application based on the path it is

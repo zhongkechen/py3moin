@@ -141,7 +141,7 @@ username and leave the password field blank.""")))
         oidconsumer = consumer.Consumer(request.session,
                                         MoinOpenIDStore(request))
         query = {}
-        for key in request.values.keys():
+        for key in list(request.values.keys()):
             query[key] = request.values.get(key)
         current_url = get_multistage_continuation_url(request, self.name,
                                                       {'oidstage': '1'})
@@ -283,7 +283,7 @@ document.getElementById("openid_message").submit();
         try:
             fserv = self._forced_service
             if fserv:
-                if isinstance(fserv, str) or isinstance(fserv, unicode):
+                if isinstance(fserv, str) or isinstance(fserv, str):
                     oidreq = oidconsumer.begin(fserv)
                 else:
                     oidreq = oidconsumer.beginWithoutDiscovery(fserv)

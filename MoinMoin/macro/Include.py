@@ -14,11 +14,13 @@
 """
 
 #Dependencies = ["pages"] # included page
+from future import standard_library
+standard_library.install_aliases()
 Dependencies = ["time"] # works around MoinMoinBugs/TableOfContentsLacksLinks
 
 generates_headings = True
 
-import re, StringIO
+import re, io
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
 
@@ -201,7 +203,7 @@ def execute(macro, text, args_re=re.compile(_args_re_pattern), title_re=re.compi
             this_page._macroInclude_pagelist.get(inc_name, 0) + 1
 
         # output the included page
-        strfile = StringIO.StringIO()
+        strfile = io.StringIO()
         request.redirect(strfile)
         try:
             inc_page.send_page(content_only=True,

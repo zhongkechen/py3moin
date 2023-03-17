@@ -9,6 +9,7 @@
     :license: BSD, see LICENSE for details.
 """
 
+from builtins import object
 import codecs
 
 from pygments.util import get_bool_opt, string_types

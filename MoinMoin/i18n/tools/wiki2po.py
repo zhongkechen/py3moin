@@ -4,12 +4,14 @@
 """
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
 master_url = "https://master19.moinmo.in/?action=xmlrpc2"
 
 DOMAIN = "MoinMoin"
 
 def run():
-    import sys, xmlrpclib
+    import sys, xmlrpc.client
     sys.path.insert(0, '../..')
 
     excluded = ["en", ] # languages managed in repository, not in wiki
@@ -17,7 +19,7 @@ def run():
     lang = sys.argv[1]
 
     if not lang in excluded:
-        wiki = xmlrpclib.ServerProxy(master_url)
+        wiki = xmlrpc.client.ServerProxy(master_url)
 
         pagename = "MoinI18n/%s" % lang
         print(pagename)

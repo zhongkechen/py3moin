@@ -6,7 +6,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-class Marshal:
+from builtins import str
+from builtins import object
+class Marshal(object):
     """ Serialize Python data structures to XML.
 
         XML_DECL is the standard XML declaration.
@@ -62,13 +64,15 @@ class Marshal:
         if data is None:
             content = "<none/>"
 
-        elif isinstance(data, str):
+        elif isinstance(data, (str, bytes)):
+            if isinstance(data, bytes):
+                data = data.decode("utf8")
             content = (data.replace("&", "&amp;") # Must be done first!
                            .replace("<", "&lt;")
                            .replace(">", "&gt;"))
 
         elif isinstance(data, dict):
-            for key, value in data.items():
+            for key, value in list(data.items()):
                 add_content(self.__toXML(key, value))
 
         elif isinstance(data, (list, tuple)):
@@ -80,7 +84,6 @@ class Marshal:
 
         elif hasattr(data, "__dict__"):
             add_content(self.__toXML(self.ROOT_CONTAINER, data.__dict__))
-
         else:
             content = (str(data).replace("&", "&amp;") # Must be done first!
                                 .replace("<", "&lt;")

@@ -7,13 +7,17 @@
 """
 
 
+from builtins import object
+
+import pytest
+
 from MoinMoin.userform.admin import do_user_browser
 from MoinMoin.datastruct import ConfigGroups
 from MoinMoin.user import User
 from MoinMoin.Page import Page
 from MoinMoin._tests import nuke_user, become_superuser, wikiconfig
 
-class TestAdmin:
+class TestAdmin(object):
 
     class Config(wikiconfig.Config):
 
@@ -22,8 +26,9 @@ class TestAdmin:
                       'OtherGroup': ['TestUser']}
             return ConfigGroups(request, groups)
 
-    def setup_class(self):
-        request = self.request
+    @pytest.fixture(autouse=True)
+    def setup_class(self, req):
+        request = req
         user_name = 'TestUser'
         self.user_name = user_name
 
@@ -31,16 +36,16 @@ class TestAdmin:
 
         User(request, name=user_name, password=user_name).save()
 
-    def teardown_class(self):
-        nuke_user(self.request, self.user_name)
+        yield
 
-    def setup_method(self, method):
-        self.request.page = Page(self.request, 'SystemAdmin')
+        nuke_user(req, self.user_name)
 
-    def test_do_user_browser(self):
-        request = self.request
+    @pytest.fixture(autouse=True)
+    def setup_method(self, req):
+        req.page = Page(req, 'SystemAdmin')
 
-        browser = do_user_browser(request)
+    def test_do_user_browser(self, req):
+        browser = do_user_browser(req)
         assert browser
 
 

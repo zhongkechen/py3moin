@@ -6,7 +6,11 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import StringIO
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+import io
 
 from MoinMoin import log
 logging = log.getLogger(__name__)
@@ -23,7 +27,7 @@ import sys, xml
 rss_supported = True
 
 
-class ThemeBase:
+class ThemeBase(object):
     """ Base class for themes
 
     This class supply all the standard template that sub classes can
@@ -548,7 +552,7 @@ class ThemeBase:
             # cache in class for next calls.
             if not getattr(self.__class__, 'iconsByFile', None):
                 d = {}
-                for data in self.icons.values():
+                for data in list(self.icons.values()):
                     d[data[1]] = data
                 self.__class__.iconsByFile = d
 
@@ -605,7 +609,7 @@ class ThemeBase:
             qs['rev'] = str(rev)
         attrs = {'rel': 'nofollow', 'title': d['i18ntitle'], }
         page = d[pagekey]
-        if isinstance(page, unicode):
+        if isinstance(page, str):
             # e.g. d['page_parent_page'] is just the unicode pagename
             # while d['page'] will give a page object
             page = Page(self.request, page)
@@ -1903,7 +1907,7 @@ var gui_editor_link_text = "%(text)s";
         if not page.exists():
             return u""
         # Capture the page's generated HTML in a buffer.
-        buffer = StringIO.StringIO()
+        buffer = io.StringIO()
         self.request.redirect(buffer)
         try:
             page.send_page(content_only=1, content_id="sidebar")

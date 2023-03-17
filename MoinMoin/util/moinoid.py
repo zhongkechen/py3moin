@@ -4,6 +4,8 @@
     @copyright: 2006, 2007 Johannes Berg <johannes@sipsolutions.net>
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import str
+from builtins import range
 import hashlib
 from random import randint
 import time
@@ -71,7 +73,7 @@ class MoinOpenIDStore(OpenIDStore):
             return None
         assocs = ce.content()
         found = False
-        for idx in xrange(len(assocs)-1, -1, -1):
+        for idx in range(len(assocs)-1, -1, -1):
             assoc_str = assocs[idx]
             association = Association.deserialize(assoc_str)
             if association.getExpiresIn() == 0:
@@ -91,7 +93,7 @@ class MoinOpenIDStore(OpenIDStore):
         if not ce.exists():
             return
         assocs = ce.content()
-        for idx in xrange(len(assocs)-1, -1, -1):
+        for idx in range(len(assocs)-1, -1, -1):
             assoc_str = assocs[idx]
             association = Association.deserialize(assoc_str)
             if association.handle == handle:

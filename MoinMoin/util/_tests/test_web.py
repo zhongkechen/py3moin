@@ -6,12 +6,14 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
+from builtins import object
 from MoinMoin import wikiutil
 from MoinMoin.util import web
 from MoinMoin.widget import html
 
 
-class TestMakeQueryString:
+class TestMakeQueryString(object):
     """util.web: making query string"""
 
     def testMakeQueryStringFromArgument(self):
@@ -46,7 +48,7 @@ class TestMakeQueryString:
             assert wikiutil.makeQueryString(arg, b='kw') == expected
 
 
-class TestMakeSelection:
+class TestMakeSelection(object):
     """util.web: creating html select"""
 
     values = ('one', 'two', 'simple', ('complex', 'A tuple & <escaped text>'))
@@ -64,19 +66,19 @@ class TestMakeSelection:
     def testMakeSelectNoSelection(self):
         """util.web: creating html select with no selection"""
         expected = self.expected
-        result = unicode(web.makeSelection('test', self.values, size=1))
+        result = str(web.makeSelection('test', self.values, size=1))
         assert result == expected
 
     def testMakeSelectNoSelection2(self):
         """util.web: creating html select with non existing selection"""
         expected = self.expected
-        result = unicode(web.makeSelection('test', self.values, 'three', size=1))
+        result = str(web.makeSelection('test', self.values, 'three', size=1))
         assert result == expected
 
     def testMakeSelectWithSelectedItem(self):
         """util.web: creating html select with selected item"""
         expected = self.expected.replace('value="two"', 'selected value="two"')
-        result = unicode(web.makeSelection('test', self.values, 'two', size=1))
+        result = str(web.makeSelection('test', self.values, 'two', size=1))
         assert result == expected
 
 

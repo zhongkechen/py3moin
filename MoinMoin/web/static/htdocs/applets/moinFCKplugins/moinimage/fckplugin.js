@@ -22,7 +22,7 @@ if (1 || !FCKBrowserInfo.IsIE){
 // Register the related command.
 FCKCommands.RegisterCommand('Image', new FCKDialogCommand( 'Image', FCKLang.DlgImgTitle, FCKConfig.WikiBasePath + FCKConfig.WikiPage + '?action=fckdialog&dialog=image', 400, 230, ImageState, 'Image')) ;
 
-// add icon location on strip file(theme/silver/fck_strip.gif)
+// add icon location on strip open(theme/silver/fck_strip.gif)
 FCKToolbarItems.RegisterItem('Image', new FCKToolbarButton
   ('Image', FCKLang.InsertImageLbl, FCKLang.InsertImage, null, false, true, 37));
 

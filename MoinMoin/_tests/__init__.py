@@ -7,6 +7,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import range
 import os, shutil
 
 from MoinMoin.parser.text import Parser

@@ -8,8 +8,11 @@
 """
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import os, sys, time
-from StringIO import StringIO
+from io import StringIO
 
 flag_quiet = 0
 
@@ -93,7 +96,7 @@ def log(msgtext):
 
 # Commandline Support --------------------------------------------------------
 
-class Script:
+class Script(object):
     def __init__(self, cmd, usage, argv=None, def_values=None):
         #print "argv:", argv, "def_values:", repr(def_values)
         if argv is None:

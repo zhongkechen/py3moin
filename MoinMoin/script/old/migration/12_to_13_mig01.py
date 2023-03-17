@@ -46,12 +46,15 @@
 """
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 from_encoding = 'iso8859-1'
 #from_encoding = 'utf-8'
 
 to_encoding = 'utf-8'
 
-import os.path, sys, shutil, urllib
+import os.path, sys, shutil, urllib.request, urllib.parse, urllib.error
 
 sys.path.insert(0, '../../../..')
 from MoinMoin import wikiutil
@@ -68,7 +71,7 @@ def unquoteFilename12(filename, encoding):
     @rtype: string
     @return: decoded, original filename
     """
-    str = urllib.unquote(filename.replace('_', '%'))
+    str = urllib.parse.unquote(filename.replace('_', '%'))
     try:
         newstr = str.decode(encoding)
     except UnicodeDecodeError: # try again with iso

@@ -10,11 +10,12 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 import time
 from MoinMoin.Page import Page
 from MoinMoin.util.abuse import log_attempt
 
-class NewPage:
+class NewPage(object):
     """ Open editor for a new page, using template """
 
     def __init__(self, request, referrer):

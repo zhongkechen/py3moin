@@ -1625,7 +1625,7 @@ Version 1.7.0:
             deprecated since long!). Use AttachFile action to serve attachments.
     * Duplicated file attachment upload code was removed from Load action (just
       use AttachFile action to deal with attachments).
-    * Removed 'test' action. If you like to run unit tests, use py.test.
+    * Removed 'test' action. If you like to run unit tests, use pytest.
     * Removed Login macro.
 
   Bug Fixes: =================================================================
@@ -1651,7 +1651,7 @@ Version 1.7.0:
       If you don't use the builtin (english) defaults, you will have to change
       your configuration:
         old (default): page_category_regex = u'^Category[A-Z]'
-        new (default): page_category_regex = ur'(?P<all>Category(?P<key>\S+))'
+        new (default): page_category_regex = r'(?P<all>Category(?P<key>\S+))'
       As you see, the old regex did work for detecting whether a pagename is
       a category, but it could not be used to search for a category tag in the
       page text. The new regex can be used for both and identifies the complete
@@ -1659,7 +1659,7 @@ Version 1.7.0:
       category key (match in group 'key', e.g. "Foo") by using named regex
       groups. \S+ means the category key can be anything non-blank.
       If you like to simultaneously support multiple languages, use something
-      like this: ur'(?P<all>(Kategorie|Category)(?P<key>\S+))'
+      like this: r'(?P<all>(Kategorie|Category)(?P<key>\S+))'
       HINT: after changing your configuration, please rebuild the cache:
         * stop moin
         * moin ... maint cleancache
@@ -1933,7 +1933,7 @@ Version 1.6.1:
       for superuser.
     * Fix "su user" troubles on UserPreferences.
     * Removed unit tests from ?action=test (due to changes in our test
-      environment, using py.test now, this was broken).
+      environment, using pytest now, this was broken).
     * Duplicated the top directories' moin.py to wiki/server/moin.py so it gets
       installed by setup.py.
     * Fix MoinMoinBugs/1.6.0LanguageIgnoreBrowserConfigurationError
@@ -2205,9 +2205,9 @@ Version 1.6.0:
       textchas = { # DO NOT USE EXACTLY THESE QUESTIONS!!!
           'en': {
               u'H2O is ...': u'water', # bad: too common
-              u'2 apples and three bananas makes how many fruits?': ur'(five|5)', # good
-              u'2 apples and three pigs makes how many fruits?': ur'(two|2)', # good
-              u'2+3': ur'5', # bad: computable
+              u'2 apples and three bananas makes how many fruits?': r'(five|5)', # good
+              u'2 apples and three pigs makes how many fruits?': r'(two|2)', # good
+              u'2+3': r'5', # bad: computable
               u'
           },
           'de': { # for german users

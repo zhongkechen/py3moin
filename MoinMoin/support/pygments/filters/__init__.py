@@ -10,6 +10,7 @@
     :license: BSD, see LICENSE for details.
 """
 
+from builtins import range
 import re
 
 from pygments.token import String, Comment, Keyword, Name, Error, Whitespace, \

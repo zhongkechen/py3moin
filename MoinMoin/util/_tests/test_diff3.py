@@ -6,9 +6,10 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 from MoinMoin.util import diff3
 
-class TestDiff3:
+class TestDiff3(object):
 
     def testTextMerge(self):
         """ util.diff3.text_merge: test correct merging """

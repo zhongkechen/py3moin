@@ -6,10 +6,11 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 from MoinMoin.mail import mailimport
 
 
-class TestMailHeaderParsing:
+class TestMailHeaderParsing(object):
     _tests = (
         # simple email address (localhost)
         (['From: user', ],

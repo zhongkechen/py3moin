@@ -9,7 +9,11 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import xmlrpclib
+from future import standard_library
+standard_library.install_aliases()
+from builtins import next
+from builtins import object
+import xmlrpc.client
 INVALID = object()
 
 class RPCYielder(object):
@@ -42,7 +46,7 @@ class RPCYielder(object):
         try:
             if result is INVALID:
                 return RuntimeError("Invalid state, there is no result to fetch.")
-            if self.raise_fault and isinstance(result, xmlrpclib.Fault):
+            if self.raise_fault and isinstance(result, xmlrpc.client.Fault):
                 raise result
             else:
                 return result
@@ -88,7 +92,7 @@ def scheduler(multicall_func, handler, args, max_calls=10, prepare_multicall_fun
             for gen in gens_result:
                 try:
                     item = next(result)
-                except xmlrpclib.Fault as e:
+                except xmlrpc.client.Fault as e:
                     # this exception is reraised by the RPCYielder
                     item = e
                 gen.set_result(item)
@@ -109,7 +113,7 @@ def scheduler_simple(multicall_func, handler, args):
                 result = iter(m()) # execute multicall
                 try:
                     item = next(result)
-                except xmlrpclib.Fault as e:
+                except xmlrpc.client.Fault as e:
                     # this exception is reraised by the RPCYielder
                     item = e
                 cur_handler.set_result(item)

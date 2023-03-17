@@ -17,6 +17,7 @@ Implementated based on rfc at http://www.faqs.org/rfcs/rfc1320.html
 # imports
 #=============================================================================
 # core
+from builtins import object
 from binascii import hexlify
 import struct
 # site

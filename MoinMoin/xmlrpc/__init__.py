@@ -22,11 +22,15 @@
                 2007-2009 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details
 """
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 from MoinMoin.util import pysupport
 
 modules = pysupport.getPackageModules(__file__)
 
-import os, sys, time, xmlrpclib
+import os, sys, time, xmlrpc.client
 
 from MoinMoin import log
 logging = log.getLogger(__name__)
@@ -41,7 +45,7 @@ from MoinMoin import caching
 
 logging_tearline = '- XMLRPC %s ' + '-' * 40
 
-class XmlRpcBase:
+class XmlRpcBase(object):
     """
     XMLRPC base class with common functionality of wiki xmlrpc v1 and v2
     """
@@ -87,7 +91,7 @@ class XmlRpcBase:
         @return: text
         """
         text = text.data # this is a already base64-decoded 8bit string
-        text = unicode(text, 'utf-8')
+        text = str(text, 'utf-8')
         return text
 
     def _outlob(self, text):
@@ -98,12 +102,12 @@ class XmlRpcBase:
         @rtype: str
         @return: xmlrpc Binary object
         """
-        if isinstance(text, unicode):
+        if isinstance(text, str):
             text = text.encode('utf-8')
         else:
             if config.charset != 'utf-8':
-                text = unicode(text, config.charset).encode('utf-8')
-        return xmlrpclib.Binary(text)
+                text = str(text, config.charset).encode('utf-8')
+        return xmlrpc.client.Binary(text)
 
     def _dump_exc(self):
         """
@@ -128,7 +132,7 @@ class XmlRpcBase:
         try:
             if 'xmlrpc' in self.request.cfg.actions_excluded:
                 # we do not handle xmlrpc v1 and v2 differently
-                response = xmlrpclib.Fault(1, "This moin wiki does not allow xmlrpc method calls.")
+                response = xmlrpc.client.Fault(1, "This moin wiki does not allow xmlrpc method calls.")
             else:
                 # overwrite any user there might be, if you need a valid user for
                 # xmlrpc, you have to use multicall and getAuthToken / applyAuthToken
@@ -138,7 +142,7 @@ class XmlRpcBase:
                 data = request.read()
 
                 try:
-                    params, method = xmlrpclib.loads(data)
+                    params, method = xmlrpc.client.loads(data)
                 except:
                     # if anything goes wrong here, we want to see the raw data:
                     logging.debug("Length of raw data: %d bytes" % len(data))
@@ -155,19 +159,19 @@ class XmlRpcBase:
         except:
             logging.exception("An exception occurred (this is also sent as fault response to the client):")
             # report exception back to client
-            response = xmlrpclib.dumps(xmlrpclib.Fault(1, self._dump_exc()))
+            response = xmlrpc.client.dumps(xmlrpc.client.Fault(1, self._dump_exc()))
         else:
             logging.debug(logging_tearline % 'response begin')
             logging.debug(response)
             logging.debug(logging_tearline % 'response end')
 
-            if isinstance(response, xmlrpclib.Fault):
-                response = xmlrpclib.dumps(response)
+            if isinstance(response, xmlrpc.client.Fault):
+                response = xmlrpc.client.dumps(response)
             else:
                 # wrap response in a singleton tuple
                 response = (response, )
                 # serialize it
-                response = xmlrpclib.dumps(response, methodresponse=1, allow_none=True)
+                response = xmlrpc.client.dumps(response, methodresponse=1, allow_none=True)
 
         request = request.request
         request.content_type = 'text/xml'
@@ -188,7 +192,7 @@ class XmlRpcBase:
                 fn = wikiutil.importPlugin(self.request.cfg, 'xmlrpc',
                                            method, 'execute')
             except wikiutil.PluginMissingError:
-                response = xmlrpclib.Fault(1, "No such method: %s." %
+                response = xmlrpc.client.Fault(1, "No such method: %s." %
                                            method)
             else:
                 response = fn(self, *params)
@@ -200,13 +204,13 @@ class XmlRpcBase:
     # Common faults -----------------------------------------------------
 
     def notAllowedFault(self):
-        return xmlrpclib.Fault(1, "You are not allowed to read this page.")
+        return xmlrpc.client.Fault(1, "You are not allowed to read this page.")
 
     def noSuchPageFault(self):
-        return xmlrpclib.Fault(1, "No such page was found.")
+        return xmlrpc.client.Fault(1, "No such page was found.")
 
     def noLogEntryFault(self):
-        return xmlrpclib.Fault(1, "No log entry was found.")
+        return xmlrpc.client.Fault(1, "No log entry was found.")
 
     #############################################################################
     ### System methods
@@ -234,7 +238,7 @@ class XmlRpcBase:
                 # multicall. If someone cares they should fix this.
                 result = self.dispatch(method_name, params)
 
-                if not isinstance(result, xmlrpclib.Fault):
+                if not isinstance(result, xmlrpc.client.Fault):
                     results.append([result])
                 else:
                     results.append(
@@ -355,7 +359,7 @@ class XmlRpcBase:
         for log in edit_log.reverse():
             # get last-modified UTC (DateTime) from log
             gmtuple = tuple(time.gmtime(wikiutil.version2timestamp(log.ed_time_usecs)))
-            lastModified_date = xmlrpclib.DateTime(gmtuple)
+            lastModified_date = xmlrpc.client.DateTime(gmtuple)
 
             # skip if older than "date"
             if lastModified_date < date:
@@ -425,7 +429,7 @@ class XmlRpcBase:
         if not edit_info:
             return self.noLogEntryFault()
 
-        mtime = wikiutil.version2timestamp(long(edit_info['timestamp'])) # must be long for py 2.2.x
+        mtime = wikiutil.version2timestamp(int(edit_info['timestamp'])) # must be long for py 2.2.x
         gmtuple = tuple(time.gmtime(mtime))
 
         version = rev # our new rev numbers: 1,2,3,4,....
@@ -443,7 +447,7 @@ class XmlRpcBase:
 
         return {
             'name': self._outstr(page.page_name),
-            'lastModified': xmlrpclib.DateTime(gmtuple),
+            'lastModified': xmlrpc.client.DateTime(gmtuple),
             'author': self._outstr(edit_info['editor']),
             'version': version,
             }
@@ -469,13 +473,13 @@ class XmlRpcBase:
         else:
             page = Page(self.request, pagename)
         if not page.exists():
-            return xmlrpclib.Fault("NOT_EXIST", "Page does not exist.")
+            return xmlrpc.client.Fault("NOT_EXIST", "Page does not exist.")
         if pi is None:
-            return xmlrpclib.Fault("NOT_EXIST", "Processing Instruction not given.")
+            return xmlrpc.client.Fault("NOT_EXIST", "Processing Instruction not given.")
         try:
             instruction = page.pi[pi]
         except KeyError:
-            return xmlrpclib.Fault("NOT_EXIST", "Processing Instruction does not exist.")
+            return xmlrpc.client.Fault("NOT_EXIST", "Processing Instruction does not exist.")
         return self._outstr(instruction)
 
     def xmlrpc_getPage(self, pagename):
@@ -551,7 +555,7 @@ class XmlRpcBase:
         if self.version == 2:
             return self._outstr(result)
         elif self.version == 1:
-            return xmlrpclib.Binary(result)
+            return xmlrpc.client.Binary(result)
 
     def xmlrpc_listLinks(self, pagename):
         """
@@ -592,11 +596,11 @@ class XmlRpcBase:
         pagename = self._instr(pagename)
         pagename = wikiutil.normalize_pagename(pagename, self.cfg)
         if not pagename:
-            return xmlrpclib.Fault("INVALID", "pagename can't be empty")
+            return xmlrpc.client.Fault("INVALID", "pagename can't be empty")
 
         # check ACLs
         if not self.request.user.may.write(pagename):
-            return xmlrpclib.Fault(1, "You are not allowed to edit this page")
+            return xmlrpc.client.Fault(1, "You are not allowed to edit this page")
 
         page = PageEditor(self.request, pagename, do_editor_backup=0)
         try:
@@ -607,12 +611,12 @@ class XmlRpcBase:
             msg = page.saveText(newtext, 0)
         except page.SaveError as msg:
             logging.error("SaveError: %s" % msg)
-            return xmlrpclib.Fault(1, "%s" % msg)
+            return xmlrpc.client.Fault(1, "%s" % msg)
 
         # Update pagelinks cache
         page.getPageLinks(self.request)
 
-        return xmlrpclib.Boolean(1)
+        return xmlrpc.client.Boolean(1)
 
     def xmlrpc_renamePage(self, pagename, newpagename):
         """
@@ -627,19 +631,19 @@ class XmlRpcBase:
         pagename = self._instr(pagename)
         pagename = wikiutil.normalize_pagename(pagename, self.cfg)
         if not pagename:
-            return xmlrpclib.Fault("INVALID", "pagename can't be empty")
+            return xmlrpc.client.Fault("INVALID", "pagename can't be empty")
 
         # check ACLs
         if not (self.request.user.may.delete(pagename) and self.request.user.may.write(newpagename)):
-            return xmlrpclib.Fault(1, "You are not allowed to rename this page")
+            return xmlrpc.client.Fault(1, "You are not allowed to rename this page")
         editor = PageEditor(self.request, pagename, do_editor_backup=0)
 
         try:
             editor.renamePage(newpagename)
         except PageEditor.SaveError as error:
-            return xmlrpclib.Fault(1, "Rename failed: %s" % (str(error), ))
+            return xmlrpc.client.Fault(1, "Rename failed: %s" % (str(error), ))
 
-        return xmlrpclib.Boolean(1)
+        return xmlrpc.client.Boolean(1)
 
     def xmlrpc_revertPage(self, pagename, revision):
         """
@@ -657,7 +661,7 @@ class XmlRpcBase:
         pagename = self._instr(pagename)
 
         if not self.request.user.may.write(pagename):
-            return xmlrpclib.Fault(1, "You are not allowed to edit this page")
+            return xmlrpc.client.Fault(1, "You are not allowed to edit this page")
 
         rev = int(self._instr(revision))
         editor = PageEditor(self.request, pagename, do_editor_backup=0)
@@ -665,9 +669,9 @@ class XmlRpcBase:
         try:
             editor.revertPage(rev)
         except PageEditor.SaveError as error:
-            return xmlrpclib.Fault(1, "Revert failed: %s" % (str(error), ))
+            return xmlrpc.client.Fault(1, "Revert failed: %s" % (str(error), ))
 
-        return xmlrpclib.Boolean(1)
+        return xmlrpc.client.Boolean(1)
 
     def xmlrpc_searchPages(self, query_string):
         """
@@ -815,7 +819,7 @@ class XmlRpcBase:
         Applies the auth token and thereby authenticates the user.
         """
         if not auth_token:
-            return xmlrpclib.Fault("INVALID", "Empty token.")
+            return xmlrpc.client.Fault("INVALID", "Empty token.")
 
         request = self.request
         request.session = request.cfg.session_service.get_session(request, auth_token)
@@ -827,7 +831,7 @@ class XmlRpcBase:
             self.request.user = u
             return "SUCCESS"
         else:
-            return xmlrpclib.Fault("INVALID", "Invalid token.")
+            return xmlrpc.client.Fault("INVALID", "Invalid token.")
 
 
     def xmlrpc_deleteAuthToken(self, auth_token):
@@ -835,7 +839,7 @@ class XmlRpcBase:
         Delete the given auth token.
         """
         if not auth_token:
-            return xmlrpclib.Fault("INVALID", "Empty token.")
+            return xmlrpc.client.Fault("INVALID", "Empty token.")
 
         request = self.request
         request.session = request.cfg.session_service.get_session(request, auth_token)
@@ -897,21 +901,21 @@ class XmlRpcBase:
             return isinstance(data, int) and data > 0
 
         if not allowed_rev_type(from_rev):
-            return xmlrpclib.Fault("FROMREV_INVALID", "Incorrect type for from_rev.")
+            return xmlrpc.client.Fault("FROMREV_INVALID", "Incorrect type for from_rev.")
 
         if not allowed_rev_type(to_rev):
-            return xmlrpclib.Fault("TOREV_INVALID", "Incorrect type for to_rev.")
+            return xmlrpc.client.Fault("TOREV_INVALID", "Incorrect type for to_rev.")
 
         currentpage = Page(self.request, pagename)
         if not currentpage.exists():
-            return xmlrpclib.Fault("NOT_EXIST", "Page does not exist.")
+            return xmlrpc.client.Fault("NOT_EXIST", "Page does not exist.")
 
         revisions = currentpage.getRevList()
 
         if from_rev is not None and from_rev not in revisions:
-            return xmlrpclib.Fault("FROMREV_INVALID", "Unknown from_rev.")
+            return xmlrpc.client.Fault("FROMREV_INVALID", "Unknown from_rev.")
         if to_rev is not None and to_rev not in revisions:
-            return xmlrpclib.Fault("TOREV_INVALID", "Unknown to_rev.")
+            return xmlrpc.client.Fault("TOREV_INVALID", "Unknown to_rev.")
 
         # use lambda to defer execution in the next lines
         if from_rev is None:
@@ -928,17 +932,17 @@ class XmlRpcBase:
             newcontents = lambda: newpage.get_raw_body_str()
 
         if oldcontents() and oldpage.get_real_rev() == newpage.get_real_rev():
-            return xmlrpclib.Fault("ALREADY_CURRENT", "There are no changes.")
+            return xmlrpc.client.Fault("ALREADY_CURRENT", "There are no changes.")
 
         if n_name is not None:
             tags = TagStore(newpage)
             last_tag = tags.get_last_tag()
             if last_tag is not None and last_tag.normalised_name != n_name:
-                return xmlrpclib.Fault("INVALID_TAG", "The used tag is incorrect because the normalised name does not match.")
+                return xmlrpc.client.Fault("INVALID_TAG", "The used tag is incorrect because the normalised name does not match.")
 
         newcontents = newcontents()
         conflict = wikiutil.containsConflictMarker(newcontents)
-        diffblob = xmlrpclib.Binary(compress(textdiff(oldcontents(), newcontents)))
+        diffblob = xmlrpc.client.Binary(compress(textdiff(oldcontents(), newcontents)))
 
         return {"conflict": conflict, "diff": diffblob, "diffversion": 1, "current": currentpage.get_real_rev()}
 
@@ -977,7 +981,7 @@ class XmlRpcBase:
         from MoinMoin.util.bdiff import decompress, patch
         from MoinMoin.wikisync import TagStore, BOTH
         from MoinMoin.packages import unpackLine
-        LASTREV_INVALID = xmlrpclib.Fault("LASTREV_INVALID", "The page was changed")
+        LASTREV_INVALID = xmlrpc.client.Fault("LASTREV_INVALID", "The page was changed")
 
         pagename = self._instr(pagename)
 
@@ -985,7 +989,7 @@ class XmlRpcBase:
 
         # User may read page?
         if not self.request.user.may.read(pagename) or not self.request.user.may.write(pagename):
-            return xmlrpclib.Fault("NOT_ALLOWED", "You are not allowed to write to this page.")
+            return xmlrpc.client.Fault("NOT_ALLOWED", "You are not allowed to write to this page.")
 
         # XXX add locking here!
 
@@ -996,14 +1000,14 @@ class XmlRpcBase:
             return LASTREV_INVALID
 
         if not currentpage.exists() and diff is None:
-            return xmlrpclib.Fault("NOT_EXIST", "The page does not exist and no diff was supplied.")
+            return xmlrpc.client.Fault("NOT_EXIST", "The page does not exist and no diff was supplied.")
 
         if diff is None: # delete the page
             try:
                 currentpage.deletePage(comment)
             except PageEditor.AccessDenied as xxx_todo_changeme:
                 (msg, ) = xxx_todo_changeme.args
-                return xmlrpclib.Fault("NOT_ALLOWED", msg)
+                return xmlrpc.client.Fault("NOT_ALLOWED", msg)
             return currentpage.get_real_rev()
 
         # base revision used for the diff
@@ -1093,7 +1097,7 @@ class XmlRpcBase:
 
         # also check ACLs
         if not self.request.user.may.write(pagename):
-            return xmlrpclib.Fault(1, "You are not allowed to edit this page")
+            return xmlrpc.client.Fault(1, "You are not allowed to edit this page")
 
         attachname = wikiutil.taintfilename(self._instr(attachname))
         filename = AttachFile.getFilename(self.request, pagename, attachname)
@@ -1101,7 +1105,7 @@ class XmlRpcBase:
             return self.noSuchPageFault()
         open(filename, 'wb+').write(data.data)
         AttachFile._addLogEntry(self.request, 'ATTNEW', pagename, attachname)
-        return xmlrpclib.Boolean(1)
+        return xmlrpc.client.Boolean(1)
 
     def xmlrpc_deleteAttachment(self, pagename, attachname):
         """
@@ -1115,12 +1119,12 @@ class XmlRpcBase:
         pagename = self._instr(pagename)
 
         if not self.request.user.may.delete(pagename):
-            return xmlrpclib.Fault(1, 'You are not allowed to delete attachments on this page.')
+            return xmlrpc.client.Fault(1, 'You are not allowed to delete attachments on this page.')
 
         attachname = wikiutil.taintfilename(self._instr(attachname))
         filename = AttachFile.getFilename(self.request, pagename, attachname)
         AttachFile.remove_attachment(self.request, pagename, attachname)
-        return xmlrpclib.Boolean(1)
+        return xmlrpc.client.Boolean(1)
 
     # XXX END WARNING XXX
 
@@ -1175,8 +1179,8 @@ class XmlRpc2(XmlRpcBase):
         @rtype: unicode
         @return: text
         """
-        if not isinstance(text, unicode):
-            text = unicode(text, 'utf-8')
+        if not isinstance(text, str):
+            text = str(text, 'utf-8')
         return text
 
     def _outstr(self, text):
@@ -1187,10 +1191,10 @@ class XmlRpc2(XmlRpcBase):
         @rtype: str
         @return: text encoded in utf-8
         """
-        if isinstance(text, unicode):
+        if isinstance(text, str):
             text = text.encode('utf-8')
         elif config.charset != 'utf-8':
-            text = unicode(text, config.charset).encode('utf-8')
+            text = str(text, config.charset).encode('utf-8')
         return text
 
 

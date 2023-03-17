@@ -8,7 +8,12 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import time, inspect, StringIO, sys, warnings
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.builtins import basestring
+from builtins import object
+import time, inspect, io, sys, warnings
 
 from werkzeug.datastructures import Headers
 from werkzeug.http import http_date
@@ -293,7 +298,7 @@ class HTTPContext(BaseContext):
 
     def redirectedOutput(self, function, *args, **kw):
         """ Redirect output during function, return redirected output """
-        buf = StringIO.StringIO()
+        buf = io.StringIO()
         self.redirect(buf)
         try:
             function(*args, **kw)
@@ -347,8 +352,8 @@ class HTTPContext(BaseContext):
         @param uri: server rooted uri e.g /scriptname/pagename.
                     It must start with a slash. Must be ascii and url encoded.
         """
-        import urlparse
-        scheme = urlparse.urlparse(uri)[0]
+        import urllib.parse
+        scheme = urllib.parse.urlparse(uri)[0]
         if scheme:
             return uri
 
@@ -443,7 +448,7 @@ class ScriptContext(AllContext):
 
     def write(self, *data):
         for d in data:
-            if isinstance(d, unicode):
+            if isinstance(d, str):
                 d = d.encode(config.charset)
             else:
                 d = str(d)

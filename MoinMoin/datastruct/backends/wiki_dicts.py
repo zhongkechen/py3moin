@@ -64,7 +64,7 @@ class WikiDict(BaseDict):
 class WikiDicts(BaseDictsBackend):
 
     # Key:: Value - ignore all but key:: value pairs, strip whitespace, exactly one space after the :: is required
-    _dict_page_parse_regex = re.compile(ur'^ (?P<key>.+?):: (?P<val>.*?) *$', re.MULTILINE | re.UNICODE)
+    _dict_page_parse_regex = re.compile(r'^ (?P<key>.+?):: (?P<val>.*?) *$', re.MULTILINE | re.UNICODE)
 
     def __contains__(self, dict_name):
         return self.is_dict_name(dict_name) and Page(self.request, dict_name).exists()

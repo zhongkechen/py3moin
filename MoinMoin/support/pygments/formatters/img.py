@@ -9,6 +9,11 @@
     :license: BSD, see LICENSE for details.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
 import os
 import sys
 
@@ -26,7 +31,7 @@ except ImportError:
     pil_available = False
 
 try:
-    import _winreg
+    import winreg
 except ImportError:
     try:
         import winreg as _winreg
@@ -153,7 +158,7 @@ class FontManager(object):
             for style in styles:
                 try:
                     valname = '%s%s%s' % (basename, style and ' '+style, suffix)
-                    val, _ = _winreg.QueryValueEx(key, valname)
+                    val, _ = winreg.QueryValueEx(key, valname)
                     return val
                 except EnvironmentError:
                     continue
@@ -165,13 +170,13 @@ class FontManager(object):
 
     def _create_win(self):
         try:
-            key = _winreg.OpenKey(
-                _winreg.HKEY_LOCAL_MACHINE,
+            key = winreg.OpenKey(
+                winreg.HKEY_LOCAL_MACHINE,
                 r'Software\Microsoft\Windows NT\CurrentVersion\Fonts')
         except EnvironmentError:
             try:
-                key = _winreg.OpenKey(
-                    _winreg.HKEY_LOCAL_MACHINE,
+                key = winreg.OpenKey(
+                    winreg.HKEY_LOCAL_MACHINE,
                     r'Software\Microsoft\Windows\CurrentVersion\Fonts')
             except EnvironmentError:
                 raise FontNotFound('Can\'t open Windows font registry key')
@@ -188,7 +193,7 @@ class FontManager(object):
                     else:
                         self.fonts[style] = self.fonts['NORMAL']
         finally:
-            _winreg.CloseKey(key)
+            winreg.CloseKey(key)
 
     def get_char_size(self):
         """
@@ -504,7 +509,7 @@ class ImageFormatter(Formatter):
         """
         if not self.line_numbers:
             return
-        for p in xrange(self.maxlineno):
+        for p in range(self.maxlineno):
             n = p + self.line_number_start
             if (n % self.line_number_step) == 0:
                 self._draw_linenumber(p, n)

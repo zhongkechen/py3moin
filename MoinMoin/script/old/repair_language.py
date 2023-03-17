@@ -47,6 +47,7 @@ Why run this script?
 """
 from __future__ import print_function
 
+from builtins import range
 import codecs
 import os, sys
 

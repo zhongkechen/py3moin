@@ -7,6 +7,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
 import os, re
 from email.header import Header
 
@@ -32,7 +33,7 @@ def encodeAddress(address, charset):
     @rtype: string
     @return: encoded address
     """
-    assert isinstance(address, unicode)
+    assert isinstance(address, str)
     composite = re.compile(r'(?P<phrase>.*?)(?P<blanks>\s*)\<(?P<addr>.*)\>', re.UNICODE)
     match = composite.match(address)
     if match:
@@ -191,7 +192,7 @@ def encodeSpamSafeEmail(email_address, obfuscation_text=''):
     """
     address = email_address.lower()
     # uppercase letters will be stripped by decodeSpamSafeEmail
-    for word, sign in _transdict.items():
+    for word, sign in list(_transdict.items()):
         address = address.replace(sign, ' %s ' % word)
     if obfuscation_text.isalpha():
         # is the obfuscation_text alphabetic

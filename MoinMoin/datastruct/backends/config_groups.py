@@ -31,7 +31,7 @@ class ConfigGroups(BaseGroupsBackend):
         return group_name in self._groups
 
     def __iter__(self):
-        return self._groups.iterkeys()
+        return iter(list(self._groups.keys()))
 
     def __getitem__(self, group_name):
         return ConfigGroup(request=self.request, name=group_name, backend=self)

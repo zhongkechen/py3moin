@@ -10,6 +10,12 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import chr
+from builtins import range
+from builtins import object
 import os, re
 
 from xml.dom import minidom, Node, getDOMImplementation
@@ -826,15 +832,15 @@ class Formatter(FormatterBase):
             cleaned = markup
             import re
             entities = re.compile("&(?P<e>[a-zA-Z]+);").findall(cleaned)
-            from htmlentitydefs import name2codepoint
+            from html.entities import name2codepoint
             for ent in entities:
                 if ent in name2codepoint:
-                    cleaned = cleaned.replace("&%s;" % ent, unichr(name2codepoint[ent]))
+                    cleaned = cleaned.replace("&%s;" % ent, chr(name2codepoint[ent]))
 
             # Then we replace all escaped unicodes.
             escapedunicodes = re.compile("&#(?P<h>[0-9]+);").findall(markup)
             for uni in escapedunicodes:
-                cleaned = cleaned.replace("&#%s;" % uni, unichr(int(uni)))
+                cleaned = cleaned.replace("&#%s;" % uni, chr(int(uni)))
 
             self.text(cleaned)
 
@@ -872,12 +878,12 @@ class Formatter(FormatterBase):
 
         if on and kw.get('css_class'):
             css_classes = kw.get('css_class').split()
-            for style in class_to_docbook.keys():
+            for style in list(class_to_docbook.keys()):
                 if style in css_classes:
                     return self._handleNode(class_to_docbook[style], on)
 
         elif not on:
-            if self.cur.nodeName in class_to_docbook.values():
+            if self.cur.nodeName in list(class_to_docbook.values()):
                 return self._handleNode(self.cur.nodeName, on)
 
         return ""
@@ -930,7 +936,7 @@ class Formatter(FormatterBase):
                 self.cur = self.curtable.addCell()
         return ""
 
-class Table:
+class Table(object):
     '''The Table class is used as a helper for collecting information about
     what kind of table we are building. When all relelvant data is gathered
     it calculates the different spans of the cells and columns.

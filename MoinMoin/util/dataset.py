@@ -9,7 +9,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-class Column:
+from builtins import object
+class Column(object):
     """ Meta-data for a column.
     """
 
@@ -34,7 +35,7 @@ class Column:
             setattr(self, slot, kw.get(slot, defval))
 
 
-class Dataset:
+class Dataset(object):
     """ Base dataset.
 
     Holds a 2-dimensional data set (m rows of n columns) and associated
@@ -57,7 +58,7 @@ class Dataset:
         """
         self._pos = 0
 
-    def next(self):
+    def __next__(self):
         """ Return next row as a tuple, ordered by columns.
         """
         if self._pos >= len(self):
@@ -82,7 +83,7 @@ class DictDataset(Dataset):
     """ A dataset that stores dicts as the rows.
     """
 
-    def next(self):
+    def __next__(self):
         row = Dataset.next(self)
         return tuple([row[col.name] for col in self.columns])
 

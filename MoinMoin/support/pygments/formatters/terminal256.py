@@ -24,6 +24,9 @@
 #    black-on-while, so colors like "white background" need to be converted
 #    to "white background, black foreground", etc...
 
+from builtins import str
+from builtins import range
+from builtins import object
 import sys
 
 from pygments.formatter import Formatter
@@ -34,7 +37,7 @@ from pygments.style import ansicolors
 __all__ = ['Terminal256Formatter', 'TerminalTrueColorFormatter']
 
 
-class EscapeSequence:
+class EscapeSequence(object):
     def __init__(self, fg=None, bg=None, bold=False, underline=False):
         self.fg = fg
         self.bg = bg

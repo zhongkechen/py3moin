@@ -16,6 +16,10 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import bytes
 import base64
 import re
 import warnings
@@ -47,7 +51,7 @@ try:
     from urllib.parse import unquote_to_bytes as _unquote
 except ImportError:
     from urllib2 import parse_http_list as _parse_list_header
-    from urllib2 import unquote as _unquote
+    from urllib.parse import unquote as _unquote
 
 _cookie_charset = "latin1"
 _basic_auth_charset = "utf-8"

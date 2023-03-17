@@ -33,6 +33,7 @@
 
 """
 
+from builtins import str
 import sys
 
 def error(msg):
@@ -43,7 +44,7 @@ def run():
         cmd, src_enc, dst_enc = sys.argv
 
         for line in sys.stdin:
-            line = unicode(line, src_enc).encode(dst_enc)
+            line = str(line, src_enc).encode(dst_enc)
             sys.stdout.write(line)
 
     except UnicodeError as err:

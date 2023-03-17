@@ -3,6 +3,7 @@
 # imports
 #=============================================================================
 # core
+from builtins import object
 import logging; log = logging.getLogger(__name__)
 import sys
 # site

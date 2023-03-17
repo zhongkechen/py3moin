@@ -6,13 +6,15 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
+from builtins import object
 from email.charset import Charset, QP
 from email.header import Header
 from MoinMoin.mail import sendmail
 from MoinMoin import config
 
 
-class TestdecodeSpamSafeEmail:
+class TestdecodeSpamSafeEmail(object):
     """mail.sendmail: testing mail"""
 
     _tests = (
@@ -40,7 +42,7 @@ class TestdecodeSpamSafeEmail:
         for coded, expected in self._tests:
             assert sendmail.decodeSpamSafeEmail(coded) == expected
 
-class TestencodeSpamSafeEmail:
+class TestencodeSpamSafeEmail(object):
     """mail.sendmail: testing spam safe mail"""
 
     _tests = (
@@ -66,7 +68,7 @@ class TestencodeSpamSafeEmail:
             expected = expected.replace(' AT ', ' AT SYCTE ')
             assert sendmail.encodeSpamSafeEmail(coded, 'SYCTE') == expected
 
-class TestEncodeAddress:
+class TestEncodeAddress(object):
     """ Address encoding tests
 
     See http://www.faqs.org/rfcs/rfc2822.html section 3.4.
@@ -83,8 +85,7 @@ class TestEncodeAddress:
     def testSimpleAddress(self):
         """ mail.sendmail: encode simple address: local@domain """
         address = u'local@domain'
-        expected = address.encode(config.charset)
-        assert sendmail.encodeAddress(address, self.charset) == expected
+        assert sendmail.encodeAddress(address, self.charset) == address
 
     def testComposite(self):
         """ mail.sendmail: encode address: 'Phrase <local@domain>' """

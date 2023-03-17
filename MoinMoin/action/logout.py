@@ -9,12 +9,13 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 from MoinMoin.Page import Page
 
 def execute(pagename, request):
     return LogoutHandler(pagename, request).handle()
 
-class LogoutHandler:
+class LogoutHandler(object):
     def __init__(self, pagename, request):
         self.request = request
         self._ = request.getText

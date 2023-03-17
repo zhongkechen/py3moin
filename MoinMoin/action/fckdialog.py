@@ -227,7 +227,7 @@ def link_dialog(request):
 
     # list of interwiki names
     interwiki_list = wikiutil.load_wikimap(request)
-    interwiki = interwiki_list.keys()
+    interwiki = list(interwiki_list.keys())
     interwiki.sort()
     iwpreferred = request.cfg.interwiki_preferred[:]
     if not iwpreferred or iwpreferred and iwpreferred[-1] is not None:

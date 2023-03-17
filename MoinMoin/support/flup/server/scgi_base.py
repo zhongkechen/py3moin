@@ -1,3 +1,4 @@
+from __future__ import division
 # Copyright (c) 2005, 2006 Allan Saddi <allan@saddi.com>
 # All rights reserved.
 #
@@ -24,6 +25,12 @@
 #
 # $Id$
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from future.utils import raise_
 __author__ = 'Allan Saddi <allan@saddi.com>'
 __version__ = '$Revision$'
@@ -33,7 +40,7 @@ import logging
 import socket
 import select
 import errno
-import cStringIO as StringIO
+import io as StringIO
 import signal
 import datetime
 import os
@@ -42,7 +49,7 @@ import traceback
 
 # Threads are required. If you want a non-threaded (forking) version, look at
 # SWAP <http://www.idyll.org/~t/www-tools/wsgi/>.
-import thread
+import _thread
 import threading
 
 __all__ = ['BaseSCGIServer']
@@ -249,7 +256,7 @@ class Connection(object):
         if len(headers) % 2 != 0:
             raise ProtocolError('invalid headers')
         environ = {}
-        for i in range(len(headers) / 2):
+        for i in range(old_div(len(headers), 2)):
             environ[headers[2*i]] = headers[2*i+1]
 
         clen = environ.get('CONTENT_LENGTH')
@@ -349,7 +356,7 @@ class BaseSCGIServer(object):
         self._allowedServers = allowedServers
 
         # Used to force single-threadedness.
-        self._appLock = thread.allocate_lock()
+        self._appLock = _thread.allocate_lock()
 
         self.logger = logging.getLogger(LoggerName)
         self.logger.setLevel(loggingLevel)

@@ -13,6 +13,7 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from builtins import object
 import codecs
 import re
 import sys
@@ -279,7 +280,7 @@ class DebugReprGenerator(object):
         return self.render_object_dump(items, title, repr)
 
     def dump_locals(self, d):
-        items = [(key, self.repr(value)) for key, value in d.items()]
+        items = [(key, self.repr(value)) for key, value in list(d.items())]
         return self.render_object_dump(items, "Local variables in frame")
 
     def render_object_dump(self, items, title, repr=None):

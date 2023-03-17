@@ -7,8 +7,10 @@
                 2007 Nina Kuisma <ninnnu@gmail.com>
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import division
 
 
+from past.utils import old_div
 from MoinMoin import user, i18n
 
 
@@ -33,7 +35,7 @@ def get_data(request):
             data[current_user.language] = data.get(current_user.language, 0) + 1
     if u'' in data:
         data[u'browser'] = data.pop(u'') # In case we have users whose languages aren't detectable.
-    data = [(cnt, current_user_language) for current_user_language, cnt in data.items()]
+    data = [(cnt, current_user_language) for current_user_language, cnt in list(data.items())]
     data.sort()
     data.reverse()
     return data
@@ -67,19 +69,19 @@ def used_languages(request):
             try:
                 if lang == u'browser':
                     languages.addRow((browserlang, "%(percent).2f%% (%(count)d)" % {
-                        'percent': 100.0 * cnt / total,
+                        'percent': old_div(100.0 * cnt, total),
                         'count': cnt}))
                 else:
                     lang = i18n.wikiLanguages()[lang]['x-language-in-english']
                     languages.addRow((lang, "%(percent).2f%% (%(count)d)" % {
-                        'percent': 100.0 * cnt / total,
+                        'percent': old_div(100.0 * cnt, total),
                         'count': cnt}))
                 cnt_printed += cnt
             except UnicodeError:
                 pass
         if total > cnt_printed:
             languages.addRow((_('Others'), "%(percent).2f%% (%(count)d)" % {
-                'percent': 100.0 * (total - cnt_printed) / total,
+                'percent': old_div(100.0 * (total - cnt_printed), total),
                 'count': total - cnt_printed}))
 
     else: # If we don't have any users, we can safely assume that the only real user is the visitor (who is normally ignored, though) who is using "Browser setting"

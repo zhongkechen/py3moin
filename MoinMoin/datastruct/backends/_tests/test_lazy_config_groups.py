@@ -5,6 +5,7 @@
     @copyright: 2009 by MoinMoin:DmitrijsMilajevs
     @license: GNU GPL, see COPYING for details.
 """
+import pytest
 
 from MoinMoin.datastruct.backends._tests import GroupsBackendTest
 from MoinMoin.datastruct.backends.config_lazy_groups import ConfigLazyGroups
@@ -12,6 +13,7 @@ from MoinMoin.datastruct import ConfigGroups, CompositeGroups, GroupDoesNotExist
 from MoinMoin._tests import wikiconfig
 
 
+@pytest.mark.wiki_config(groups=lambda s, r: ConfigGroups(r, TestLazyConfigGroups.test_groups))
 class TestLazyConfigGroups(GroupsBackendTest):
 
     test_groups = {u'EditorGroup': [u'John', u'JoeDoe', u'Editor1'],
@@ -20,12 +22,6 @@ class TestLazyConfigGroups(GroupsBackendTest):
                    u'EmptyGroup': []}
 
     expanded_groups = test_groups
-
-    class Config(wikiconfig.Config):
-
-        def groups(self, request):
-            groups = TestLazyConfigGroups.test_groups
-            return ConfigLazyGroups(request, groups)
 
     def test_contains_group(self):
         """

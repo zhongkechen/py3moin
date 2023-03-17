@@ -9,6 +9,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 from MoinMoin import log
 logging = log.getLogger(__name__)
 
@@ -206,7 +207,7 @@ class PagePreSaveEvent(Event):
         self.new_text = new_text
 
 
-class EventResult:
+class EventResult(object):
     """ This is a base class for messages passed from event handlers """
     pass
 
@@ -275,7 +276,7 @@ def get_subscribable_events():
     defs = globals()
     subscribable_events = {}
 
-    for ev in defs.values():
+    for ev in list(defs.values()):
         if type(ev) is type and issubclass(ev, Event) and "description" in ev.__dict__ and "name" in ev.__dict__:
             subscribable_events[ev.name] = {'desc': ev.description, 'superuser': ev.req_superuser}
 

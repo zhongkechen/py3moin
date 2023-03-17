@@ -6,6 +6,13 @@
 #------------------------------------------------------------------------
 # python version
 #------------------------------------------------------------------------
+from future import standard_library
+standard_library.install_aliases()
+from builtins import map
+from builtins import bytes
+from builtins import chr
+from builtins import str
+from past.builtins import basestring
 import sys
 PY2 = sys.version_info < (3,0)
 PY3 = sys.version_info >= (3,0)
@@ -37,7 +44,7 @@ import logging; log = logging.getLogger(__name__)
 if PY3:
     import builtins
 else:
-    import __builtin__ as builtins
+    import builtins as builtins
 
 def add_doc(obj, doc):
     """add docstring to an object"""
@@ -92,7 +99,7 @@ _lazy_attrs = dict()
 # unicode & bytes types
 #=============================================================================
 if PY3:
-    unicode = str
+    str = str
 
     # TODO: once we drop python 3.2 support, can use u'' again!
     def u(s):
@@ -100,10 +107,10 @@ if PY3:
         return s
 
     unicode_or_bytes_types = (str, bytes)
-    native_string_types = (unicode,)
+    native_string_types = (str,)
 
 else:
-    unicode = builtins.unicode
+    str = builtins.str
 
     def u(s):
         assert isinstance(s, str)
@@ -132,7 +139,7 @@ join_bytes = b''.join
 
 if PY3:
     def uascii_to_str(s):
-        assert isinstance(s, unicode)
+        assert isinstance(s, str)
         return s
 
     def bascii_to_str(s):
@@ -164,7 +171,7 @@ if PY3:
 
 else:
     def uascii_to_str(s):
-        assert isinstance(s, unicode)
+        assert isinstance(s, str)
         return s.encode("ascii")
 
     def bascii_to_str(s):
@@ -217,8 +224,8 @@ if PY3:
     int_types = (int,)
     num_types = (int, float)
 else:
-    int_types = (int, long)
-    num_types = (int, long, float)
+    int_types = (int, int)
+    num_types = (int, int, float)
 
 #=============================================================================
 # iteration helpers
@@ -239,9 +246,9 @@ if PY3:
     imap = map
 
     def iteritems(d):
-        return d.items()
+        return list(d.items())
     def itervalues(d):
-        return d.values()
+        return list(d.values())
 
     def nextgetter(obj):
         return obj.__next__
@@ -253,15 +260,15 @@ else:
     ##lrange = range
 
     lmap = map
-    from itertools import imap, izip
+    
 
     def iteritems(d):
-        return d.iteritems()
+        return iter(list(d.items()))
     def itervalues(d):
-        return d.itervalues()
+        return iter(list(d.values()))
 
     def nextgetter(obj):
-        return obj.next
+        return obj.__next__
 
 add_doc(nextgetter, "return function that yields successive values from iterable")
 
@@ -332,8 +339,8 @@ else:
             return
 
         # use unicode or bytes ?
-        want_unicode = isinstance(sep, unicode) or isinstance(end, unicode) or \
-                       any(isinstance(arg, unicode) for arg in args)
+        want_unicode = isinstance(sep, str) or isinstance(end, str) or \
+                       any(isinstance(arg, str) for arg in args)
 
         # pick default end sequence
         if end is None:

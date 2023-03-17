@@ -28,7 +28,7 @@ def macro_SystemAdmin(macro):
     choice = request.values.get('sysadm')
 
     # create menu
-    menuitems = [(label, fnid) for fnid, (label, handler) in _MENU.items()]
+    menuitems = [(label, fnid) for fnid, (label, handler) in list(_MENU.items())]
     menuitems.sort()
     result = []
     f = macro.formatter

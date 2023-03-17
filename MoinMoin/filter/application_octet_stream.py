@@ -18,39 +18,39 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+import os
+import string
+
 maxread = 10000
 minwordlen = 4
 
-blacklist = ('.iso', '.nrg', # CD/DVD images
+blacklist = ('.iso', '.nrg',  # CD/DVD images
              '.zip', '.rar', '.lzh', '.lha',
              '.tar', '.gz', '.tgz', '.bz2', '.tb2', '.z',
-             '.exe', '.com', '.dll', '.cab', '.msi', '.bin', # windows
-             '.rpm', '.deb', # linux
-             '.hqx', '.dmg', '.sit', # mac
-             '.jar', '.class', # java
-            )
-
-import os, string
+             '.exe', '.com', '.dll', '.cab', '.msi', '.bin',  # windows
+             '.rpm', '.deb',  # linux
+             '.hqx', '.dmg', '.sit',  # mac
+             '.jar', '.class',  # java
+             )
 
 # builds a list of all characters:
-norm = string.maketrans('', '')
+norm = bytes.maketrans(b'', b'')
 
 # builds a list of all non-alphanumeric characters:
-non_alnum = string.translate(norm, norm, string.letters+string.digits)
+non_alnum = bytes.translate(norm, norm, string.ascii_letters.encode("utf8") + string.digits.encode("utf8"))
 
 # translate table that replaces all non-alphanumeric by blanks:
-trans_nontext = string.maketrans(non_alnum, ' '*len(non_alnum))
+trans_nontext = bytes.maketrans(non_alnum, b' ' * len(non_alnum))
+
 
 def execute(indexobj, filename):
     fileext = os.path.splitext(filename)[1]
     if fileext.lower() in blacklist:
         return u''
-    f = file(filename, "rb")
-    data = f.read(maxread)
-    f.close()
-    data = data.translate(trans_nontext) # replace non-ascii by blanks
-    data = data.split() # removes lots of blanks
-    data = [s for s in data if len(s) >= minwordlen] # throw away too short stuff
-    data = ' '.join(data)
-    return data.decode('ascii')
-
+    with open(filename, "rb") as f:
+        data = f.read(maxread)
+    data = data.translate(trans_nontext)  # replace non-ascii by blanks
+    data = data.split()  # removes lots of blanks
+    data = [s for s in data if len(s) >= minwordlen]  # throw away too short stuff
+    data = b' '.join(data)
+    return data

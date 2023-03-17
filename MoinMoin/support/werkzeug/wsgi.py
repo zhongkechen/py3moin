@@ -8,6 +8,8 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from builtins import next
+from builtins import object
 import io
 import re
 from functools import partial

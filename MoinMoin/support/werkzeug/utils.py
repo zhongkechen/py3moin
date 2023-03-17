@@ -10,6 +10,13 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import chr
+from builtins import str
+from builtins import next
+from builtins import object
 import codecs
 import os
 import pkgutil
@@ -21,7 +28,7 @@ from ._compat import PY2
 from ._compat import reraise
 from ._compat import string_types
 from ._compat import text_type
-from ._compat import unichr
+from ._compat import chr
 from ._internal import _DictAccessorProperty
 from ._internal import _missing
 from ._internal import _parse_signature
@@ -29,7 +36,7 @@ from ._internal import _parse_signature
 try:
     from html.entities import name2codepoint
 except ImportError:
-    from htmlentitydefs import name2codepoint
+    from html.entities import name2codepoint
 
 
 _format_re = re.compile(r"\$(?:(%s)|\{(%s)\})" % (("[a-zA-Z_][a-zA-Z0-9_]*",) * 2))
@@ -474,12 +481,12 @@ def unescape(s):
     def handle_match(m):
         name = m.group(1)
         if name in HTMLBuilder._entities:
-            return unichr(HTMLBuilder._entities[name])
+            return chr(HTMLBuilder._entities[name])
         try:
             if name[:2] in ("#x", "#X"):
-                return unichr(int(name[2:], 16))
+                return chr(int(name[2:], 16))
             elif name.startswith("#"):
-                return unichr(int(name[1:]))
+                return chr(int(name[1:]))
         except ValueError:
             pass
         return u""

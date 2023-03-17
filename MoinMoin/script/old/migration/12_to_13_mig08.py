@@ -44,7 +44,9 @@
 from __future__ import print_function
 
 
-import os.path, sys, urllib
+from future import standard_library
+standard_library.install_aliases()
+import os.path, sys, urllib.request, urllib.parse, urllib.error
 
 # Insert THIS moin dir first into sys path, or you would run another
 # version of moin!
@@ -90,7 +92,7 @@ def gather_editlog(el_from, forcepagename=None):
         data = [timestampstr, rev, action, pagename, ip, host, id, extra, comment]
 
         entry = info.get(pagename, {})
-        timestamp = long(timestampstr) # must be long for py 2.2.x
+        timestamp = int(timestampstr) # must be long for py 2.2.x
         entry[timestamp] = [99999999, data] # new revno, data
         info[pagename] = entry
 
@@ -108,7 +110,7 @@ def generate_pages(dir_from, dir_to):
     revactions = ['SAVE', 'SAVENEW', 'SAVE/REVERT', ] # these actions create revisions
     for pn in info:
         entry = info.get(pn, {})
-        tslist = entry.keys()
+        tslist = list(entry.keys())
         if tslist:
             pagedir = opj(dir_to, 'pages', pn)
             revdir = opj(pagedir, 'revisions')
@@ -179,7 +181,7 @@ def generate_editlog(dir_from, dir_to):
             file_from, data = entry[ts]
             editlog[ts] = data
 
-    tslist = editlog.keys()
+    tslist = list(editlog.keys())
     tslist.sort()
 
     editlog_file = opj(dir_to, 'edit-log')

@@ -6,10 +6,13 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import re
-from StringIO import StringIO
+from io import StringIO
 
-import py
+import pytest
 
 from MoinMoin.Page import Page
 from MoinMoin.parser.text_csv import Parser as CSV_Parser
@@ -20,12 +23,12 @@ PAGENAME = u'ThisPageDoesNotExistsAndWillNeverBeReally'
 class ParserTestCase(object):
     """ Helper class that provide a parsing method """
 
-    def parse(self, body):
+    def parse(self, req, body):
         """Parse body and return html
 
         Create a page with body, then parse it and format using html formatter
         """
-        request = self.request
+        request = req
         assert body is not None
         request.reset()
         page = Page(request, PAGENAME)
@@ -44,19 +47,19 @@ class ParserTestCase(object):
 
 class TestDelimiters(ParserTestCase):
 
-    def testdelimiters(self):
+    def testdelimiters(self, req):
         """ parser.text_csv: delimiter , """
-        result = self.parse('a,b')
+        result = self.parse(req, 'a,b')
         assert '<td class="hcolumn0"><strong>a</strong></td>' in  result and '<td class="hcolumn1"><strong>b</strong></td>' in  result
 
-    def testemptyline(self):
+    def testemptyline(self, req):
         """ parser.text_csv: empty line """
-        result = self.parse('')
+        result = self.parse(req, '')
         assert '<tbody><tr></tr>\n</tbody>' in  result
 
-    def testnodelimiter(self):
+    def testnodelimiter(self, req):
         """ parser.text_csv: line without delimiter """
-        result = self.parse('ABCDEFGHIJ')
+        result = self.parse(req, 'ABCDEFGHIJ')
         assert '<td class="hcolumn0"><strong>ABCDEFGHIJ</strong></td>' in  result
 
 coverage_modules = ['MoinMoin.parser.text_csv']

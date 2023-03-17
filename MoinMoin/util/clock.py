@@ -7,9 +7,10 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 import time
 
-class Clock:
+class Clock(object):
     """ Helper class for code profiling
         we do not use time.clock() as this does not work across threads
         This is not thread-safe when it comes to multiple starts for one timer.

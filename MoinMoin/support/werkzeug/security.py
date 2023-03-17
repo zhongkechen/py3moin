@@ -108,10 +108,10 @@ def safe_str_cmp(a, b):
 
     rv = 0
     if PY2:
-        for x, y in izip(a, b):
+        for x, y in zip(a, b):
             rv |= ord(x) ^ ord(y)
     else:
-        for x, y in izip(a, b):
+        for x, y in zip(a, b):
             rv |= x ^ y
 
     return rv == 0

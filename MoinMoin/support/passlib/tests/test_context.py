@@ -3,12 +3,15 @@
 # imports
 #=============================================================================
 # core
-from __future__ import with_statement
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+
 from passlib.utils.compat import PY3
 if PY3:
     from configparser import NoSectionError
 else:
-    from ConfigParser import NoSectionError
+    from configparser import NoSectionError
 import datetime
 from functools import partial
 import logging; log = logging.getLogger(__name__)
@@ -20,7 +23,7 @@ from passlib import hash
 from passlib.context import CryptContext, LazyCryptContext
 from passlib.exc import PasslibConfigWarning, PasslibHashWarning
 from passlib.utils import tick, to_unicode
-from passlib.utils.compat import irange, u, unicode, str_to_uascii, PY2, PY26
+from passlib.utils.compat import irange, u, str, str_to_uascii, PY2, PY26
 import passlib.utils.handlers as uh
 from passlib.tests.utils import (TestCase, set_file, TICK_RESOLUTION,
                                  quicksleep, time_call, handler_derived_from)
@@ -1175,7 +1178,7 @@ sha512_crypt__min_rounds = 45000
 
             def _calc_checksum(self, secret):
                 from hashlib import md5
-                if isinstance(secret, unicode):
+                if isinstance(secret, str):
                     secret = secret.encode("utf-8")
                 return str_to_uascii(md5(secret).hexdigest())
 
@@ -1742,7 +1745,7 @@ class DelayHash(uh.StaticHandler):
 
     def _calc_checksum(self, secret):
         time.sleep(self.delay)
-        if isinstance(secret, unicode):
+        if isinstance(secret, str):
             secret = secret.encode("utf-8")
         return str_to_uascii(hashlib.sha1(b"prefix" + secret).hexdigest())
 

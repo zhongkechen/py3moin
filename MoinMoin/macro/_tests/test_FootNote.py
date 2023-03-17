@@ -5,7 +5,10 @@
     @copyright: 2008 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import object
 import os
+
+import pytest
 
 from MoinMoin import macro
 from MoinMoin.macro import FootNote
@@ -13,20 +16,22 @@ from MoinMoin.Page import Page
 from MoinMoin.PageEditor import PageEditor
 from MoinMoin._tests import become_trusted, create_page, make_macro, nuke_page
 
-class TestFootNote:
+class TestFootNote(object):
     """ testing macro Action calling action raw """
     pagename = u'AutoCreatedMoinMoinTemporaryTestPageForFootNote'
 
-    def setup_class(self):
-        become_trusted(self.request)
-        self.page = create_page(self.request, self.pagename, u"Foo!")
+    @pytest.fixture(autouse=True)
+    def setup_class(self, req):
+        become_trusted(req)
+        self.page = create_page(req, self.pagename, u"Foo!")
 
-    def teardown_class(self):
-        nuke_page(self.request, self.pagename)
+        yield
 
-    def test_enumbering(self):
+        nuke_page(req, self.pagename)
+
+    def test_enumbering(self, req):
         """ module_tested: enumbering of Footnotes"""
-        m = make_macro(self.request, self.page)
+        m = make_macro(req, self.page)
         text = 'a'
         FootNote.execute(m, text)
         text = 'b'

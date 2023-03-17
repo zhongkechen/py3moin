@@ -6,6 +6,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 def getIntegerInput(request, fieldname, default=None, minval=None, maxval=None):
     """ Get an integer value from a request parameter. If the value
         is out of bounds, it's made to fit into those bounds.
@@ -63,7 +64,7 @@ def makeMultiSelection(name, values, selectedvals=None, size=5, enabled=True):
 
     return result
 
-class Color:
+class Color(object):
     """ RGB-Triple that automatically converts from and to
         "#RRGGBB" encoding, and also takes Netscape color names.
 
@@ -236,7 +237,7 @@ class Color:
         elif not isinstance(color, str):
             raise TypeError("Color() expects a Color instance, a RGB triple or a color string")
         elif color[0] == '#':
-            color = long(color[1:], 16)
+            color = int(color[1:], 16)
             self.r = (color >> 16) & 255
             self.g = (color >> 8) & 255
             self.b = color & 255

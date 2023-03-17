@@ -3,6 +3,10 @@
 # imports
 #==========================================================================
 # core
+from builtins import str
+from builtins import zip
+from builtins import range
+from builtins import object
 import operator
 import struct
 # pkg
@@ -170,7 +174,7 @@ class ScryptEngine(object):
         i = 0
         while i < n:
             j = integerify(buffer) & n_mask
-            result = tuple(a ^ b for a, b in izip(buffer, get_v_elem(j)))
+            result = tuple(a ^ b for a, b in zip(buffer, get_v_elem(j)))
             bmix(result, buffer)
             i += 1
 
@@ -225,15 +229,15 @@ class ScryptEngine(object):
         j = 0
         while j < half:
             jn = j+16
-            target[j:jn] = tmp = salsa20(a ^ b for a, b in izip(tmp, siter))
-            target[half+j:half+jn] = tmp = salsa20(a ^ b for a, b in izip(tmp, siter))
+            target[j:jn] = tmp = salsa20(a ^ b for a, b in zip(tmp, siter))
+            target[half+j:half+jn] = tmp = salsa20(a ^ b for a, b in zip(tmp, siter))
             j = jn
 
     def _bmix_1(self, source, target):
         """special bmix() method optimized for ``r=1`` case"""
         B = source[16:]
-        target[:16] = tmp = salsa20(a ^ b for a, b in izip(B, iter(source)))
-        target[16:] = salsa20(a ^ b for a, b in izip(tmp, B))
+        target[:16] = tmp = salsa20(a ^ b for a, b in zip(B, iter(source)))
+        target[16:] = salsa20(a ^ b for a, b in zip(tmp, B))
 
     #=================================================================
     # eoc

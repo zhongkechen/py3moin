@@ -9,6 +9,7 @@ Additionally, we check that the files have no crlf (Windows style) line endings.
 """
 from __future__ import absolute_import
 
+from builtins import str
 import os, re, time, stat
 
 from . import pep8
@@ -47,7 +48,7 @@ try:
         x = xattr.xattr(path)
         try:
             mt = x.get('user.moin-pep8-tested-mtime')
-            mt = long(mt)
+            mt = int(mt)
             return mtime > mt
         except IOError:
             # probably not supported
@@ -77,7 +78,7 @@ def pep8_error_count(path):
 
 def check_py_file(reldir, path, mtime):
     if TRAILING_SPACES == 'fix':
-        f = file(path, 'rb')
+        f = open(path, 'rb')
         data = f.read()
         f.close()
         fixed = FIX_TS_RE.sub('', data)
@@ -87,7 +88,7 @@ def check_py_file(reldir, path, mtime):
         if fixed == data:
             return
 
-        f = file(path, 'wb')
+        f = open(path, 'wb')
         f.write(fixed)
         f.close()
     # Please read and follow PEP8 - rerun this test until it does not fail any more,

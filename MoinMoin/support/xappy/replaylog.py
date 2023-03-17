@@ -18,11 +18,16 @@
 r"""replaylog.py: Log all xapian calls to a file, so that they can be replayed.
 
 """
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 __docformat__ = "restructuredtext en"
 
 import datetime
 import sys
-import thread
+import _thread
 import threading
 import time
 import traceback
@@ -64,7 +69,7 @@ class ReplayLog(object):
         """
         # Mutex used to protect all access to _fd
         self._fd_mutex = threading.Lock()
-        self._fd = file(logpath, 'wb')
+        self._fd = open(logpath, 'wb')
 
         # Mutex used to protect all access to members other than _fd
         self._mutex = threading.Lock()
@@ -129,7 +134,7 @@ class ReplayLog(object):
         if classname is not None:
             return True
         # Check for subclasses of xapian classes.
-        for classobj, classname in self._xapian_classes.iteritems():
+        for classobj, classname in list(self._xapian_classes.items()):
             if isinstance(obj, classobj):
                 return True
         # Not a xapian class or subclass.
@@ -147,7 +152,7 @@ class ReplayLog(object):
             if classname is not None:
                 return classname
 
-            for classobj, classname in self._xapian_classes.iteritems():
+            for classobj, classname in list(self._xapian_classes.items()):
                 if issubclass(obj, classobj):
                     return "subclassof_%s" % (classname, )
 
@@ -175,7 +180,7 @@ class ReplayLog(object):
         # Check if it's a subclass of a xapian class.  Note: this will only
         # pick up subclasses, because the original classes are filtered out
         # higher up.
-        for classobj, classname in self._xapian_classes.iteritems():
+        for classobj, classname in list(self._xapian_classes.items()):
             if isinstance(obj, classobj):
                 objnum = self._get_obj_num(obj, maybe_new=maybe_new)
                 return "subclassof_%s#%d" % (classname, objnum)
@@ -206,17 +211,17 @@ class ReplayLog(object):
             return xapargname
 
         if isinstance(arg, basestring):
-            if isinstance(arg, unicode):
+            if isinstance(arg, str):
                 arg = arg.encode('utf-8')
             return 'str(%d,%s)' % (len(arg), arg)
 
-        if isinstance(arg, long):
+        if isinstance(arg, int):
             try:
                 arg = int(arg)
             except OverFlowError:
                 pass
 
-        if isinstance(arg, long):
+        if isinstance(arg, int):
             return 'long(%d)' % arg
 
         if isinstance(arg, int):
@@ -256,7 +261,7 @@ class ReplayLog(object):
         call_num = self._next_call
         self._next_call += 1
 
-        thread_id = thread.get_ident()
+        thread_id = _thread.get_ident()
         try:
             thread_num = self._thread_ids[thread_id]
         except KeyError:

@@ -7,6 +7,8 @@
     @copyright: 2000-2004 by Juergen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import str
+from builtins import object
 import re
 
 from MoinMoin import log
@@ -18,7 +20,7 @@ from MoinMoin import wikiutil
 modules = pysupport.getPackageModules(__file__)
 
 
-class FormatterBase:
+class FormatterBase(object):
     """ This defines the output interface used all over the rest of the code.
 
         Note that no other means should be used to generate _content_ output,
@@ -47,7 +49,7 @@ class FormatterBase:
                       re.escape before passing generic strings!) or a compiled
                       re object. raises re.error for invalid re.
         """
-        if isinstance(hi_re, (str, unicode)):
+        if isinstance(hi_re, (str, str)):
             hi_re = re.compile(hi_re, re.U + re.IGNORECASE)
         self._highlight_re = hi_re
 
@@ -133,7 +135,7 @@ class FormatterBase:
             try:
                 # rU: universal newline support so that even a \r is considered a valid line separator.
                 # CSV exported by office (on Mac?) has \r line separators.
-                content = file(fpath, 'rU').read()
+                content = open(fpath, 'rU').read()
                 # Try to decode text. It might return junk, but we don't
                 # have enough information with attachments.
                 content = wikiutil.decodeUnknownInput(content)
@@ -311,7 +313,7 @@ class FormatterBase:
         try:
             return macro_obj.execute(name, args)
         except ImportError as err:
-            errmsg = unicode(err)
+            errmsg = str(err)
             if not name in errmsg:
                 raise
             if markup:
@@ -370,16 +372,20 @@ class FormatterBase:
             when output goes to XML formats.
         """
 
-        import formatter, htmllib
-        from MoinMoin.util import simpleIO
+        # todo: HTMLParser from Python 3 is not compatible with formatter
+        # import formatter
+        # from html.parser import HTMLParser
+        # from MoinMoin.util import simpleIO
+        #
+        # # Regenerate plain text
+        # f = simpleIO()
+        # h = HTMLParser(formatter.AbstractFormatter(formatter.DumbWriter(f)))
+        # h.feed(markup)
+        # h.close()
+        # return self.text(f.getvalue())
+        from html_sanitizer import Sanitizer
 
-        # Regenerate plain text
-        f = simpleIO()
-        h = htmllib.HTMLParser(formatter.AbstractFormatter(formatter.DumbWriter(f)))
-        h.feed(markup)
-        h.close()
-
-        return self.text(f.getvalue())
+        return self.text(Sanitizer().sanitize(markup))
 
     def escapedText(self, on, **kw):
         """ This allows emitting text as-is, anything special will

@@ -10,10 +10,13 @@
 """
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import re
-from StringIO import StringIO
+from io import StringIO
 
-import py
+import pytest
 
 from MoinMoin.Page import Page
 from MoinMoin.parser.text_creole import Parser as CreoleParser
@@ -24,12 +27,11 @@ PAGENAME = u'ThisPageDoesNotExistsAndWillNeverBeReally'
 class ParserTestCase(object):
     """ Helper class that provide a parsing method """
 
-    def parse(self, body):
+    def parse(self, request, body):
         """Parse body and return html
 
         Create a page with body, then parse it and format using html formatter
         """
-        request = self.request
         assert body is not None
         request.reset()
         page = Page(request, PAGENAME)
@@ -54,17 +56,17 @@ class TestParagraphs(ParserTestCase):
     We do not test for </p> as it is not there currently.
     """
 
-    def testFirstParagraph(self):
+    def testFirstParagraph(self, req):
         """ parser.wiki: first paragraph should be in <p> """
-        result = self.parse('First')
+        result = self.parse(req, 'First')
         assert re.search(r'<p.*?>\s*First\s*', result)
 
-    def testEmptyLineBetweenParagraphs(self):
+    def testEmptyLineBetweenParagraphs(self, req):
         """ parser.wiki: empty line separates paragraphs """
-        result = self.parse('First\n\nSecond')
+        result = self.parse(req, 'First\n\nSecond')
         assert re.search(r'<p.*?>\s*Second\s*', result)
 
-    def testParagraphAfterBlockMarkup(self):
+    def testParagraphAfterBlockMarkup(self, req):
         """ parser.wiki: create paragraph after block markup """
 
         markup = (
@@ -78,14 +80,14 @@ class TestParagraphs(ParserTestCase):
             )
         for item in markup:
             text = item + 'Paragraph'
-            result = self.parse(text)
+            result = self.parse(req, text)
             assert re.search(r'<p.*?>\s*Paragraph\s*', result)
 
 
 class TestHeadings(ParserTestCase):
     """ Test various heading problems """
 
-    def testIgnoreWhiteSpaceAroundHeadingText(self):
+    def testIgnoreWhiteSpaceAroundHeadingText(self, req):
         """ parser.wiki: ignore white space around heading text
 
         See bug: TableOfContentsBreakOnExtraSpaces.
@@ -97,15 +99,15 @@ class TestHeadings(ParserTestCase):
             '= head  =\n', # trailing
             '=  head  =\n' # both
                  )
-        expected = self.parse('= head =')
+        expected = self.parse(req, '= head =')
         for test in tests:
-            result = self.parse(test)
+            result = self.parse(req, test)
             assert result == expected
 
 
 class TestTOC(ParserTestCase):
 
-    def testHeadingWithWhiteSpace(self):
+    def testHeadingWithWhiteSpace(self, req):
         """ parser.wiki: TOC links to headings with white space
 
         See bug: TableOfContentsBreakOnExtraSpaces.
@@ -123,8 +125,8 @@ Text
 =   heading   =
 Text
 """
-        expected = self.parse(standard)
-        result = self.parse(withWhitespace)
+        expected = self.parse(req, standard)
+        result = self.parse(req, withWhitespace)
         assert  result == expected
 
 
@@ -144,17 +146,17 @@ class TestTextFormatingTestCase(ParserTestCase):
         ("//Mix at **end**//",    '<em>Mix at <strong>end</strong></em>'),
         )
 
-    def testTextFormating(self):
+    def testTextFormating(self, req):
         """ parser.wiki: text formating """
         for test, expected in self._tests:
-            html = self.parse(self.text % test)
+            html = self.parse(req, self.text % test)
             result = self.needle.search(html).group(1)
             assert result == expected
 
 
 class TestCloseInlineTestCase(ParserTestCase):
 
-    def testCloseOneInline(self):
+    def testCloseOneInline(self, req):
         """ parser.wiki: close open inline tag when block close """
         cases = (
             # test, expected
@@ -163,7 +165,7 @@ class TestCloseInlineTestCase(ParserTestCase):
             ("text //em **em strong", r"text <em>em <strong>em strong"),
         )
         for test, expected in cases:
-            result = self.parse(test)
+            result = self.parse(req, test)
             assert re.search(expected, result)
 
 
@@ -172,71 +174,71 @@ class TestInlineCrossing(ParserTestCase):
     This test case fail with current parser/formatter and should be fixed in 2.0
     """
 
-    def disabled_testInlineCrossing(self):
+    def disabled_testInlineCrossing(self, req):
         """ parser.wiki: prevent inline crossing <a><b></a></b> """
 
         expected = (r"<p><em>a<strong>ab</strong></em><strong>b</strong>\s*</p>")
         test = "//a**ab//b**\n"
-        result = self.parse(test)
+        result = self.parse(req, test)
         assert re.search(expected, result)
 
 
 class TestEscapeHTML(ParserTestCase):
 
-    def testEscapeInTT(self):
+    def testEscapeInTT(self, req):
         """ parser.wiki: escape html markup in {{{tt}}} """
         test = 'text {{{<escape-me>}}} text\n'
-        self._test(test)
+        self._test(req, test)
 
-    def testEscapeInPre(self):
+    def testEscapeInPre(self, req):
         """ parser.wiki: escape html markup in pre """
         test = '''{{{
 <escape-me>
 }}}
 '''
-        self._test(test)
+        self._test(req, test)
 
-    def testEscapeInPreHashbang(self):
+    def testEscapeInPreHashbang(self, req):
         """ parser.wiki: escape html markup in pre with hashbang """
         test = '''{{{#!
 <escape-me>
 }}}
 '''
-        self._test(test)
+        self._test(req, test)
 
-    def testEscapeInPythonCodeArea(self):
+    def testEscapeInPythonCodeArea(self, req):
         """ parser.wiki: escape html markup in python code area """
         test = '''{{{#!python
 #<escape-me>
 }}}
 '''
-        self._test(test)
+        self._test(req, test)
 
-    def testEscapeInGetTextMacro(self):
+    def testEscapeInGetTextMacro(self, req):
         """ parser.wiki: escape html markup in GetText macro """
         test = u"text <<GetText(<escape-me>)>> text"
-        self._test(test)
+        self._test(req, test)
 
 # Getting double escaping
 #
-#    def testEscapeInGetTextFormatted(self):
+#    def testEscapeInGetTextFormatted(self, req):
 #        """ parser.wiki: escape html markup in getText formatted call """
 #        test = self.request.getText('<escape-me>', wiki=True)
-#        self._test(test)
+#        self._test(req, test)
 #
-#    def testEscapeInGetTextFormatedLink(self):
+#    def testEscapeInGetTextFormatedLink(self, req):
 #        """ parser.wiki: escape html markup in getText formatted call with link """
 #        test = self.request.getText('[[<escape-me>]]', wiki=True)
-#        self._test(test)
+#        self._test(req, test)
 
-    def testEscapeInGetTextUnFormatted(self):
+    def testEscapeInGetTextUnFormatted(self, req):
         """ parser.wiki: escape html markup in getText non formatted call """
-        test = self.request.getText('<escape-me>', wiki=False)
-        self._test(test)
+        test = req.getText('<escape-me>', wiki=False)
+        self._test(req, test)
 
-    def _test(self, test):
+    def _test(self, req, test):
         expected = r'&lt;escape-me&gt;'
-        result = self.parse(test)
+        result = self.parse(req, test)
         assert re.search(expected, result)
 
 
@@ -244,21 +246,21 @@ class TestEscapeHTML(ParserTestCase):
 class TestRule(ParserTestCase):
     """ Test rules markup """
 
-    def testNotRule(self):
+    def testNotRule(self, req):
         """ parser.wiki: --- is no rule """
-        result = self.parse('---')
+        result = self.parse(req, '---')
         expected = '---' # inside <p>
         assert expected in result
 
-    def testStandardRule(self):
+    def testStandardRule(self, req):
         """ parser.wiki: ---- is standard rule """
-        result = self.parse('----')
+        result = self.parse(req, '----')
         assert re.search(r'<hr.*?>', result)
 
-    def testLongRule(self):
+    def testLongRule(self, req):
         """ parser.wiki: ----- is no rule """
         test = '-----'
-        result = self.parse(test)
+        result = self.parse(req, test)
         assert re.search(r'-----', result)
 
 
@@ -274,7 +276,7 @@ class TestBlock(ParserTestCase):
         (' # ordered list\n', '<ol'),
         )
 
-    def testParagraphBeforeBlock(self):
+    def testParagraphBeforeBlock(self, req):
         """ parser.wiki: paragraph closed before block element """
         text = """AAA
 %s
@@ -283,17 +285,17 @@ class TestBlock(ParserTestCase):
             # We dont test here formatter white space generation
             expected = r'<p.*?>AAA\s*</p>\s*(<span.*?></span>\s*)?%s' % blockstart
             needle = re.compile(expected, re.MULTILINE)
-            result = self.parse(text % test)
+            result = self.parse(req, text % test)
             assert needle.search(result)
 
-    def testUrlAfterBlock(self):
+    def testUrlAfterBlock(self, req):
         """ parser.wiki: tests url after block element """
         case = 'some text {{{some block text\n}}} and a URL http://moinmo.in/'
 
-        result = self.parse(case)
+        result = self.parse(req, case)
         assert result.find('and a URL <a ') > -1
 
-    def testColorizedPythonParserAndNestingPreBrackets(self):
+    def testColorizedPythonParserAndNestingPreBrackets(self, req):
         """ tests nested {{{ }}} for the python colorized parser
         """
 
@@ -302,13 +304,13 @@ class TestBlock(ParserTestCase):
 import re
 pattern = re.compile(r'{{{This is some nested text}}}')
 }}}"""
-        output = self.parse(raw)
+        output = self.parse(req, raw)
         output = ''.join(output)
         print(output)
         # note: recent pygments renders the opening {{{ intermixed into some <span> tags
         assert "This is some nested text}}}" in output
 
-    def testNestingPreBracketsWithLinebreak(self):
+    def testNestingPreBracketsWithLinebreak(self, req):
         """ tests nested {{{ }}} for the wiki parser
         """
 
@@ -316,40 +318,40 @@ pattern = re.compile(r'{{{This is some nested text}}}')
 Example
 You can use {{{brackets}}}
 }}}"""
-        output = self.parse(raw)
+        output = self.parse(req, raw)
         output = ''.join(output)
         print(output)
         assert 'You can use {{{brackets}}}' in output
 
-    def testTextBeforeNestingPreBrackets(self):
+    def testTextBeforeNestingPreBrackets(self, req):
         """ tests text before nested {{{ }}} for the wiki parser
         """
         raw = """Example
 {{{
 You can use {{{brackets}}}
 }}}"""
-        output = self.parse(raw)
+        output = self.parse(req, raw)
         output = ''.join(output)
         assert 'Example</p><pre>You can use {{{brackets}}}</pre>' in output
 
-    def testManyNestingPreBrackets(self):
+    def testManyNestingPreBrackets(self, req):
         """ tests two nestings  ({{{ }}} and {{{ }}}) in one line for the wiki parser
         """
 
         raw = """{{{
 Test {{{brackets}}} and test {{{brackets}}}
 }}}"""
-        output = self.parse(raw)
+        output = self.parse(req, raw)
         output = ''.join(output)
         expected = '<pre>Test {{{brackets}}} and test {{{brackets}}}'
         assert expected in output
 
-    def testMultipleShortPreSections(self):
+    def testMultipleShortPreSections(self, req):
         """
         tests two single {{{ }}} in one line
         """
         raw = 'def {{{ghi}}} jkl {{{mno}}}'
-        output = ''.join(self.parse(raw))
+        output = ''.join(self.parse(req, raw))
         expected = 'def <tt>ghi</tt> jkl <tt>mno</tt>'
         assert expected in output
 
@@ -375,31 +377,31 @@ class TestLinkingMarkup(ParserTestCase):
         ('[[http://google.com/|google]]', '<a class="http" href="http://google.com/">google</a>'),
         ]
 
-    def testLinkFormating(self):
+    def testLinkFormating(self, req):
         """ parser.wiki: link formating """
         for test, expected in self._tests:
-            html = self.parse(self.text % test)
+            html = self.parse(req, self.text % test)
             result = self.needle.search(html).group(1)
             assert result == expected
 
-    def testLinkAttachment(self):
-        html = self.parse("[[attachment:some file.txt]]")
+    def testLinkAttachment(self, req):
+        html = self.parse(req, "[[attachment:some file.txt]]")
         assert '<a ' in html
         assert 'href="' in html
         assert 'class="attachment nonexistent"' in html
         assert 'action=AttachFile' in html
         assert 'some+file.txt' in html
 
-    def testLinkAttachmentImage(self):
-        html = self.parse("[[attachment:some file.png]]")
+    def testLinkAttachmentImage(self, req):
+        html = self.parse(req, "[[attachment:some file.png]]")
         assert '<a ' in html # must create a link
         assert 'href="' in html
         assert 'class="attachment nonexistent"' in html
         assert 'action=AttachFile' in html
         assert 'some+file.png' in html
 
-    def testAnchor(self):
-        html = self.parse("{{#anchor}}")
+    def testAnchor(self, req):
+        html = self.parse(req, "{{#anchor}}")
         assert 'id="anchor"' in html
 
 coverage_modules = ['MoinMoin.parser.text_creole']

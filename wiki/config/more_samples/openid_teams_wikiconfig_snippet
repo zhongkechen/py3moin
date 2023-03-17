@@ -25,5 +25,5 @@
     acl_rights_default = u'Known:read,write All:read' #,write,delete,revert,admin"
     acl_rights_before = u'%s:read,write,delete,revert,admin' % openidrp_acl_admin
     acl_hierarchic = True
-    page_group_regex = ur'(?P<all>(?P<key>\S+)%s)' % openidrp_acl_page_postfix
+    page_group_regex = r'(?P<all>(?P<key>\S+)%s)' % openidrp_acl_page_postfix
 

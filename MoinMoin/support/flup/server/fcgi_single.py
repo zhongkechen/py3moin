@@ -112,8 +112,7 @@ class WSGIServer(BaseFCGIServer, SingleServer):
         """
         self._web_server_addrs = os.environ.get('FCGI_WEB_SERVER_ADDRS')
         if self._web_server_addrs is not None:
-            self._web_server_addrs = map(lambda x: x.strip(),
-                                         self._web_server_addrs.split(','))
+            self._web_server_addrs = [x.strip() for x in self._web_server_addrs.split(',')]
 
         sock = self._setupSocket()
 
@@ -132,7 +131,7 @@ if __name__ == '__main__':
               '<body>\n' \
               '<p>Hello World!</p>\n' \
               '<table border="1">'
-        names = environ.keys()
+        names = list(environ.keys())
         names.sort()
         for name in names:
             yield '<tr><td>%s</td><td>%s</td></tr>\n' % (

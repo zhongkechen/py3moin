@@ -38,6 +38,8 @@
     :license: BSD, see LICENSE for details.
 """
 
+from builtins import next
+from builtins import object
 import re
 
 from pygments.lexer import Lexer, RegexLexer, do_insertions, bygroups, words

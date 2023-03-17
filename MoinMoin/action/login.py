@@ -10,6 +10,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
+from builtins import object
 from MoinMoin import userform, wikiutil
 from MoinMoin.Page import Page
 from MoinMoin.widget import html
@@ -17,7 +19,7 @@ from MoinMoin.widget import html
 def execute(pagename, request):
     return LoginHandler(pagename, request).handle()
 
-class LoginHandler:
+class LoginHandler(object):
     def __init__(self, pagename, request):
         self.request = request
         self._ = request.getText
@@ -44,7 +46,7 @@ class LoginHandler:
         request.write(request.formatter.startContent("content"))
 
         extra = request._login_multistage(request, form)
-        request.write(unicode(form))
+        request.write(str(form))
         if extra:
             request.write(extra)
 

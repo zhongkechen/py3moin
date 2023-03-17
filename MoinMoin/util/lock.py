@@ -7,6 +7,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 import os, sys, tempfile, time, errno
 
 from MoinMoin import log
@@ -14,7 +15,7 @@ logging = log.getLogger(__name__)
 
 from MoinMoin.util import filesys
 
-class Timer:
+class Timer(object):
     """ Simple count down timer
 
     Useful for code that needs to complete a task within some timeout.
@@ -61,7 +62,7 @@ class Timer:
         return time.time() - self._start
 
 
-class ExclusiveLock:
+class ExclusiveLock(object):
     """ Exclusive lock
 
     Uses a directory as portable lock method. On all platforms,

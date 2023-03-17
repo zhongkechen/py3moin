@@ -11,7 +11,9 @@
 """
 from __future__ import print_function
 
-import py
+from builtins import next
+from builtins import object
+import pytest
 
 from MoinMoin import security
 acliter = security.ACLStringIterator
@@ -25,54 +27,54 @@ from MoinMoin._tests import wikiconfig, become_trusted, create_page, nuke_page
 
 class TestACLStringIterator(object):
 
-    def testEmpty(self):
+    def testEmpty(self, req):
         """ security: empty acl string raise StopIteration """
-        iter = acliter(self.request.cfg.acl_rights_valid, '')
-        py.test.raises(StopIteration, iter.next)
+        iter = acliter(req.cfg.acl_rights_valid, '')
+        pytest.raises(StopIteration, iter.__next__)
 
-    def testWhiteSpace(self):
+    def testWhiteSpace(self, req):
         """ security: white space acl string raise StopIteration """
-        iter = acliter(self.request.cfg.acl_rights_valid, '       ')
-        py.test.raises(StopIteration, iter.next)
+        iter = acliter(req.cfg.acl_rights_valid, '       ')
+        pytest.raises(StopIteration, iter.__next__)
 
-    def testDefault(self):
+    def testDefault(self, req):
         """ security: default meta acl """
-        iter = acliter(self.request.cfg.acl_rights_valid, 'Default Default')
+        iter = acliter(req.cfg.acl_rights_valid, 'Default Default')
         for mod, entries, rights in iter:
             assert entries == ['Default']
             assert rights == []
 
-    def testEmptyRights(self):
+    def testEmptyRights(self, req):
         """ security: empty rights """
-        iter = acliter(self.request.cfg.acl_rights_valid, 'WikiName:')
+        iter = acliter(req.cfg.acl_rights_valid, 'WikiName:')
         mod, entries, rights = next(iter)
         assert entries == ['WikiName']
         assert rights == []
 
-    def testSingleWikiNameSingleWrite(self):
+    def testSingleWikiNameSingleWrite(self, req):
         """ security: single wiki name, single right """
-        iter = acliter(self.request.cfg.acl_rights_valid, 'WikiName:read')
+        iter = acliter(req.cfg.acl_rights_valid, 'WikiName:read')
         mod, entries, rights = next(iter)
         assert entries == ['WikiName']
         assert rights == ['read']
 
-    def testMultipleWikiNameAndRights(self):
+    def testMultipleWikiNameAndRights(self, req):
         """ security: multiple wiki names and rights """
-        iter = acliter(self.request.cfg.acl_rights_valid, 'UserOne,UserTwo:read,write')
+        iter = acliter(req.cfg.acl_rights_valid, 'UserOne,UserTwo:read,write')
         mod, entries, rights = next(iter)
         assert entries == ['UserOne', 'UserTwo']
         assert rights == ['read', 'write']
 
-    def testMultipleWikiNameAndRightsSpaces(self):
+    def testMultipleWikiNameAndRightsSpaces(self, req):
         """ security: multiple names with spaces """
-        iter = acliter(self.request.cfg.acl_rights_valid, 'user one,user two:read')
+        iter = acliter(req.cfg.acl_rights_valid, 'user one,user two:read')
         mod, entries, rights = next(iter)
         assert entries == ['user one', 'user two']
         assert rights == ['read']
 
-    def testMultipleEntries(self):
+    def testMultipleEntries(self, req):
         """ security: multiple entries """
-        iter = acliter(self.request.cfg.acl_rights_valid, 'UserOne:read,write UserTwo:read All:')
+        iter = acliter(req.cfg.acl_rights_valid, 'UserOne:read,write UserTwo:read All:')
         mod, entries, rights = next(iter)
         assert entries == ['UserOne']
         assert rights == ['read', 'write']
@@ -83,16 +85,16 @@ class TestACLStringIterator(object):
         assert entries == ['All']
         assert rights == []
 
-    def testNameWithSpaces(self):
+    def testNameWithSpaces(self, req):
         """ security: single name with spaces """
-        iter = acliter(self.request.cfg.acl_rights_valid, 'user one:read')
+        iter = acliter(req.cfg.acl_rights_valid, 'user one:read')
         mod, entries, rights = next(iter)
         assert entries == ['user one']
         assert rights == ['read']
 
-    def testMultipleEntriesWithSpaces(self):
+    def testMultipleEntriesWithSpaces(self, req):
         """ security: multiple entries with spaces """
-        iter = acliter(self.request.cfg.acl_rights_valid, 'user one:read,write user two:read')
+        iter = acliter(req.cfg.acl_rights_valid, 'user one:read,write user two:read')
         mod, entries, rights = next(iter)
         assert entries == ['user one']
         assert rights == ['read', 'write']
@@ -100,9 +102,9 @@ class TestACLStringIterator(object):
         assert entries == ['user two']
         assert rights == ['read']
 
-    def testMixedNames(self):
+    def testMixedNames(self, req):
         """ security: mixed wiki names and names with spaces """
-        iter = acliter(self.request.cfg.acl_rights_valid, 'UserOne,user two:read,write user three,UserFour:read')
+        iter = acliter(req.cfg.acl_rights_valid, 'UserOne,user two:read,write user three,UserFour:read')
         mod, entries, rights = next(iter)
         assert entries == ['UserOne', 'user two']
         assert rights == ['read', 'write']
@@ -110,9 +112,9 @@ class TestACLStringIterator(object):
         assert entries == ['user three', 'UserFour']
         assert rights == ['read']
 
-    def testModifier(self):
+    def testModifier(self, req):
         """ security: acl modifiers """
-        iter = acliter(self.request.cfg.acl_rights_valid, '+UserOne:read -UserTwo:')
+        iter = acliter(req.cfg.acl_rights_valid, '+UserOne:read -UserTwo:')
         mod, entries, rights = next(iter)
         assert mod == '+'
         assert entries == ['UserOne']
@@ -122,25 +124,25 @@ class TestACLStringIterator(object):
         assert entries == ['UserTwo']
         assert rights == []
 
-    def testIgnoreInvalidACL(self):
+    def testIgnoreInvalidACL(self, req):
         """ security: ignore invalid acl
 
         The last part of this acl can not be parsed. If it ends with :
         then it will be parsed as one name with spaces.
         """
-        iter = acliter(self.request.cfg.acl_rights_valid, 'UserOne:read user two is ignored')
+        iter = acliter(req.cfg.acl_rights_valid, 'UserOne:read user two is ignored')
         mod, entries, rights = next(iter)
         assert entries == ['UserOne']
         assert rights == ['read']
-        py.test.raises(StopIteration, iter.next)
+        pytest.raises(StopIteration, iter.__next__)
 
-    def testEmptyNamesWithRight(self):
+    def testEmptyNamesWithRight(self, req):
         """ security: empty names with rights
 
         The documents does not talk about this case, may() should ignore
         the rights because there is no entry.
         """
-        iter = acliter(self.request.cfg.acl_rights_valid, 'UserOne:read :read All:')
+        iter = acliter(req.cfg.acl_rights_valid, 'UserOne:read :read All:')
         mod, entries, rights = next(iter)
         assert entries == ['UserOne']
         assert rights == ['read']
@@ -151,26 +153,26 @@ class TestACLStringIterator(object):
         assert entries == ['All']
         assert rights == []
 
-    def testIgnodeInvalidRights(self):
+    def testIgnodeInvalidRights(self, req):
         """ security: ignore rights not in acl_rights_valid """
-        iter = acliter(self.request.cfg.acl_rights_valid, 'UserOne:read,sing,write,drink,sleep')
+        iter = acliter(req.cfg.acl_rights_valid, 'UserOne:read,sing,write,drink,sleep')
         mod, entries, rights = next(iter)
         assert rights == ['read', 'write']
 
-    def testBadGuy(self):
+    def testBadGuy(self, req):
         """ security: bad guy may not allowed anything
 
         This test was failing on the apply acl rights test.
         """
-        iter = acliter(self.request.cfg.acl_rights_valid, 'UserOne:read,write BadGuy: All:read')
+        iter = acliter(req.cfg.acl_rights_valid, 'UserOne:read,write BadGuy: All:read')
         mod, entries, rights = next(iter)
         mod, entries, rights = next(iter)
         assert entries == ['BadGuy']
         assert rights == []
 
-    def testAllowExtraWhitespace(self):
+    def testAllowExtraWhitespace(self, req):
         """ security: allow extra white space between entries """
-        iter = acliter(self.request.cfg.acl_rights_valid, 'UserOne,user two:read,write   user three,UserFour:read  All:')
+        iter = acliter(req.cfg.acl_rights_valid, 'UserOne,user two:read,write   user three,UserFour:read  All:')
         mod, entries, rights = next(iter)
         assert  entries == ['UserOne', 'user two']
         assert rights == ['read', 'write']
@@ -187,15 +189,8 @@ class TestAcl(object):
 
     TO DO: test unknown user?
     """
-    def setup_method(self, method):
-        # Backup user
-        self.savedUser = self.request.user.name
 
-    def teardown_method(self, method):
-        # Restore user
-        self.request.user.name = self.savedUser
-
-    def testApplyACLByUser(self):
+    def testApplyACLByUser(self, req):
         """ security: applying acl by user name"""
         # This acl string...
         acl_rights = [
@@ -211,7 +206,7 @@ class TestAcl(object):
             "BadGuy:  "
             "All:read  "
             ]
-        acl = security.AccessControlList(self.request.cfg, acl_rights)
+        acl = security.AccessControlList(req.cfg, acl_rights)
 
         # Should apply these rights:
         users = (
@@ -240,39 +235,36 @@ class TestAcl(object):
 
         # Check rights
         for user, may in users:
-            mayNot = [right for right in self.request.cfg.acl_rights_valid
+            mayNot = [right for right in req.cfg.acl_rights_valid
                       if right not in may]
             # User should have these rights...
             for right in may:
-                assert acl.may(self.request, user, right)
+                assert acl.may(req, user, right)
             # But NOT these:
             for right in mayNot:
-                assert not acl.may(self.request, user, right)
+                assert not acl.may(req, user, right)
 
+groups = {
+    u'PGroup': frozenset([u'Antony', u'Beatrice', ]),
+    u'AGroup': frozenset([u'All', ]),
+    # note: the next line is a INTENDED misnomer, there is "All" in
+    # the group NAME, but not in the group members. This makes
+    # sure that a bug that erroneously checked "in groupname" (instead
+    # of "in groupmembers") does not reappear.
+    u'AllGroup': frozenset([]), # note: intended misnomer
+}
 
 class TestGroupACL(object):
 
-    class Config(wikiconfig.Config):
-        def groups(self, request):
-            groups = {
-                u'PGroup': frozenset([u'Antony', u'Beatrice', ]),
-                u'AGroup': frozenset([u'All', ]),
-                # note: the next line is a INTENDED misnomer, there is "All" in
-                # the group NAME, but not in the group members. This makes
-                # sure that a bug that erroneously checked "in groupname" (instead
-                # of "in groupmembers") does not reappear.
-                u'AllGroup': frozenset([]), # note: intended misnomer
-            }
-            return ConfigGroups(request, groups)
-
-    def testApplyACLByGroup(self):
+    @pytest.mark.wiki_config(groups=lambda s, r: ConfigGroups(r, groups))
+    def testApplyACLByGroup(self, req):
         """ security: applying acl by group name"""
         # This acl string...
         acl_rights = [
             "PGroup,AllGroup:read,write,admin "
             "AGroup:read "
             ]
-        acl = security.AccessControlList(self.request.cfg, acl_rights)
+        acl = security.AccessControlList(req.cfg, acl_rights)
 
         # Should apply these rights:
         users = (
@@ -284,14 +276,14 @@ class TestGroupACL(object):
 
         # Check rights
         for user, may in users:
-            mayNot = [right for right in self.request.cfg.acl_rights_valid
+            mayNot = [right for right in req.cfg.acl_rights_valid
                       if right not in may]
             # User should have these rights...
             for right in may:
-                assert acl.may(self.request, user, right)
+                assert acl.may(req, user, right)
             # But NOT these:
             for right in mayNot:
-                assert not acl.may(self.request, user, right)
+                assert not acl.may(req, user, right)
 
 
 class TestPageAcls(object):
@@ -316,23 +308,23 @@ class TestPageAcls(object):
         acl_rights_after = u"All:read"
         acl_hierarchic = False
 
-    def setup_class(self):
+    def setup_class(self, req):
         # Backup user
-        self.savedUser = self.request.user.name
-        self.request.user = User(self.request, auth_username=u'WikiAdmin')
-        self.request.user.valid = True
+        self.savedUser = req.user.name
+        req.user = User(req, auth_username=u'WikiAdmin')
+        req.user.valid = True
 
         for page_name, page_content in self.pages:
-            create_page(self.request, page_name, page_content)
+            create_page(req, page_name, page_content)
 
-    def teardown_class(self):
+    def teardown_class(self, req):
         # Restore user
-        self.request.user.name = self.savedUser
+        req.user.name = self.savedUser
 
         for page_name, dummy in self.pages:
-            nuke_page(self.request, page_name)
+            nuke_page(req, page_name)
 
-    def testPageACLs(self):
+    def testPageACLs(self, req):
         """ security: test page acls """
         tests = [
             # hierarchic, pagename, username, expected_rights
@@ -357,11 +349,11 @@ class TestPageAcls(object):
         ]
 
         for hierarchic, pagename, username, may in tests:
-            u = User(self.request, auth_username=username)
+            u = User(req, auth_username=username)
             u.valid = True
 
             def _have_right(u, right, pagename, hierarchic):
-                self.request.cfg.acl_hierarchic = hierarchic
+                req.cfg.acl_hierarchic = hierarchic
                 can_access = u.may.__getattr__(right)(pagename)
                 if can_access:
                     print("page %s: %s test if %s may %s (success)" % (
@@ -376,7 +368,7 @@ class TestPageAcls(object):
                 yield _have_right, u, right, pagename, hierarchic
 
             def _not_have_right(u, right, pagename, hierarchic):
-                self.request.cfg.acl_hierarchic = hierarchic
+                req.cfg.acl_hierarchic = hierarchic
                 can_access = u.may.__getattr__(right)(pagename)
                 if can_access:
                     print("page %s: %s test if %s may not %s (failure)" % (
@@ -387,7 +379,7 @@ class TestPageAcls(object):
                 assert not can_access
 
             # User should NOT have these rights:
-            mayNot = [right for right in self.request.cfg.acl_rights_valid
+            mayNot = [right for right in req.cfg.acl_rights_valid
                       if right not in may]
             for right in mayNot:
                 yield _not_have_right, u, right, pagename, hierarchic

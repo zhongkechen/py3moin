@@ -5,6 +5,8 @@
     @copyright: 2008 Radomir Dopieralski <moindev@sheep.art.pl>
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import range
+from builtins import object
 import hashlib
 import re
 
@@ -123,7 +125,7 @@ class PygmentsFormatter(pygments.formatter.Formatter):
             self.add_next_line(line_parts)
 
 
-class Parser:
+class Parser(object):
     parsername = "highlight"  # compatibility wrappers override this with the pygments lexer name
     Dependencies = Dependencies
     extensions = extensions_for_all_lexers()

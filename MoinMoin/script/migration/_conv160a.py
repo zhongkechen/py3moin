@@ -37,10 +37,15 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
 import os.path
 import re
 import time
-import codecs, urllib, glob
+import codecs, urllib.request, urllib.parse, urllib.error, glob
 
 from MoinMoin import config, wikiutil
 from MoinMoin.script.migration.migutil import opj, listdir, copy_file, move_file, copy_dir
@@ -69,7 +74,7 @@ def markup_converter(request, pagename, text, renames):
     return text
 
 
-class EventLog:
+class EventLog(object):
     def __init__(self, request, fname):
         self.request = request
         self.fname = fname
@@ -81,7 +86,7 @@ class EventLog:
         data = []
         try:
             lineno = 0
-            f = file(self.fname, 'r')
+            f = open(self.fname, 'r')
             for line in f:
                 lineno += 1
                 line = line.replace('\r', '').replace('\n', '')
@@ -105,7 +110,7 @@ class EventLog:
     def write(self, fname):
         """ write complete event-log to disk """
         if self.data:
-            f = file(fname, 'wb') # write in binary mode, so it stays exactly as we write it, even on windows.
+            f = open(fname, 'wb') # write in binary mode, so it stays exactly as we write it, even on windows.
                                   # the code in MoinMoin.logfile also uses binary mode and writes \n only.
             for timestamp, action, kvdict in self.data:
                 pagename = kvdict.get('pagename')
@@ -123,7 +128,7 @@ class EventLog:
         self.write(destfname)
 
 
-class EditLog:
+class EditLog(object):
     def __init__(self, request, fname):
         self.request = request
         self.fname = fname
@@ -135,7 +140,7 @@ class EditLog:
         data = {}
         try:
             lineno = 0
-            f = file(self.fname, 'r')
+            f = open(self.fname, 'r')
             for line in f:
                 lineno += 1
                 line = line.replace('\r', '').replace('\n', '')
@@ -161,21 +166,21 @@ class EditLog:
     def write(self, fname, deleted=False):
         """ write complete edit-log to disk """
         if self.data:
-            editlog = self.data.items()
+            editlog = list(self.data.items())
             editlog.sort()
-            f = file(fname, 'wb') # write in binary mode, so it stays exactly as we write it, even on windows.
+            f = open(fname, 'wb') # write in binary mode, so it stays exactly as we write it, even on windows.
                                   # the code in MoinMoin.logfile also uses binary mode and writes \n only.
             max_rev = 0
             for key, fields in editlog:
                 timestamp, rev, action, pagename, ip, hostname, userid, extra, comment = fields
                 if action.startswith('ATT'):
                     try:
-                        fname = urllib.unquote(extra).decode('utf-8')
+                        fname = urllib.parse.unquote(extra).decode('utf-8')
                     except UnicodeDecodeError:
-                        fname = urllib.unquote(extra).decode('iso-8859-1')
+                        fname = urllib.parse.unquote(extra).decode('iso-8859-1')
                     if ('FILE', pagename, fname) in self.renames:
                         fname = self.renames[('FILE', pagename, fname)]
-                    extra = urllib.quote(fname.encode('utf-8'))
+                    extra = urllib.parse.quote(fname.encode('utf-8'))
                 if ('PAGE', pagename) in self.renames:
                     pagename = self.renames[('PAGE', pagename)]
                 timestamp = str(timestamp)
@@ -206,7 +211,7 @@ class EditLog:
         self.write(destfname, deleted)
 
 
-class PageRev:
+class PageRev(object):
     """ a single revision of a page """
     def __init__(self, request, pagename, rev_dir, rev):
         self.request = request
@@ -216,7 +221,7 @@ class PageRev:
 
     def read(self):
         fname = opj(self.rev_dir, '%08d' % self.rev)
-        f = file(fname, "rb")
+        f = open(fname, "rb")
         data = f.read()
         f.close()
         data = data.decode(config.charset)
@@ -229,7 +234,7 @@ class PageRev:
             data = markup_converter(self.request, self.pagename, data, self.renames)
         fname = opj(rev_dir, '%08d' % rev)
         data = data.encode(config.charset)
-        f = file(fname, "wb")
+        f = open(fname, "wb")
         f.write(data)
         f.close()
 
@@ -239,7 +244,7 @@ class PageRev:
         self.write(data, rev_dir, convert, new_rev)
 
 
-class Attachment:
+class Attachment(object):
     """ a single attachment """
     def __init__(self, request, attach_dir, attfile):
         self.request = request
@@ -253,7 +258,7 @@ class Attachment:
         copy_file(self.path, dest)
 
 
-class Page:
+class Page(object):
     """ represents a page with all related data """
     def __init__(self, request, pages_dir, qpagename):
         self.request = request
@@ -273,7 +278,7 @@ class Page:
         # read current file
         current_fname = opj(page_dir, 'current')
         if os.path.exists(current_fname):
-            current_file = file(current_fname, "r")
+            current_file = open(current_fname, "r")
             current_rev = current_file.read()
             current_file.close()
             try:
@@ -323,7 +328,7 @@ class Page:
             if create_rev and not self.is_deleted:
                 current += 1
             current_fname = opj(page_dir, 'current')
-            current_file = file(current_fname, "w")
+            current_file = open(current_fname, "w")
             current_str = '%08d\n' % current
             current_file.write(current_str)
             current_file.close()
@@ -350,7 +355,7 @@ class Page:
         if self.attachments is not None:
             attach_dir = opj(page_dir, 'attachments')
             os.makedirs(attach_dir)
-            for fn, att in self.attachments.items():
+            for fn, att in list(self.attachments.items()):
                 # we have to check for renames here because we need the (old) pagename, too:
                 if ('FILE', self.name_old, fn) in self.renames:
                     fn_new = self.renames[('FILE', self.name_old, fn)]
@@ -365,7 +370,7 @@ class Page:
         self.write(pages_dir)
 
 
-class User:
+class User(object):
     """ represents a user with all related data """
     def __init__(self, request, users_dir, uid):
         self.request = request
@@ -395,7 +400,7 @@ class User:
         self.bookmarks = {}
         fname_pattern = opj(self.users_dir, "%s.*.bookmark" % self.uid)
         for fname in glob.glob(fname_pattern):
-            f = file(fname, "r")
+            f = open(fname, "r")
             bookmark = f.read()
             f.close()
             wiki = fname.replace('.bookmark', '').replace(opj(self.users_dir, self.uid+'.'), '')
@@ -406,7 +411,7 @@ class User:
         """ write profile and bookmarks data to disk """
         fname = opj(users_dir, self.uid)
         f = codecs.open(fname, 'w', config.charset)
-        for key, value in self.profile.items():
+        for key, value in list(self.profile.items()):
             if key in (u'subscribed_pages', u'quicklinks'):
                 pages = value.split(u'\t')
                 for i in range(len(pages)):
@@ -424,7 +429,7 @@ class User:
                 f.write(u"%s=%s\n" % (key, value))
             else:
                 f.write(u"%s=%s\n" % (key, value))
-        bookmark_entries = [u'%s:%s' % item for item in self.bookmarks.items()]
+        bookmark_entries = [u'%s:%s' % item for item in list(self.bookmarks.items())]
         key = u"bookmarks{}"
         value = u'\t'.join(bookmark_entries)
         f.write(u"%s=%s\n" % (key, value))
@@ -456,7 +461,7 @@ class DataConverter(object):
         """
         self.read_src()
         # pages
-        for pn, p in self.pages.items():
+        for pn, p in list(self.pages.items()):
             p.read()
             if not p.revisions:
                 continue # we don't care for pages with no revisions (trash)
@@ -487,7 +492,7 @@ class DataConverter(object):
     LIST_FIELDSEP = u'|' # in case | makes trouble, one can use \t tab char
 
     def save_list(self, fname, what):
-        what_sorted = what.keys()
+        what_sorted = list(what.keys())
         # make sure we have 3-tuples:
         what_sorted = [(k + (None, ))[:3] for k in what_sorted]
         # we only have python 2.3, thus no cmp keyword for the sort() call,
@@ -551,14 +556,14 @@ class DataConverter(object):
         self.init_dest()
         # copy pages
         pages_dir = opj(self.ddata, 'pages')
-        for pn, page in self.pages.items():
+        for pn, page in list(self.pages.items()):
             if pn.endswith('/MoinEditorBackup'):
                 continue # we don't care for old editor backups
             page.copy(pages_dir, self.renames)
 
         # copy users
         users_dir = opj(self.ddata, 'user')
-        for user in self.users.values():
+        for user in list(self.users.values()):
             user.copy(users_dir, self.renames)
 
         # copy logs

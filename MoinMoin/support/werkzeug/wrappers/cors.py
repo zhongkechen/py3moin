@@ -1,3 +1,4 @@
+from builtins import object
 from ..http import dump_header
 from ..http import parse_set_header
 from ..utils import environ_property

@@ -8,9 +8,15 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import str
+from builtins import range
+from builtins import object
 import re
 import traceback
-import StringIO # not relevant for speed, so we do not need cStringIO
+import io # not relevant for speed, so we do not need cStringIO
 
 
 from MoinMoin import wikiutil
@@ -35,7 +41,7 @@ class ActionStatus(Exception):
 
 
 class ActionClass(object):
-    INFO, WARN, ERROR = zip(range(3), ("", "<!>", "/!\\")) # used for logging
+    INFO, WARN, ERROR = list(zip(list(range(3)), ("", "<!>", "/!\\"))) # used for logging
 
     def __init__(self, pagename, request):
         self.request = request
@@ -66,7 +72,7 @@ class ActionClass(object):
                 page_name = func()
                 self.log_status(self.INFO, _("Rolled back changes to the page %s."), (page_name, ))
             except Exception:
-                temp_file = StringIO.StringIO()
+                temp_file = io.StringIO()
                 traceback.print_exc(file=temp_file)
                 self.log_status(self.ERROR, _("Exception while calling rollback function:"), raw_suffix=temp_file.getvalue())
 
@@ -219,7 +225,7 @@ class ActionClass(object):
                 try:
                     self.sync(params, local, remote)
                 except Exception as e:
-                    temp_file = StringIO.StringIO()
+                    temp_file = io.StringIO()
                     traceback.print_exc(file=temp_file)
                     self.log_status(self.ERROR, _("A severe error occurred:"), raw_suffix=temp_file.getvalue())
                     raise

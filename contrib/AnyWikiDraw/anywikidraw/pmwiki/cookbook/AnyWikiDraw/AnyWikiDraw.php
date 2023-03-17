@@ -218,7 +218,7 @@ function drawing_any($str) {
 	####    2) Too tired.. there must be others..ideas ?
 	
     
-    // copy of drawing file(s) for versioning
+    // copy of drawing open(s) for versioning
     if($EnableDrawingVersioning == true)  {
       $drawfileprefix = $uploadsPath.$drawing;
       
@@ -429,7 +429,7 @@ function drawing_draw($str) {
 	####    2) Too tired.. there must be others..ideas ?
 	
     
-    // copy of drawing file(s) for versioning
+    // copy of drawing open(s) for versioning
     if($EnableDrawingVersioning == true)  {
       $drawfileprefix = $uploadsPath.$drawing;
       

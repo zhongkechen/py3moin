@@ -8,6 +8,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
 from MoinMoin import log
 logging = log.getLogger(__name__)
 
@@ -27,7 +28,7 @@ def execute(pagename, request):
     try:
         date = request.values['date']
         try:
-            date = long(date) # must be long for py 2.2.x
+            date = int(date) # must be long for py 2.2.x
         except Exception:
             date = 0
     except KeyError:

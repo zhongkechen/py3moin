@@ -2,7 +2,11 @@
 #=============================================================================
 # imports
 #=============================================================================
-from __future__ import with_statement
+from future import standard_library
+standard_library.install_aliases()
+from builtins import bytes
+from builtins import range
+from builtins import object
 # core
 from functools import partial
 import warnings
@@ -10,7 +14,7 @@ import warnings
 # pkg
 # module
 from passlib.utils import is_ascii_safe
-from passlib.utils.compat import irange, PY2, PY3, u, unicode, join_bytes, PYPY
+from passlib.utils.compat import irange, PY2, PY3, u, str, join_bytes, PYPY
 from passlib.tests.utils import TestCase, hb, run_with_fixed_seeds
 
 #=============================================================================
@@ -126,7 +130,7 @@ class MiscTest(TestCase):
         # letters
         x = wrapper(u('abc'), 32)
         y = wrapper(u('abc'), 32)
-        self.assertIsInstance(x, unicode)
+        self.assertIsInstance(x, str)
         self.assertNotEqual(x,y)
         self.assertEqual(sorted(set(x)), [u('a'),u('b'),u('c')])
 
@@ -180,7 +184,7 @@ class MiscTest(TestCase):
         #      if this fails for some platform, this test will need modifying.
 
         # test return type
-        self.assertIsInstance(safe_crypt(u("test"), u("aa")), unicode)
+        self.assertIsInstance(safe_crypt(u("test"), u("aa")), str)
 
         # test ascii password
         h1 = u('aaqPiZY5xR5l.')
@@ -425,7 +429,7 @@ class CodecTest(TestCase):
             import builtins
             self.assertIs(bytes, builtins.bytes)
         else:
-            import __builtin__ as builtins
+            import builtins as builtins
             self.assertIs(bytes, builtins.str)
 
         self.assertIsInstance(b'', bytes)

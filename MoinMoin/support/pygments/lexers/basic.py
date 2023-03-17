@@ -9,6 +9,7 @@
     :license: BSD, see LICENSE for details.
 """
 
+from builtins import map
 import re
 
 from pygments.lexer import RegexLexer, bygroups, default, words, include

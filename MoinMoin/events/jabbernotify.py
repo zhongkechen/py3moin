@@ -8,7 +8,10 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import xmlrpclib
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+import xmlrpc.client
 
 from MoinMoin import log
 logging = log.getLogger(__name__)
@@ -58,7 +61,7 @@ def handle_jid_changed(event):
             server.addJIDToRoster(secret, event.jid)
         else:
             server.removeJIDFromRoster(secret, event.jid)
-    except xmlrpclib.Error as err:
+    except xmlrpc.client.Error as err:
         logging.error("XML RPC error: %s" % str(err))
     except Exception as err:
         logging.error("Low-level communication error: %s" % str(err))
@@ -80,7 +83,7 @@ def handle_file_attached(event):
     attachlink = request.getQualifiedURL(getAttachUrl(event.pagename, event.filename, request))
     pagelink = request.getQualifiedURL(page.url(request, {}))
 
-    for lang in subscribers.keys():
+    for lang in list(subscribers.keys()):
         _ = lambda text: request.getText(text, lang=lang)
         data = notification.attachment_added(request, _, event.pagename, event.filename, event.size)
         links = [{'url': attachlink, 'description': _("Attachment link")},
@@ -201,7 +204,7 @@ def send_notification(request, jids, notification):
     try:
         server.send_notification(request.cfg.secrets['jabberbot'], jids, notification)
         return True
-    except xmlrpclib.Error as err:
+    except xmlrpc.client.Error as err:
         logging.error("XML RPC error: %s" % str(err))
     except Exception as err:
         logging.error("Low-level communication error: %s" % str(err))

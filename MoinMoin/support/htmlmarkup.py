@@ -13,14 +13,16 @@
 # individuals. For exact contribution history, see the revision
 # history and logs, available at http://projects.edgewall.com/trac/.
 
-import htmlentitydefs
-from HTMLParser import HTMLParser, HTMLParseError
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import chr
+from past.builtins import basestring
+from builtins import object
+import html.entities
+from html.parser import HTMLParser
 import re
-try:
-    frozenset
-except NameError:
-    from sets import ImmutableSet as frozenset
-from StringIO import StringIO
+from io import StringIO
 
 __all__ = ['escape', 'unescape', 'html']
 
@@ -30,7 +32,7 @@ _BOOLEAN_ATTRS = frozenset(['selected', 'checked', 'compact', 'declare',
                             'noresize', 'noshade', 'nowrap'])
 
 
-class Markup(unicode):
+class Markup(str):
     """Marks a string as being safe for inclusion in XML output without needing
     to be escaped.
     
@@ -42,22 +44,22 @@ class Markup(unicode):
     def __new__(self, text='', *args):
         if args:
             text %= tuple([escape(arg) for arg in args])
-        return unicode.__new__(self, text)
+        return str.__new__(self, text)
 
     def __add__(self, other):
-        return Markup(unicode(self) + Markup.escape(other))
+        return Markup(str(self) + Markup.escape(other))
 
     def __mod__(self, args):
         if not isinstance(args, (list, tuple)):
             args = [args]
-        return Markup(unicode.__mod__(self,
+        return Markup(str.__mod__(self,
                                       tuple([escape(arg) for arg in args])))
 
     def __mul__(self, num):
-        return Markup(unicode(self) * num)
+        return Markup(str(self) * num)
 
     def join(self, seq):
-        return Markup(unicode(self).join([Markup.escape(item) for item in seq]))
+        return Markup(str(self).join([Markup.escape(item) for item in seq]))
 
     def stripentities(self, keepxmlentities=False):
         """Return a copy of the text with any character or numeric entities
@@ -75,14 +77,14 @@ class Markup(unicode):
                     ref = int(ref[1:], 16)
                 else:
                     ref = int(ref, 10)
-                return unichr(ref)
+                return chr(ref)
             else: # character entity
                 ref = match.group(2)
                 if keepxmlentities and ref in ('amp', 'apos', 'gt', 'lt', 'quot'):
                     return '&%s;' % ref
                 try:
-                    codepoint = htmlentitydefs.name2codepoint[ref]
-                    return unichr(codepoint)
+                    codepoint = html.entities.name2codepoint[ref]
+                    return chr(codepoint)
                 except KeyError:
                     if keepxmlentities:
                         return '&amp;%s;' % ref
@@ -105,7 +107,7 @@ class Markup(unicode):
         """
         if isinstance(text, (cls, Element)):
             return text
-        text = unicode(text)
+        text = str(text)
         if not text:
             return cls()
         text = text.replace('&', '&amp;') \
@@ -120,14 +122,14 @@ class Markup(unicode):
         """Reverse-escapes &, <, > and \" and returns a `unicode` object."""
         if not self:
             return ''
-        return unicode(self).replace('&#34;', '"') \
+        return str(self).replace('&#34;', '"') \
                             .replace('&gt;', '>') \
                             .replace('&lt;', '<') \
                             .replace('&amp;', '&')
 
     def plaintext(self, keeplinebreaks=True):
         """Returns the text as a `unicode`with all entities and tags removed."""
-        text = unicode(self.striptags().stripentities())
+        text = str(self.striptags().stripentities())
         if not keeplinebreaks:
             text = text.replace('\n', ' ')
         return text
@@ -142,10 +144,9 @@ class Markup(unicode):
         underlying `HTMLParser` module, which should be handled by the caller of
         this function.
         """
-        buf = StringIO()
-        sanitizer = HTMLSanitizer(buf)
-        sanitizer.feed(self.stripentities(keepxmlentities=True))
-        return Markup(buf.getvalue())
+        from html_sanitizer import Sanitizer
+        sanitizer = Sanitizer()
+        return Markup(sanitizer.sanitize(self.stripentities(keepxmlentities=True)))
 
 
 escape = Markup.escape
@@ -170,7 +171,7 @@ class Deuglifier(object):
         return re.sub(self._compiled_rules, self.replace, indata)
 
     def replace(self, fullmatch):
-        for mtype, match in fullmatch.groupdict().items():
+        for mtype, match in list(fullmatch.groupdict().items()):
             if match:
                 if mtype == 'font':
                     return '<span>'
@@ -244,7 +245,7 @@ class HTMLSanitizer(HTMLParser):
             elif attrname == 'style':
                 # Remove dangerous CSS declarations from inline styles
                 decls = []
-                for decl in filter(None, attrval.split(';')):
+                for decl in [_f for _f in attrval.split(';') if _f]:
                     is_evil = False
                     if 'expression' in decl:
                         is_evil = True
@@ -292,7 +293,7 @@ class Fragment(object):
 
     def append(self, node):
         """Append an element or string as child node."""
-        if isinstance(node, (Element, Markup, basestring, int, float, long)):
+        if isinstance(node, (Element, Markup, basestring, int, float, int)):
             # For objects of a known/primitive type, we avoid the check for
             # whether it is iterable for better performance
             self.children.append(node)
@@ -314,11 +315,11 @@ class Fragment(object):
         """Generator that yield tags and text nodes as strings."""
         for child in self.children:
             if isinstance(child, Fragment):
-                yield unicode(child)
+                yield str(child)
             else:
                 yield escape(child, quotes=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return u''.join(self.serialize())
 
     def __str__(self):
@@ -447,7 +448,7 @@ class Element(Fragment):
     def serialize(self):
         """Generator that yield tags and text nodes as strings."""
         starttag = ['<', self.tagname]
-        for name, value in self.attr.items():
+        for name, value in list(self.attr.items()):
             if value is None:
                 continue
             if name in _BOOLEAN_ATTRS:

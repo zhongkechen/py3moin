@@ -1,3 +1,4 @@
+from builtins import object
 from ..datastructures import CharsetAccept
 from ..datastructures import LanguageAccept
 from ..datastructures import MIMEAccept

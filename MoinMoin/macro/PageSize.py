@@ -17,7 +17,7 @@ def macro_PageSize(macro):
 
     # get sizes and sort them
     sizes = []
-    for name, page in pages.items():
+    for name, page in list(pages.items()):
         sizes.append((page.size(), page))
     sizes.sort()
     sizes.reverse()

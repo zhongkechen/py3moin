@@ -23,7 +23,7 @@ def execute(pagename, request):
     start, end, matches = findMatches(pagename, request)
 
     # Error?
-    if isinstance(matches, (str, unicode)):
+    if isinstance(matches, (str, str)):
         request.theme.add_msg(wikiutil.escape(matches), "info")
         Page(request, pagename).send_page()
         return
@@ -37,7 +37,7 @@ def execute(pagename, request):
     # One match - display it
     if len(matches) == 1:
         request.theme.add_msg(_('Exactly one page like "%s" found, redirecting to page.') % (wikiutil.escape(pagename), ), "info")
-        Page(request, matches.keys()[0]).send_page()
+        Page(request, list(matches.keys())[0]).send_page()
         return
 
     # more than one match, list 'em
@@ -100,7 +100,7 @@ def findMatches(pagename, request, s_re=None, e_re=None):
 
     # Filter deleted pages or pages the user can't read from
     # matches. Order is important!
-    for name in matches.keys(): # we need .keys() because we modify the dict
+    for name in list(matches.keys()): # we need .keys() because we modify the dict
         page = Page(request, name)
         if not (page.exists() and request.user.may.read(name)):
             del matches[name]
@@ -188,7 +188,7 @@ def closeMatches(pagename, pages):
             lower[key] = [name]
 
     # Get all close matches
-    all_matches = difflib.get_close_matches(pagename.lower(), lower.keys(),
+    all_matches = difflib.get_close_matches(pagename.lower(), list(lower.keys()),
                                             len(lower), cutoff=0.6)
 
     # Replace lower names with original names
@@ -200,7 +200,7 @@ def closeMatches(pagename, pages):
 
 
 def showMatches(pagename, request, start, end, matches, show_count=True):
-    keys = matches.keys()
+    keys = list(matches.keys())
     keys.sort()
     _showMatchGroup(request, matches, keys, 8, pagename, show_count)
     _showMatchGroup(request, matches, keys, 4, "%s/..." % pagename, show_count)
@@ -211,7 +211,7 @@ def showMatches(pagename, request, start, end, matches, show_count=True):
 
 def _showMatchGroup(request, matches, keys, match, title, show_count=True):
     _ = request.getText
-    matchcount = matches.values().count(match)
+    matchcount = list(matches.values()).count(match)
 
     if matchcount:
         if show_count:

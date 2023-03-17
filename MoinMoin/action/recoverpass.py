@@ -6,6 +6,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
 from MoinMoin import user, wikiutil
 from MoinMoin.Page import Page
 from MoinMoin.widget import html
@@ -88,7 +89,7 @@ def _create_form(request):
     td.append(html.INPUT(type="submit", name="account_sendmail",
                          value=_('Mail me my account data')))
 
-    return unicode(ret)
+    return str(ret)
 
 
 def _create_token_form(request, name=None, token=None):
@@ -135,7 +136,7 @@ def _create_token_form(request, name=None, token=None):
     row.append(td)
     td.append(html.INPUT(type="submit", name="recover", value=_('Reset my password')))
 
-    return unicode(ret)
+    return str(ret)
 
 
 def execute(pagename, request):

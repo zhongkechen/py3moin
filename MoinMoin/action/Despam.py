@@ -8,6 +8,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
+from builtins import object
 DAYS = 30 # we look for spam edits in the last x days
 
 import time
@@ -54,7 +56,7 @@ def show_editors(request, pagename, timestamp):
             pages[line.pagename] = 1
             editors[editor] = editors.get(editor, 0) + 1
 
-    editors = [(nr, editor) for editor, nr in editors.iteritems()]
+    editors = [(nr, editor) for editor, nr in list(editors.items())]
     editors.sort()
     editors.reverse()
 
@@ -65,7 +67,7 @@ def show_editors(request, pagename, timestamp):
                        Column('pages', label=_("Pages"), align='right'),
                        Column('link', label='', align='left')]
     for nr, editor in editors:
-        dataset.addRow((render(editor), unicode(nr),
+        dataset.addRow((render(editor), str(nr),
             pg.link_to(request, text=_("Select Author"),
                 querystr={
                     'action': 'Despam',
@@ -76,7 +78,7 @@ def show_editors(request, pagename, timestamp):
     table.setData(dataset)
     return table.render(method="GET")
 
-class tmp:
+class tmp(object):
     pass
 
 def show_pages(request, pagename, editor, timestamp):
@@ -146,14 +148,14 @@ def revert_page(request, pagename, editor):
         try:
             savemsg = pg.deletePage(comment)
         except pg.SaveError as msg:
-            savemsg = unicode(msg)
+            savemsg = str(msg)
     else: # page edited by spammer
         oldpg = Page.Page(request, pagename, rev=int(rev))
         pg = PageEditor.PageEditor(request, pagename, do_editor_backup=0)
         try:
             savemsg = pg.saveText(oldpg.get_raw_body(), 0, extra=rev, action="SAVE/REVERT")
         except pg.SaveError as msg:
-            savemsg = unicode(msg)
+            savemsg = str(msg)
     return savemsg
 
 def revert_pages(request, editor, timestamp):

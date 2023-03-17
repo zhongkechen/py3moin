@@ -6,6 +6,7 @@ Context related classes
 
 """
 
+from builtins import object
 from threading import local
 
 

@@ -6,13 +6,16 @@
     @license: GNU GPL, see COPYING for details.
 """
 from __future__ import print_function
-from StringIO import StringIO
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+from io import StringIO
 
 from MoinMoin import wsgiapp
 
 DOC_TYPE = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">'
 
-class TestApplication:
+class TestApplication(object):
     # self.client is made by conftest
 
     # These should exist

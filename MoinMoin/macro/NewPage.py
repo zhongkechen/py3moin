@@ -13,11 +13,12 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 from MoinMoin import wikiutil
 
 Dependencies = ["language"]
 
-class NewPage:
+class NewPage(object):
     """ NewPage - create new pages
 
     Let you create new page using optional template, button text

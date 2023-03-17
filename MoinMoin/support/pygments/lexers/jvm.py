@@ -291,7 +291,7 @@ class ScalaLexer(RegexLexer):
             (r'[fs]"""', String, 'interptriplestring'),  # interpolated strings
             (r'[fs]"', String, 'interpstring'),  # interpolated strings
             (r'raw"(\\\\|\\"|[^"])*"', String),  # raw strings
-            # (ur'(\.)(%s|%s|`[^`]+`)' % (idrest, op), bygroups(Operator,
+            # (r'(\.)(%s|%s|`[^`]+`)' % (idrest, op), bygroups(Operator,
             # Name.Attribute)),
             (idrest, Name),
             (r'`[^`]+`', Name),

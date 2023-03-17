@@ -64,7 +64,7 @@ class EventLog(LogFile):
         except ValueError:
             # badly formatted line in file, skip it
             return None
-        return long(time_usecs), eventtype, wikiutil.parseQueryString(kvpairs)
+        return int(time_usecs), eventtype, wikiutil.parseQueryString(kvpairs)
 
     def set_filter(self, event_types=None):
         """ optionally filter log for specific event types """

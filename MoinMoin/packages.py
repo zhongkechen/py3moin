@@ -8,6 +8,8 @@
 """
 from __future__ import print_function
 
+from builtins import str
+from builtins import object
 import os, re, sys
 import zipfile
 
@@ -29,12 +31,12 @@ class PackageException(Exception):
 class ScriptException(Exception):
     """ Raised when there is a problem in the script. """
 
-    def __unicode__(self):
+    def __str__(self):
         """ Return unicode error message """
         if isinstance(self.args[0], str):
-            return unicode(self.args[0], config.charset)
+            return str(self.args[0], config.charset)
         else:
-            return unicode(self.args[0])
+            return str(self.args[0])
 
 class RuntimeScriptException(ScriptException):
     """ Raised when the script problem occurs at runtime. """
@@ -97,7 +99,7 @@ def str2boolean(string):
     """
     return (string.lower() in ('yes', 'true', '1'))
 
-class ScriptEngine:
+class ScriptEngine(object):
     """
     The script engine supplies the needed commands to execute the installation
     script.
@@ -106,7 +108,7 @@ class ScriptEngine:
     def _extractToFile(self, source, target):
         """ Extracts source and writes the contents into target. """
         # TODO, add file dates
-        target_file = open(target, "wb")
+        target_file = open(target, "w")
         target_file.write(self.extract_file(source))
         target_file.close()
 
@@ -301,7 +303,7 @@ class ScriptEngine:
         if self.request.user.may.write(pagename):
             page = PageEditor(self.request, pagename, do_editor_backup=0)
             try:
-                page.saveText(self.extract_file(filename).decode("utf-8"), 0, trivial=trivial, comment=comment)
+                page.saveText(self.extract_file(filename), 0, trivial=trivial, comment=comment)
             except PageEditor.Unchanged:
                 pass
             else:
@@ -448,18 +450,18 @@ class ScriptEngine:
             except ScriptExit:
                 break
             except TypeError as e:
-                self.msg += u"Exception %s (line %i): %s\n" % (e.__class__.__name__, lineno, unicode(e))
+                self.msg += u"Exception %s (line %i): %s\n" % (e.__class__.__name__, lineno, str(e))
                 success = False
                 break
             except RuntimeScriptException as e:
                 if not self.ignoreExceptions:
-                    self.msg += u"Exception %s (line %i): %s\n" % (e.__class__.__name__, lineno, unicode(e))
+                    self.msg += u"Exception %s (line %i): %s\n" % (e.__class__.__name__, lineno, str(e))
                     success = False
                     break
 
         return success
 
-class Package:
+class Package(object):
     """ A package consists of a bunch of files which can be installed. """
     def __init__(self, request):
         self.request = request
@@ -479,7 +481,7 @@ class Package:
 
     def getScript(self):
         """ Returns the script. """
-        return self.extract_file(MOIN_PACKAGE_FILE).decode("utf-8").replace(u"\ufeff", "")
+        return self.extract_file(MOIN_PACKAGE_FILE).replace(u"\ufeff", "")
 
     def extract_file(self, filename):
         """ Returns the contents of a file in the package. """
@@ -515,7 +517,7 @@ class ZipPackage(Package, ScriptEngine):
         """ Returns the contents of a file in the package. """
         _ = self.request.getText
         try:
-            return self.zipfile.read(filename.encode("cp437"))
+            return self.zipfile.read(filename).decode("utf8")
         except KeyError:
             raise RuntimeScriptException(_(
                 "The file %s was not found in the package.") % filename)

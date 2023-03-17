@@ -8,6 +8,7 @@
     @copyright: 2003-2006 Phillip J. Eby <pje at telecommunity.com>
     @license: Public Domain
 """
+from builtins import object
 from future.utils import raise_
 import os, sys
 
@@ -22,7 +23,7 @@ class WSGIServer(object):
 
     def run(self):
 
-        environ = dict(os.environ.items())
+        environ = dict(list(os.environ.items()))
         environ['wsgi.input']        = sys.stdin
         environ['wsgi.errors']       = sys.stderr
         environ['wsgi.version']      = (1, 0)

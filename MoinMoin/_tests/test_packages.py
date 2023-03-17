@@ -8,8 +8,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import object
 import os
-import py
+import pytest
 import tempfile
 import zipfile
 
@@ -43,9 +44,9 @@ AddRevision|foofile|FooPage
 
     def extract_file(self, filename):
         if filename == MOIN_PACKAGE_FILE:
-            return self.script.encode("utf-8")
+            return self.script
         else:
-            return "Hello world, I am the file " + filename.encode("utf-8")
+            return "Hello world, I am the file " + filename
 
     def filelist(self):
         return [MOIN_PACKAGE_FILE, "foo"]
@@ -54,70 +55,71 @@ AddRevision|foofile|FooPage
         return True
 
 
-class TestUnsafePackage:
+class TestUnsafePackage(object):
     """ Tests various things in the packages package. Note that this package does
         not care to clean up and needs to run in a test wiki because of that. """
 
-    def setup_class(self):
-        if not getattr(self.request.cfg, 'is_test_wiki', False):
-            py.test.skip('This test needs to be run using the test wiki.')
+    @pytest.fixture(autouse=True)
+    def setup_class(self, req):
+        if not getattr(req.cfg, 'is_test_wiki', False):
+            pytest.skip('This test needs to be run using the test wiki.')
+        yield
 
-    def teardown_class(self):
-        nuke_page(self.request, "FooPage")
+        nuke_page(req, "FooPage")
 
-    def testBasicPackageThings(self):
-        become_superuser(self.request)
-        myPackage = DebugPackage(self.request, 'test')
+    def testBasicPackageThings(self, req):
+        become_superuser(req)
+        myPackage = DebugPackage(req, 'test')
         myPackage.installPackage()
         assert myPackage.msg == u'foo\nFooPage added \n'
-        testseite2 = Page(self.request, 'TestSeite2')
+        testseite2 = Page(req, 'TestSeite2')
         assert testseite2.getPageText() == "Hello world, I am the file testdatei"
         assert testseite2.isUnderlayPage()
 
 
-class TestQuoting:
+class TestQuoting(object):
 
     def testQuoting(self):
         for line in ([':foo', 'is\\', 'ja|', u't|�', u'baAz�'], [], ['', '']):
             assert line == unpackLine(packLine(line))
 
 
-class TestRealCreation:
+class TestRealCreation(object):
 
-    def testSearch(self):
-        package = PackagePages(self.request.rootpage.page_name, self.request)
-        assert package.searchpackage(self.request, "title:BadCon") == [u'BadContent']
+    def testSearch(self, req):
+        package = PackagePages(req.rootpage.page_name, req)
+        assert package.searchpackage(req, "title:BadCon") == [u'BadContent']
 
-    def testListCreate(self):
-        package = PackagePages(self.request.rootpage.page_name, self.request)
+    def testListCreate(self, req):
+        package = PackagePages(req.rootpage.page_name, req)
         temp = tempfile.NamedTemporaryFile(suffix='.zip')
         package.collectpackage(['FrontPage'], temp)
         assert zipfile.is_zipfile(temp.name)
 
-    def testAllCreate(self):
-        package = PackagePages(self.request.rootpage.page_name, self.request)
+    def testAllCreate(self, req):
+        package = PackagePages(req.rootpage.page_name, req)
         temp = tempfile.NamedTemporaryFile(suffix='.zip')
-        package.collectpackage(self.request.rootpage.getPageList(
+        collected = package.collectpackage(req.rootpage.getPageList(
                                 include_underlay=False,
-                                filter=lambda name: not wikiutil.isSystemPage(self.request, name)),
+                                filter=lambda name: not wikiutil.isSystemPage(req, name)),
                                 temp)
-        if not package:
-            py.test.skip("No user created pages in wiki!")
+        if collected:
+            pytest.skip("No user created pages in wiki!")
         assert zipfile.is_zipfile(temp.name)
 
-    def testInvalidCreate(self):
-        package = PackagePages(self.request.rootpage.page_name, self.request)
+    def testInvalidCreate(self, req):
+        package = PackagePages(req.rootpage.page_name, req)
         temp = tempfile.NamedTemporaryFile(suffix='.zip')
         package.collectpackage(['___//THIS PAGE SHOULD NOT EXIST\\___'], temp)
         assert not zipfile.is_zipfile(temp.name)
 
 
-class TestRealPackageInstallation:
+class TestRealPackageInstallation(object):
 
 
-    def create_package(self, script, page=None):
+    def create_package(self, req, script, page=None):
         # creates the package example zip file
-        userid = user.getUserIdentification(self.request)
+        userid = user.getUserIdentification(req)
         COMPRESSION_LEVEL = zipfile.ZIP_DEFLATED
         zip_file = tempfile.mkstemp(suffix='.zip')[1]
         zf = zipfile.ZipFile(zip_file, "w", COMPRESSION_LEVEL)
@@ -131,38 +133,38 @@ class TestRealPackageInstallation:
         zf.close()
         return zip_file
 
-    def testAttachments_after_page_creation(self):
-        become_trusted(self.request)
+    def testAttachments_after_page_creation(self, req):
+        become_trusted(req)
         pagename = u'PackageTestPageCreatedFirst'
-        page = create_page(self.request, pagename, u"This page has not yet an attachments dir")
+        page = create_page(req, pagename, u"This page has not yet an attachments dir")
         script = u"""MoinMoinPackage|1
 AddRevision|1|%(pagename)s
 AddAttachment|1_attachment|my_test.txt|%(pagename)s
 Print|Thank you for using PackagePages!
 """ % {"pagename": pagename}
-        zip_file = self.create_package(script, page)
-        package = ZipPackage(self.request, zip_file)
+        zip_file = self.create_package(req, script, page)
+        package = ZipPackage(req, zip_file)
         package.installPackage()
-        assert Page(self.request, pagename).exists()
-        assert AttachFile.exists(self.request, pagename, "my_test.txt")
+        assert Page(req, pagename).exists()
+        assert AttachFile.exists(req, pagename, "my_test.txt")
 
-        nuke_page(self.request, pagename)
+        nuke_page(req, pagename)
         os.unlink(zip_file)
 
-    def testAttachments_without_page_creation(self):
-        become_trusted(self.request)
+    def testAttachments_without_page_creation(self, req):
+        become_trusted(req)
         pagename = u"PackageAttachmentAttachWithoutPageCreation"
         script = u"""MoinMoinPackage|1
 AddAttachment|1_attachment|my_test.txt|%(pagename)s
 Print|Thank you for using PackagePages!
 """ % {"pagename": pagename}
-        zip_file = self.create_package(script)
-        package = ZipPackage(self.request, zip_file)
+        zip_file = self.create_package(req, script)
+        package = ZipPackage(req, zip_file)
         package.installPackage()
-        assert not Page(self.request, pagename).exists()
-        assert AttachFile.exists(self.request, pagename, "my_test.txt")
+        assert not Page(req, pagename).exists()
+        assert AttachFile.exists(req, pagename, "my_test.txt")
 
-        nuke_page(self.request, pagename)
+        nuke_page(req, pagename)
         os.unlink(zip_file)
 
 

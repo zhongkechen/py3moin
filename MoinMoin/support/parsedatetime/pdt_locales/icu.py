@@ -6,6 +6,8 @@ pdt_locales
 All of the included locale classes shipped with pdt.
 """
 from __future__ import absolute_import
+from builtins import zip
+from builtins import range
 import datetime
 
 try:

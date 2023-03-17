@@ -6,9 +6,11 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import range
+from builtins import object
 Dependencies = []
 
-class Parser:
+class Parser(object):
     """
         Send plain text in a HTML <pre> element.
     """

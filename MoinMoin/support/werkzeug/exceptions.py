@@ -57,6 +57,8 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from builtins import str
+from builtins import object
 import sys
 from datetime import datetime
 

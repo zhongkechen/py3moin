@@ -82,7 +82,11 @@ text from PEP 8. It is printed if the user enables --show-pep8.
 
 """
 from __future__ import print_function
+from __future__ import division
 
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import os
 import sys
 import re
@@ -481,7 +485,7 @@ def expand_indent(line):
     result = 0
     for char in line:
         if char == '\t':
-            result = result / 8 * 8 + 8
+            result = old_div(result, 8) * 8 + 8
         elif char == ' ':
             result += 1
         else:
@@ -508,7 +512,7 @@ def find_checks(argument_name):
     """
     checks = []
     function_type = type(find_checks)
-    for name, function in globals().iteritems():
+    for name, function in list(globals().items()):
         if type(function) is function_type:
             args = inspect.getargspec(function)[0]
             if len(args) >= 1 and args[0].startswith(argument_name):
@@ -542,14 +546,14 @@ def mute_string(text):
     return text[:start] + 'x' * (end - start) + text[end:]
 
 
-class Checker:
+class Checker(object):
     """
     Load a Python source file, tokenize it, check coding style.
     """
 
     def __init__(self, filename):
         self.filename = filename
-        self.lines = file(filename, 'rb').readlines()
+        self.lines = open(filename, 'rb').readlines()
         self.physical_checks = find_checks('physical_line')
         self.logical_checks = find_checks('logical_line')
         options.counters['physical lines'] = \
@@ -811,7 +815,7 @@ def get_statistics(prefix=''):
     prefix='E4' matches all errors that have to do with imports
     """
     stats = []
-    keys = options.messages.keys()
+    keys = list(options.messages.keys())
     keys.sort()
     for key in keys:
         if key.startswith(prefix):
@@ -836,7 +840,7 @@ def print_benchmark(elapsed):
     for key in keys:
         if key in options.counters:
             print('%-7d %s per second (%d total)' % (
-                options.counters[key] / elapsed, key,
+                old_div(options.counters[key], elapsed), key,
                 options.counters[key]))
 
 

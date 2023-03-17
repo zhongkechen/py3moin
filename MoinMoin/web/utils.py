@@ -6,6 +6,8 @@
                 2008-2008 MoinMoin:FlorianKrupicka
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import str
+from builtins import object
 import time
 
 from werkzeug.utils import redirect
@@ -138,8 +140,8 @@ def check_surge_protect(request, kick=False, action=None, username=None):
                     timestamps.append((now + request.cfg.surge_lockout_time, surge_indicator)) # continue like that and get locked out
 
         data = []
-        for id, events in surgedict.items():
-            for action, timestamps in events.items():
+        for id, events in list(surgedict.items()):
+            for action, timestamps in list(events.items()):
                 for t, surge_indicator in timestamps:
                     data.append("%s\t%d\t%s\t%s" % (id, t, action, surge_indicator))
         data = "\n".join(data)
@@ -240,8 +242,8 @@ class UniqueIDGenerator(object):
         @returns: a unique (relatively to the namespace) ID
         @rtype: unicode
         """
-        if not isinstance(base, unicode):
-            base = unicode(str(base), 'ascii', 'ignore')
+        if not isinstance(base, str):
+            base = str(str(base), 'ascii', 'ignore')
         if not namespace in self.page_ids:
             self.page_ids[namespace] = {}
         count = self.page_ids[namespace].get(base, -1) + 1

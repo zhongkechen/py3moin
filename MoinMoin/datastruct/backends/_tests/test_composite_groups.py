@@ -7,7 +7,10 @@ MoinMoin.datastruct.backends.composite_groups test
 @license: GPL, see COPYING for details
 """
 
-from py.test import raises
+from builtins import object
+
+import pytest
+from pytest import raises
 
 from MoinMoin.datastruct.backends._tests import GroupsBackendTest
 from MoinMoin.datastruct import ConfigGroups, CompositeGroups, GroupDoesNotExistError
@@ -23,39 +26,38 @@ class TestCompositeGroupsBackend(GroupsBackendTest):
             groups = GroupsBackendTest.test_groups
             return CompositeGroups(request, ConfigGroups(request, groups))
 
+admin_group = frozenset([u'Admin', u'JohnDoe'])
+editor_group = frozenset([u'MainEditor', u'JohnDoe'])
+fruit_group = frozenset([u'Apple', u'Banana', u'Cherry'])
 
+first_backend_groups = {u'AdminGroup': admin_group,
+                        u'EditorGroup': editor_group,
+                        u'FruitGroup': fruit_group}
+
+user_group = frozenset([u'JohnDoe', u'Bob', u'Joe'])
+city_group = frozenset([u'Bolzano', u'Riga', u'London'])
+
+# Suppose, someone hacked second backend and added himself to AdminGroup
+second_admin_group = frozenset([u'TheHacker'])
+
+second_backend_groups = {u'UserGroup': user_group,
+                         u'CityGroup': city_group,
+                         # Here group name clash occurs.
+                         # AdminGroup is defined in both
+                         # first_backend and second_backend.
+                         u'AdminGroup': second_admin_group}
+
+
+@pytest.mark.wiki_config(groups=lambda s, r: CompositeGroups(r,
+                                   ConfigGroups(r, s.first_backend_groups),
+                                   ConfigGroups(r, s.second_backend_groups)),
+                         first_backend_groups=first_backend_groups,
+                         second_backend_groups=second_backend_groups)
 class TestCompositeGroup(object):
 
-    class Config(wikiconfig.Config):
-
-        admin_group = frozenset([u'Admin', u'JohnDoe'])
-        editor_group = frozenset([u'MainEditor', u'JohnDoe'])
-        fruit_group = frozenset([u'Apple', u'Banana', u'Cherry'])
-
-        first_backend_groups = {u'AdminGroup': admin_group,
-                                u'EditorGroup': editor_group,
-                                u'FruitGroup': fruit_group}
-
-        user_group = frozenset([u'JohnDoe', u'Bob', u'Joe'])
-        city_group = frozenset([u'Bolzano', u'Riga', u'London'])
-
-        # Suppose, someone hacked second backend and added himself to AdminGroup
-        second_admin_group = frozenset([u'TheHacker'])
-
-        second_backend_groups = {u'UserGroup': user_group,
-                                 u'CityGroup': city_group,
-                                 # Here group name clash occurs.
-                                 # AdminGroup is defined in both
-                                 # first_backend and second_backend.
-                                 u'AdminGroup': second_admin_group}
-
-        def groups(self, request):
-            return CompositeGroups(request,
-                                   ConfigGroups(request, self.first_backend_groups),
-                                   ConfigGroups(request, self.second_backend_groups))
-
-    def setup_method(self, method):
-        self.groups = self.request.groups
+    @pytest.fixture(autouse=True)
+    def setup_method(self, req):
+        self.groups = req.groups
 
     def test_getitem(self):
         raises(GroupDoesNotExistError, lambda: self.groups[u'NotExistingGroup'])

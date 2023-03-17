@@ -12,6 +12,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
 from MoinMoin import caching
 from MoinMoin.action import get_available_actions
 from MoinMoin.theme import ThemeBase

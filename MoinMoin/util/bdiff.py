@@ -80,8 +80,8 @@ def test():
     a = ("foo\n" * 30)
     b = ("  fao" * 30)
 
-    a = file(r"test.1").read()
-    b = file(r"test.2").read()
+    a = open(r"test.1").read()
+    b = open(r"test.2").read()
     a = a.splitlines(1)
     b = b.splitlines(1)
 

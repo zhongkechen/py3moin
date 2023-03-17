@@ -8,7 +8,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import py.test
+from builtins import range
+from builtins import object
+import pytest
 
 
 from MoinMoin._tests.ldap_testbase import LDAPTstBase, LdapEnvironment, check_environ, SLAPD_EXECUTABLE
@@ -19,7 +21,7 @@ from MoinMoin.auth import handle_login
 # first check if we have python 2.4, python-ldap and slapd:
 msg = check_environ()
 if msg:
-    py.test.skip(msg)
+    pytest.skip(msg, allow_module_level=True)
 del msg
 
 import ldap
@@ -136,7 +138,7 @@ class TestBugDefaultPasswd(LDAPTstBase):
         u2 = handle_login(self.request, None, username='usera', password='wrong')
         assert u2 is None
 
-class TestTwoLdapServers:
+class TestTwoLdapServers(object):
     basedn = BASEDN
     rootdn = ROOTDN
     rootpw = ROOTPW
@@ -151,7 +153,7 @@ class TestTwoLdapServers:
             ldap_env.create_env(slapd_config=self.slapd_config)
             started = ldap_env.start_slapd()
             if not started:
-                py.test.skip("Failed to start %s process, please see your syslog / log files"
+                pytest.skip("Failed to start %s process, please see your syslog / log files"
                              " (and check if stopping apparmor helps, in case you use it)." % SLAPD_EXECUTABLE)
             ldap_env.load_directory(ldif_content=self.ldif_content)
             self.ldap_envs.append(ldap_env)
@@ -176,7 +178,7 @@ class TestTwoLdapServers:
             assert 'userb' in uids
 
 
-class TestLdapFailover:
+class TestLdapFailover(object):
     basedn = BASEDN
     rootdn = ROOTDN
     rootpw = ROOTPW
@@ -192,7 +194,7 @@ class TestLdapFailover:
             ldap_env.create_env(slapd_config=self.slapd_config)
             started = ldap_env.start_slapd()
             if not started:
-                py.test.skip("Failed to start %s process, please see your syslog / log files"
+                pytest.skip("Failed to start %s process, please see your syslog / log files"
                              " (and check if stopping apparmor helps, in case you use it)." % SLAPD_EXECUTABLE)
             ldap_env.load_directory(ldif_content=self.ldif_content)
             self.ldap_envs.append(ldap_env)

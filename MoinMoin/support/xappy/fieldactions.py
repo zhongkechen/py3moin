@@ -19,6 +19,9 @@ r"""fieldactions.py: Definitions and implementations of field actions.
 
 """
 from __future__ import absolute_import
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 __docformat__ = "restructuredtext en"
 
 from . import _checkxapian
@@ -321,7 +324,7 @@ class FieldActions(object):
         info = self._action_info[action]
 
         # Check parameter names
-        for key in kwargs.keys():
+        for key in list(kwargs.keys()):
             if key not in info[1]:
                 raise errors.IndexerError("Unknown parameter name for action %r: %r" % (info[0], key))
 
@@ -410,7 +413,7 @@ class FieldActions(object):
         - `context` is an ActionContext object used to keep state in.
 
         """
-        for type, actionlist in self._actions.iteritems():
+        for type, actionlist in list(self._actions.items()):
             info = self._action_info[type]            
             for kwargs in actionlist:
                 info[2](self._fieldname, doc, value, context, **kwargs)

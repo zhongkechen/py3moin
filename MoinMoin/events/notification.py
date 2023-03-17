@@ -9,6 +9,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
 from MoinMoin import user, wikiutil
 from MoinMoin.events import EventResult
 
@@ -175,7 +176,7 @@ def filter_subscriber_list(event, subscribers, for_jabber):
 
     # Filter the list by removing users who don't want to receive
     # notifications about this type of event
-    for lang in subscribers.keys():
+    for lang in list(subscribers.keys()):
         userlist = []
 
         if for_jabber:

@@ -6,6 +6,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
 from MoinMoin import user, wikiutil
 from MoinMoin.Page import Page
 from MoinMoin.widget import html
@@ -150,7 +151,7 @@ def _create_form(request):
     td.append(html.INPUT(type="submit", name="create",
                          value=_('Create Profile')))
 
-    return unicode(ret)
+    return str(ret)
 
 def execute(pagename, request):
     found = False

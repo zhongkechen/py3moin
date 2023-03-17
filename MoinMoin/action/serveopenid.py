@@ -8,6 +8,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
+from builtins import object
 from MoinMoin.util.moinoid import MoinOpenIDStore, strbase64
 from MoinMoin import wikiutil
 from openid.consumer.discover import OPENID_1_0_TYPE, \
@@ -22,7 +24,7 @@ from MoinMoin.web.request import MoinMoinFinish
 def execute(pagename, request):
     return MoinOpenIDServer(pagename, request).handle()
 
-class MoinOpenIDServer:
+class MoinOpenIDServer(object):
     def __init__(self, pagename, request):
         self.request = request
         self._ = request.getText
@@ -394,7 +396,7 @@ delegation on its own.)''') % openidreq.identity)
         td.append(html.INPUT(type='submit', name='approve', value=_("Approve")))
         td.append(html.INPUT(type='submit', name='dontapprove', value=_("Don't approve")))
 
-        request.write(unicode(form))
+        request.write(str(form))
 
         request.write(request.formatter.endContent())
         request.theme.send_footer(request.page.page_name)
@@ -425,7 +427,7 @@ verification.'''))
 
         form.append(html.INPUT(type='submit', name='dontapprove', value=_("Cancel")))
 
-        request.write(unicode(form))
+        request.write(str(form))
 
         request.write(request.formatter.endContent())
         request.theme.send_footer(request.page.page_name)

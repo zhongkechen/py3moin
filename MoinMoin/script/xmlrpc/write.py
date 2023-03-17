@@ -7,7 +7,9 @@
 """
 from __future__ import print_function
 
-import xmlrpclib
+from future import standard_library
+standard_library.install_aliases()
+import xmlrpc.client
 import sys
 
 from MoinMoin.script import MoinScript
@@ -49,7 +51,7 @@ Note: we automatically append ?action=xmlrpc2 to the target url given.
         pagename = self.argv[3]
 
         # get auth token from server giving username/password
-        s = xmlrpclib.ServerProxy(url)
+        s = xmlrpc.client.ServerProxy(url)
         token = s.getAuthToken(user, passwd)
 
         if not token:
@@ -66,7 +68,7 @@ Note: we automatically append ?action=xmlrpc2 to the target url given.
             content = sys.stdin.read()
 
             # build a multicall object that
-            mcall = xmlrpclib.MultiCall(s)
+            mcall = xmlrpc.client.MultiCall(s)
             # first applies the token and
             mcall.applyAuthToken(token)
             # then edits the page

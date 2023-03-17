@@ -69,7 +69,7 @@ def _openidrp_sreg_extract_values(info):
         # check the MoinMoin list, or restrict to first 2 chars
         if sreg_resp.get('language'):
             # convert unknown codes to 2 char format
-            langs = i18n.wikiLanguages().items()
+            langs = list(i18n.wikiLanguages().items())
             sreg['language'] = sreg_resp.get('language')
             lang_found = False
             for lang in langs:

@@ -12,6 +12,9 @@
     :license: BSD, see LICENSE for details.
 """
 
+from builtins import chr
+from builtins import ascii
+from builtins import range
 import sys
 
 Cc = u'\x00-\x1f\x7f-\x9f'

@@ -24,6 +24,7 @@ pre.codearea span.ConsWord { color: #008080; font-weight: bold; }
 
 """
 
+from builtins import object
 import hashlib
 import re
 
@@ -34,7 +35,7 @@ from MoinMoin import config, wikiutil
 from MoinMoin.parser import parse_start_step
 
 
-class FormatTextBase:
+class FormatTextBase(object):
     pass
 
 class FormatBeginLine(FormatTextBase):
@@ -80,7 +81,7 @@ class FormatTextID(FormatTextBase):
         return self.fmt.get(sword, self._def_fmt).formatString(formatter, word)
 
 
-class FormattingRuleSingle:
+class FormattingRuleSingle(object):
 
     def __init__(self, name, str_re, icase=False):
         self.name = name
@@ -93,7 +94,7 @@ class FormattingRuleSingle:
         return hit
 
 
-class FormattingRulePair:
+class FormattingRulePair(object):
 
     def __init__(self, name, str_begin, str_end, icase=False):
         self.name = name
@@ -118,7 +119,7 @@ class FormattingRulePair:
         return hit + r
 
 
-class ParserBase:
+class ParserBase(object):
     """ DEPRECATED highlighting parser - please use/extend pygments library """
     logging.warning('Using ParserBase is deprecated - please use/extend pygments syntax highlighting library.')
 
@@ -126,8 +127,8 @@ class ParserBase:
     tabwidth = 4
 
     # for dirty tricks, see comment in format():
-    STARTL, STARTL_RE = u"^\n", ur"\^\n"
-    ENDL, ENDL_RE = u"\n$", ur"\n\$"
+    STARTL, STARTL_RE = u"^\n", r"\^\n"
+    ENDL, ENDL_RE = u"\n$", r"\n\$"
     LINESEP = ENDL + STARTL
 
     def __init__(self, raw, request, **kw):
@@ -251,7 +252,7 @@ class ParserBase:
 
     def format_match(self, formatter, match):
         result = []
-        for n, hit in match.groupdict().items():
+        for n, hit in list(match.groupdict().items()):
             if hit is None:
                 continue
             r = self._formatting_rules_n2r[n]

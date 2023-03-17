@@ -9,6 +9,7 @@
     :license: BSD, see LICENSE for details.
 """
 
+from builtins import range
 import re
 
 __all__ = ['get_filetype_from_buffer']

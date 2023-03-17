@@ -8,6 +8,8 @@
     @copyright: 2008-2008 MoinMoin:FlorianKrupicka
     @license: GNU GPL, see COPYING for details.
 """
+from past.builtins import basestring
+from builtins import object
 import os
 from MoinMoin import config
 

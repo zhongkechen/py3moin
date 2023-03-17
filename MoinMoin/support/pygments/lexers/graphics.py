@@ -9,6 +9,8 @@
     :license: BSD, see LICENSE for details.
 """
 
+from builtins import map
+from builtins import range
 from pygments.lexer import RegexLexer, words, include, bygroups, using, \
     this, default
 from pygments.token import Text, Comment, Operator, Keyword, Name, \

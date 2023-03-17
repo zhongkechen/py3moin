@@ -421,7 +421,7 @@ class Python2Lexer(RegexLexer):
                 '__rop__', '__ror__', '__rpow__', '__rrshift__', '__rshift__', '__rsub__',
                 '__rtruediv__', '__rxor__', '__set__', '__setattr__', '__setitem__',
                 '__setslice__', '__str__', '__sub__', '__subclasscheck__', '__truediv__',
-                '__unicode__', '__xor__'), suffix=r'\b'),
+                '__str__', '__xor__'), suffix=r'\b'),
              Name.Function.Magic),
         ],
         'magicvars': [

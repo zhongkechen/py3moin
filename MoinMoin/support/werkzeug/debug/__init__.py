@@ -8,6 +8,11 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
 import getpass
 import hashlib
 import json
@@ -99,7 +104,7 @@ def get_machine_id():
             import winreg as wr
         except ImportError:
             try:
-                import _winreg as wr
+                import winreg as wr
             except ImportError:
                 wr = None
 

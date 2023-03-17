@@ -80,7 +80,7 @@ General syntax: moin [options] index build [build-options]
         self.init_request()
         # Do we have additional files to index?
         if self.options.file_list:
-            self.files = file(self.options.file_list)
+            self.files = open(self.options.file_list)
         else:
             self.files = None
         self.command()

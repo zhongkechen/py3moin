@@ -8,6 +8,7 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from builtins import object
 import code
 import sys
 from types import CodeType

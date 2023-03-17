@@ -10,6 +10,8 @@
     @license: GNU GPL, see COPYING for details
 """
 
+from builtins import str
+from builtins import object
 import re
 
 from MoinMoin import log
@@ -48,7 +50,7 @@ class QueryParser(object):
             item = items[0]
             items = items[1:]
 
-            if isinstance(item, unicode):
+            if isinstance(item, str):
                 if item.lower() == 'or':
                     sub = terms.subterms()
                     if len(sub) >= 1:
@@ -153,7 +155,7 @@ class QueryParser(object):
 
     def parse_query(self, query):
         """ transform an string into a tree of Query objects """
-        if isinstance(query, str):
+        if isinstance(query, bytes):
             query = query.decode(config.charset)
         try:
             items = wikiutil.parse_quoted_separated_ext(query,

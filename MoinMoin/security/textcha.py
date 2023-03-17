@@ -19,6 +19,7 @@
     @copyright: 2007 by MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import object
 import hmac, hashlib
 import re
 import random
@@ -94,7 +95,7 @@ class TextCha(object):
         """
         if self.is_enabled():
             if question is None:
-                self.question = random.choice(self.textchas.keys())
+                self.question = random.choice(list(self.textchas.keys()))
             else:
                 self.question = question
             try:
@@ -102,7 +103,7 @@ class TextCha(object):
                 self.answer_re = re.compile(self.answer_regex, re.U|re.I)
             except KeyError:
                 # this question does not exist, thus there is no answer
-                self.answer_regex = ur"[Never match for cheaters]"
+                self.answer_regex = r"[Never match for cheaters]"
                 self.answer_re = None
                 logging.warning(u"TextCha: Non-existing question '%s'. User '%s' trying to cheat?" % (
                                 self.question, self.user_info))

@@ -8,6 +8,7 @@
                 2007-2009 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import str
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
 from MoinMoin.PageEditor import PageEditor
@@ -66,7 +67,7 @@ class revert(ActionBase):
             # make it show the current version...
             self.request.rev = None
         except PageEditor.SaveError as error:
-            msg = unicode(error)
+            msg = str(error)
 
         return True, msg
 

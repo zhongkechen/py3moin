@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import py
+import pytest
 
 try:
     from jabberbot import capat
 except ImportError:
-    py.test.skip("Skipping jabber bot tests - pyxmpp is not installed")
+    pytest.skip("Skipping jabber bot tests - pyxmpp is not installed")
 
 def test_ver_simple():
     # example values supplied by the XEP
@@ -36,7 +36,7 @@ def test_xml():
     try:
         import pyxmpp.iq
     except ImportError:
-        py.test.skip("pyxmpp needs to be installed for this test")
+        pytest.skip("pyxmpp needs to be installed for this test")
 
     x = pyxmpp.iq.Iq(stanza_type='result', stanza_id='disco1',
                      from_jid='romeo@montague.lit/orchard',

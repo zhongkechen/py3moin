@@ -11,6 +11,7 @@
 
 from __future__ import division
 
+from builtins import range
 from pygments.formatter import Formatter
 from pygments.lexer import Lexer
 from pygments.token import Token, STANDARD_TYPES
@@ -354,7 +355,7 @@ class LatexFormatter(Formatter):
                 if self.texcomments:
                     # Try to guess comment starting lexeme and escape it ...
                     start = value[0:1]
-                    for i in xrange(1, len(value)):
+                    for i in range(1, len(value)):
                         if start[0] != value[i]:
                             break
                         start += value[i]

@@ -23,7 +23,11 @@ http://www.mozilla.org/MPL/MPL-1.1.html
 Connector for Python (CGI and WSGI).
 
 """
+from __future__ import division
 
+from builtins import str
+from past.utils import old_div
+from builtins import object
 import os
 try: # Windows needs stdio set for binary mode for file upload to work.
 	import msvcrt
@@ -72,7 +76,7 @@ class GetFoldersAndFilesCommandMixin (object):
 			elif os.path.isfile(someObjectPath):
 				size = os.path.getsize(someObjectPath)
 				if size > 0:
-					size = round(size/1024)
+					size = round(old_div(size,1024))
 					if size < 1:
 						size = 1
 				files += """<File name="%s" size="%d" />""" % (
@@ -173,7 +177,7 @@ class UploadFileCommandMixin (object):
 						errorNo= 201 # file renamed
 					else:
 						# Read file contents and write to the desired path (similar to php's move_uploaded_file)
-						fout = file(newFilePath, 'wb')
+						fout = open(newFilePath, 'wb')
 						while (True):
 							chunk = newFile.file.read(100000)
 							if not chunk: break

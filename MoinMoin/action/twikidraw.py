@@ -12,6 +12,7 @@
                 2005-2009 MoinMoin:ReimarBauer,
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import object
 import os, re
 
 from MoinMoin import log
@@ -79,7 +80,7 @@ def attachment_drawing(self, url, text, **kw):
         mapid = u'ImageMapOf%s%s' % (self.request.uid_generator(pagename), drawing)
         map = map.replace(u'%MAPNAME%', mapid)
         # add alt and title tags to areas
-        map = re.sub(ur'href\s*=\s*"((?!%TWIKIDRAW%).+?)"', ur'href="\1" alt="\1" title="\1"', map)
+        map = re.sub(r'href\s*=\s*"((?!%TWIKIDRAW%).+?)"', r'href="\1" alt="\1" title="\1"', map)
         map = map.replace(u'%TWIKIDRAW%"', u'%s" alt="%s" title="%s"' % (
             wikiutil.escape(drawing_url, 1), title, title))
         # unxml, because 4.01 concrete will not validate />

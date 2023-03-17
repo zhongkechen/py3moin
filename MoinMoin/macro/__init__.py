@@ -14,6 +14,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from builtins import str
+from builtins import object
 from MoinMoin.util import pysupport
 modules = pysupport.getPackageModules(__file__)
 
@@ -39,7 +41,7 @@ names = ["TitleSearch", "WordIndex", "TitleIndex", "GoTo",
 def getNames(cfg):
     if not hasattr(cfg.cache, 'macro_names'):
         lnames = names[:]
-        lnames.extend(i18n.wikiLanguages().keys())
+        lnames.extend(list(i18n.wikiLanguages().keys()))
         lnames.extend(wikiutil.getPlugins('macro', cfg))
         cfg.cache.macro_names = lnames # remember it
     return cfg.cache.macro_names
@@ -49,7 +51,7 @@ def getNames(cfg):
 ### Macros - Handlers for <<macroname>> markup
 #############################################################################
 
-class Macro:
+class Macro(object):
     """ Macro handler
 
     There are three kinds of macros:
@@ -363,7 +365,7 @@ class Macro:
         anchor = wikiutil.get_unicode(self.request, anchor, 'anchor', u'anchor')
         return self.formatter.anchordef(anchor)
 
-    def macro_MailTo(self, email=unicode, text=u''):
+    def macro_MailTo(self, email=str, text=u''):
         if not email:
             raise ValueError("You need to give an (obfuscated) email address")
 

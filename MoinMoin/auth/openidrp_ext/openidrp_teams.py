@@ -5,6 +5,7 @@
     @copyright: 2009 Canonical, Inc.
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import str
 import re
 import logging
 import copy
@@ -92,7 +93,7 @@ def _add_user_to_team(u, team, cfg):
     if not acl_text or acl_text == "" or acl_text[0] != "#":
         acl_text = "#acl Known:read All:\n" + acl_text
     # does ACL want uid, name, username, auth_username?
-    p = re.compile(ur"^ \* %s" % u.name, re.MULTILINE)
+    p = re.compile(r"^ \* %s" % u.name, re.MULTILINE)
     if not p.search(acl_text):
         logging.log(logging.INFO, "did not find user %s in acl, adding..." % u.name)
         acl_text += u" * %s\n" % u.name
@@ -105,7 +106,7 @@ def _remove_user_from_team(u, team, cfg):
     acl_text = pe.get_raw_body()
     logging.log(logging.INFO, "ACL Page content: " + acl_text)
     # does ACL want uid, name, username, auth_username?
-    p = re.compile(ur"^ \* %s" % u.name, re.MULTILINE)
+    p = re.compile(r"^ \* %s" % u.name, re.MULTILINE)
     if p.search(acl_text):
         logging.log(logging.INFO, "found user %s in acl, removing..." % u.name)
         acl_text = acl_text.replace(" * %s\n" % u.name, "")

@@ -36,6 +36,10 @@
     :license: BSD-3-Clause
 """
 from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import io
 import os
 import signal
@@ -59,9 +63,9 @@ try:
     from .http.server import BaseHTTPRequestHandler
     from .http.server import HTTPServer
 except ImportError:
-    import SocketServer as socketserver
-    from BaseHTTPServer import HTTPServer
-    from BaseHTTPServer import BaseHTTPRequestHandler
+    import socketserver as socketserver
+    from http.server import HTTPServer
+    from http.server import BaseHTTPRequestHandler
 
 try:
     import ssl
@@ -493,7 +497,7 @@ class WSGIRequestHandler(BaseHTTPRequestHandler, object):
                 # will be left as is to match the Python 3 behavior.
                 items.append((key, value.lstrip()))
         else:
-            items = self.headers.items()
+            items = list(self.headers.items())
 
         return items
 

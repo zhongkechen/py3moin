@@ -9,8 +9,15 @@
                 2006 MoinMoin:FranzPletz
     @license: GNU GPL, see COPYING for details
 """
+from __future__ import division
 
-import StringIO, time
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
+import io, time
 
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
@@ -23,7 +30,7 @@ from MoinMoin.Page import Page
 class Match(object):
     """ Base class for all Matches (found pieces of pages).
 
-    This class represents a empty True value as returned from negated searches.
+    This class represents an empty True value as returned from negated searches.
     """
     # Default match weight
     _weight = 1.0
@@ -120,7 +127,7 @@ class FoundPage(object):
             # More sophisticated things to be added, like increase
             # weight of near matches.
         if self.page.parse_processing_instructions().get('deprecated', False):
-            weight = int(weight / 4) # rank it down
+            weight = int(old_div(weight, 4)) # rank it down
         return weight
 
     def add_matches(self, matches):
@@ -167,20 +174,20 @@ class FoundPage(object):
         @return: list of matches of type, sorted by match.start
         """
         # Filter by type and sort by match.start using fast schwartzian transform.
-        tmp = [(match.start, match) for match in self._matches if isinstance(match, type)]
+        tmp = [(match.start, id(match), match) for match in self._matches if isinstance(match, type)]
         tmp.sort()
 
         if not len(tmp):
             return []
 
         # Get first match into matches list
-        matches = [tmp[0][1]]
+        matches = [tmp[0][2]]
 
         # Add the remaining ones of matches ignoring identical matches
         for item in tmp[1:]:
-            if item[1] == matches[-1]:
+            if item[2] == matches[-1]:
                 continue
-            matches.append(item[1])
+            matches.append(item[2])
 
         return matches
 
@@ -509,7 +516,7 @@ class SearchResults(object):
 
             # Get the index of the first match completely within the
             # context.
-            for j in xrange(0, len(matches)):
+            for j in range(0, len(matches)):
                 if matches[j].start >= start:
                     break
 
@@ -568,7 +575,7 @@ class SearchResults(object):
         header = page.page.getPageHeader()
         start = len(header)
         # Find first match after start
-        for i in xrange(len(matches)):
+        for i in range(len(matches)):
             if matches[i].start >= start and \
                     isinstance(matches[i], TextMatch):
                 return i, start
@@ -590,8 +597,8 @@ class SearchResults(object):
         """
         # Start by giving equal context on both sides of match
         contextlen = max(context - len(match), 0)
-        cstart = match.start - contextlen / 2
-        cend = match.end + contextlen / 2
+        cstart = match.start - old_div(contextlen, 2)
+        cend = match.end + old_div(contextlen, 2)
 
         # If context start before start, give more context on end
         if cstart < start:
@@ -711,11 +718,11 @@ class SearchResults(object):
             textlinks.append('')
 
         # list of pages to be shown
-        page_range = range(*(
+        page_range = list(range(*(
             cur_page - 5 < 0 and
                 (0, pages > 10 and 10 or pages) or
                 (cur_page - 5, cur_page + 6 > pages and
-                    pages or cur_page + 6)))
+                    pages or cur_page + 6))))
         textlinks.extend([''.join([
                 i != cur_page and f.url(1, href=page_url(i)) or '',
                 f.text(str(i+1)),
@@ -819,7 +826,7 @@ class SearchResults(object):
         @param request: current request
         @param formatter: the formatter instance to use
         """
-        self.buffer = StringIO.StringIO()
+        self.buffer = io.StringIO()
         self.formatter = formatter
         self.request = request
         # Use 1 match, 2 matches...

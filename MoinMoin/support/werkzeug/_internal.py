@@ -8,6 +8,8 @@
     :copyright: 2007 Pallets
     :license: BSD-3-Clause
 """
+from builtins import bytes
+from builtins import object
 import inspect
 import logging
 import re

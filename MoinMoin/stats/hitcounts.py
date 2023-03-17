@@ -12,7 +12,12 @@
                 2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import division
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from past.utils import old_div
 _debug = 0
 
 import time
@@ -171,7 +176,7 @@ def text(pagename, request, params=''):
     sd = 0.0
     cnt = 0
 
-    for i in xrange(len(days)-1, -1, -1):
+    for i in range(len(days)-1, -1, -1):
         d, v, e = days[i], views[i], edits[i]
         # sum up views and edits to step days
         sd += 1
@@ -180,7 +185,7 @@ def text(pagename, request, params=''):
         se += e
         if cnt >= step:
             cnt -= step
-            hits.addRow((d, "%.1f" % (sv/sd), "%.1f" % (se/sd)))
+            hits.addRow((d, "%.1f" % (old_div(sv,sd)), "%.1f" % (old_div(se,sd))))
             sv = 0.0
             se = 0.0
             sd = 0.0
@@ -191,7 +196,7 @@ def text(pagename, request, params=''):
 
 
 def draw(pagename, request):
-    import shutil, cStringIO
+    import shutil, io
     from MoinMoin.stats.chart import Chart, ChartData, Color
 
     _ = request.getText
@@ -216,7 +221,7 @@ def draw(pagename, request):
     edits = [x * scalefactor for x in edits]
 
     # create image
-    image = cStringIO.StringIO()
+    image = io.StringIO()
     c = Chart()
     c.addData(ChartData(views, color='green'))
     c.addData(ChartData(edits, color='red'))

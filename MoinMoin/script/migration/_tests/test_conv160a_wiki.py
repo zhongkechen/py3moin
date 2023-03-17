@@ -17,8 +17,9 @@
     @copyright: 2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-import py
-#py.test.skip("broken")
+from builtins import object
+import pytest
+#pytest.skip("broken")
 
 from MoinMoin import i18n
 i18n_wikiLanguages = i18n.wikiLanguages
@@ -26,10 +27,10 @@ i18n_wikiLanguages = i18n.wikiLanguages
 from MoinMoin.script.migration._conv160a_wiki import convert_wiki
 i18n.wikiLanguages = i18n_wikiLanguages
 
-class TestWikiConversion:
+class TestWikiConversion(object):
     """ test the wiki markup conversion 1.6.0a -> 1.6.0 """
-    def test_absolute(self):
-        request = self.request
+    def test_absolute(self, req):
+        request = req
         pagename = 'TestPage'
         rename_some_page = {
                 ('PAGE', 'some_page'): 'some page',
@@ -133,8 +134,8 @@ class TestWikiConversion:
         for data, renames, expected in tests:
             assert convert_wiki(request, pagename, data, renames) == expected
 
-    def test_sisterpage(self):
-        request = self.request
+    def test_sisterpage(self, req):
+        request = req
         top_page = 'toppage'
         pagename = '%s/subpage' % top_page
         rename_some_page = {
@@ -150,8 +151,8 @@ class TestWikiConversion:
         for data, renames, expected in tests:
             assert convert_wiki(request, pagename, data, renames) == expected
 
-    def test_subpage(self):
-        request = self.request
+    def test_subpage(self, req):
+        request = req
         pagename = 'toppage'
         rename_some_page = {
                 ('PAGE', '%s/subpage' % pagename): '%s/renamed_subpage' % pagename,
@@ -166,8 +167,8 @@ class TestWikiConversion:
         for data, renames, expected in tests:
             assert convert_wiki(request, pagename, data, renames) == expected
 
-    def test_full_page(self):
-        #py.test.skip("not wanted right now")
+    def test_full_page(self, req):
+        #pytest.skip("not wanted right now")
         markup_160a = u"""\
 = CamelCase =
 == Pages ==
@@ -420,12 +421,12 @@ class TestWikiConversion:
  5. {{attachment:SomePage/image.png|some label}} is showing binary content as text in 160a (wrong)
 
 """
-        markup_160 = convert_wiki(self.request, u'TestPage', markup_160a, {})
+        markup_160 = convert_wiki(req, u'TestPage', markup_160a, {})
         #print markup_160a ; print "---" ; print markup_160
         markup_160 = markup_160.replace('\r\n', '\n')
         assert markup_160 == expected_markup_160
 
-    def test_parser(self):
+    def test_parser(self, req):
         markup_160a = u"""\
 {{{#!html
 ...
@@ -438,12 +439,12 @@ class TestWikiConversion:
 }}}
 
 """
-        markup_160 = convert_wiki(self.request, u'TestPage', markup_160a, {})
+        markup_160 = convert_wiki(req, u'TestPage', markup_160a, {})
         #print markup_160a ; print "---" ; print markup_160
         markup_160 = markup_160.replace('\r\n', '\n')
         assert markup_160 == expected_markup_160
 
-    def test_pre(self):
+    def test_pre(self, req):
         markup_160a = u"""\
 {{{
 ...
@@ -456,7 +457,7 @@ class TestWikiConversion:
 }}}
 
 """
-        markup_160 = convert_wiki(self.request, u'TestPage', markup_160a, {})
+        markup_160 = convert_wiki(req, u'TestPage', markup_160a, {})
         #print markup_160a ; print "---" ; print markup_160
         markup_160 = markup_160.replace('\r\n', '\n')
         assert markup_160 == expected_markup_160

@@ -5,12 +5,13 @@
     @copyright: 2006 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from builtins import str
 from MoinMoin.filter import EXIF
 
 def execute(indexobj, filename):
     """ Extract some EXIF data """
     try:
-        f = file(filename, 'rb')
+        f = open(filename, 'rb')
         tags = EXIF.process_file(f)
         f.close()
         # get rid of some big stuff:

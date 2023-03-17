@@ -10,18 +10,17 @@
 
 import codecs
 
+
 def execute(indexobj, filename):
     for enc in ('utf-8', 'iso-8859-15', ):
         try:
-            f = codecs.open(filename, "r", enc)
-            data = f.read()
-            f.close()
+            with codecs.open(filename, "r", enc) as f:
+                data = f.read()
             return data
         except UnicodeError:
             pass
-    f = file(filename, "r")
-    data = f.read()
-    f.close()
-    data = data.decode('ascii', 'replace')
+    with open(filename, "r") as f:
+        data = f.read()
+    # data = data.decode('ascii', 'replace')
     return data
 

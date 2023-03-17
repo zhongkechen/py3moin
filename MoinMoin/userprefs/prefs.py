@@ -6,7 +6,12 @@
                 2003-2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+from __future__ import division
 
+from past.builtins import cmp
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import time
 from MoinMoin import user, util, wikiutil, events
 from MoinMoin.theme import load_theme_fallback
@@ -260,8 +265,8 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
                 '%s [%s%s:%s]' % (
                     time.strftime(self.cfg.datetime_fmt, util.timefuncs.tmtuple(t)),
                     "+-"[offset < 0],
-                    "%02d" % (abs(offset) / 3600),
-                    "%02d" % (abs(offset) % 3600 / 60),
+                    "%02d" % (old_div(abs(offset), 3600)),
+                    "%02d" % (old_div(abs(offset) % 3600, 60)),
                 ),
             ))
 
@@ -274,11 +279,11 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
         try:
             dt_d_combined = '%s & %s' % (self.request.user.datetime_fmt, self.request.user.date_fmt)
             selected = [
-                k for k, v in self._date_formats.items()
+                k for k, v in list(self._date_formats.items())
                     if v == dt_d_combined][0]
         except IndexError:
             selected = ''
-        options = [('', _('Default'))] + self._date_formats.items()
+        options = [('', _('Default'))] + list(self._date_formats.items())
 
         return util.web.makeSelection('datetime_fmt', options, selected)
 
@@ -288,7 +293,7 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
         from MoinMoin import i18n
         _ = self._
         cur_lang = self.request.user.valid and self.request.user.language or ''
-        langs = i18n.wikiLanguages().items()
+        langs = list(i18n.wikiLanguages().items())
         langs.sort(lambda x, y: cmp(x[1]['x-language'], y[1]['x-language']))
         options = [('', _('<Browser setting>'))]
         for lang in langs:
@@ -407,4 +412,4 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
                 ])
         self.make_row('', button_cell)
 
-        return unicode(self._form)
+        return str(self._form)

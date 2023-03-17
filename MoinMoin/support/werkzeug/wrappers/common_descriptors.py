@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import object
 from datetime import datetime
 from datetime import timedelta
 

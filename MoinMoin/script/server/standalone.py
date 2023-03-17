@@ -7,6 +7,8 @@
 """
 from __future__ import print_function
 
+from builtins import str
+from builtins import object
 import os
 import sys
 import signal

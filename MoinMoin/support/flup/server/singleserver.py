@@ -25,6 +25,7 @@ from __future__ import print_function
 #
 # $Id$
 
+from builtins import object
 __author__ = 'Allan Saddi <allan@saddi.com>'
 __version__ = '$Revision$'
 

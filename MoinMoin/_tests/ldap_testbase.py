@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    LDAPTestBase: LDAP testing support for py.test based unit tests
+    LDAPTestBase: LDAP testing support for pytest based unit tests
 
     Features
     --------
@@ -36,11 +36,15 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 SLAPD_EXECUTABLE = 'slapd'  # filename of LDAP server executable - if it is not
                             # in your PATH, you have to give full path/filename.
 
-import os, shutil, tempfile, time, base64, md5
-from StringIO import StringIO
+import os, shutil, tempfile, time, base64
+from hashlib import md5
+from io import StringIO
 import signal
 import subprocess
 
@@ -190,7 +194,7 @@ class LdapEnvironment(object):
             'rootdn': self.rootdn,
             'rootpw': rootpw,
         }
-        if isinstance(slapd_config, unicode):
+        if isinstance(slapd_config, str):
             slapd_config = slapd_config.encode(self.coding)
         self.slapd_conf = os.path.join(self.ldap_dir, "slapd.conf")
         f = open(self.slapd_conf, 'w')
@@ -225,10 +229,10 @@ class LdapEnvironment(object):
         shutil.rmtree(self.ldap_dir)
 
 try:
-    import py.test
+    import pytest
 
-    class LDAPTstBase:
-        """ Test base class for py.test based tests which need a LDAP server to talk to.
+    class LDAPTstBase(object):
+        """ Test base class for pytest based tests which need a LDAP server to talk to.
 
             Inherit your test class from this base class to test LDAP stuff.
         """
@@ -246,7 +250,7 @@ try:
             self.ldap_env.create_env(slapd_config=self.slapd_config)
             started = self.ldap_env.start_slapd()
             if not started:
-                py.test.skip("Failed to start %s process, please see your syslog / log files"
+                pytest.skip("Failed to start %s process, please see your syslog / log files"
                              " (and check if stopping apparmor helps, in case you use it)." % SLAPD_EXECUTABLE)
             self.ldap_env.load_directory(ldif_content=self.ldif_content)
 
@@ -256,5 +260,5 @@ try:
             self.ldap_env.destroy_env()
 
 except ImportError:
-    pass  # obviously py.test not in use
+    pass  # obviously pytest not in use
 

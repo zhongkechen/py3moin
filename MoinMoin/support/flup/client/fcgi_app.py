@@ -24,6 +24,8 @@
 #
 # $Id$
 
+from builtins import chr
+from builtins import object
 __author__ = 'Allan Saddi <allan@saddi.com>'
 __version__ = '$Revision$'
 
@@ -425,7 +427,7 @@ class FCGIApp(object):
     def _fcgiParams(self, sock, requestId, params):
         rec = Record(FCGI_PARAMS, requestId)
         data = []
-        for name,value in params.items():
+        for name,value in list(params.items()):
             data.append(encode_pair(name, value))
         data = ''.join(data)
         rec.contentData = data
@@ -439,7 +441,7 @@ class FCGIApp(object):
 
     def _defaultFilterEnviron(self, environ):
         result = {}
-        for n in environ.keys():
+        for n in list(environ.keys()):
             for p in self._environPrefixes:
                 if n.startswith(p):
                     result[n] = environ[n]
@@ -452,7 +454,7 @@ class FCGIApp(object):
 
     def _lightFilterEnviron(self, environ):
         result = {}
-        for n in environ.keys():
+        for n in list(environ.keys()):
             if n.upper() == n:
                 result[n] = environ[n]
         return result

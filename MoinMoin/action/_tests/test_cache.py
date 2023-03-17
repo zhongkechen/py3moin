@@ -6,19 +6,23 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import os, StringIO
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+import os, io
 
 from MoinMoin import caching
 from MoinMoin.action import AttachFile, cache
 
 from MoinMoin._tests import become_trusted, create_page, nuke_page
 
-class TestSendCached:
+class TestSendCached(object):
     """ testing action cache """
     pagename = u"AutoCreatedSillyPageToTestAttachments"
 
-    def test_cache_key_content(self):
-        request = self.request
+    def test_cache_key_content(self, req):
+        request = req
         result1 = cache.key(request, content='foo', secret='bar')
         result2 = cache.key(request, content='foo', secret='baz')
         assert result1  # not empty
@@ -28,15 +32,15 @@ class TestSendCached:
         result4 = cache.key(request, content='foo'*1000, secret='baz')
         assert len(result4) == len(result3)  # same length of key for different input lengths
 
-    def test_cache_key_attachment(self):
-        request = self.request
+    def test_cache_key_attachment(self, req):
+        request = req
         pagename = self.pagename
         attachname = 'foo.txt'
 
         become_trusted(request)
         create_page(request, pagename, u"Foo!")
 
-        AttachFile.add_attachment(request, pagename, attachname, "Test content1", True)
+        AttachFile.add_attachment(request, pagename, attachname, b"Test content1", True)
 
         result1 = cache.key(request, itemname=pagename, attachname=attachname, secret='bar')
         result2 = cache.key(request, itemname=pagename, attachname=attachname, secret='baz')
@@ -50,16 +54,16 @@ class TestSendCached:
         #result3 = cache.key(request, itemname=pagename, attachname=attachname, secret='baz')
         #assert result3 != result2  # different for different content
 
-        AttachFile.add_attachment(request, pagename, attachname, "Test content33333", True)
+        AttachFile.add_attachment(request, pagename, attachname, b"Test content33333", True)
         result4 = cache.key(request, itemname=pagename, attachname=attachname, secret='baz')
         assert len(result4) == len(result2)  # same length of key for different input lengths
         nuke_page(request, pagename)
 
-    def test_put_cache_minimal(self):
+    def test_put_cache_minimal(self, req):
         """Test if put_cache() works"""
-        request = self.request
+        request = req
         key = 'nooneknowsit'
-        data = "dontcare"
+        data = b"dontcare"
         cache.put(request, key, data)
         url = cache.url(request, key)
 
@@ -73,12 +77,12 @@ class TestSendCached:
         assert ("Content-Type", "application/octet-stream") in meta['headers']
         assert ("Content-Length", len(data)) in meta['headers']
 
-    def test_put_cache_guess_ct_give_lm(self):
+    def test_put_cache_guess_ct_give_lm(self, req):
         """Test if put_cache() works, when we give filename (so it guesses content_type) and last_modified"""
-        request = self.request
+        request = req
         key = 'nooneknowsit'
         filename = "test.png"
-        data = "dontcare"
+        data = b"dontcare"
         cache.put(request, key, data, filename=filename, last_modified=1)
         url = cache.url(request, key)
         assert key in url
@@ -92,13 +96,13 @@ class TestSendCached:
         assert ("Content-Type", "image/png") in meta['headers']
         assert ("Content-Length", len(data)) in meta['headers']
 
-    def test_put_cache_file_like_data(self):
+    def test_put_cache_file_like_data(self, req):
         """Test if put_cache() works when we give it a file like object for the content"""
-        request = self.request
+        request = req
         key = 'nooneknowsit'
         filename = "test.png"
-        data = "dontcareatall"
-        data_file = StringIO.StringIO(data)
+        data = b"dontcareatall"
+        data_file = io.BytesIO(data)
         cache.put(request, key, data_file)
         url = cache.url(request, key)
 
@@ -106,6 +110,7 @@ class TestSendCached:
         meta_cache = caching.CacheEntry(request,
                                         arena=cache.cache_arena,
                                         scope=cache.cache_scope,
+                                        use_encode=False,
                                         key=key+'.meta', use_pickle=True)
         meta = meta_cache.content()
         assert meta['httpdate_last_modified'].endswith(' GMT') # only a very rough check, it has used cache mtime as last_modified
@@ -119,7 +124,7 @@ class TestSendCached:
         cached = data_cache.content()
         assert data == cached
 
-    def test_put_cache_complex(self):
+    def test_put_cache_complex(self, req):
         """Test if put_cache() works for a more complex, practical scenario:
 
            As 'source' we just use some random integer as count value.
@@ -137,7 +142,7 @@ class TestSendCached:
            unique string.
         """
         import random
-        request = self.request
+        request = req
         render = lambda data: "spam" * data
         secret = 4223
         keycalc = lambda data: str(data * secret)
@@ -146,7 +151,7 @@ class TestSendCached:
         rendered1 = render(source)
         key1 = keycalc(source)
 
-        cache.put(request, key1, rendered1)
+        cache.put(request, key1, rendered1.encode("utf8"))
         url1 = cache.url(request, key1)
         assert 'key=%s' % key1 in url1
 
@@ -156,7 +161,7 @@ class TestSendCached:
                                         key=key1+'.data')
         cached1 = data_cache.content()
 
-        assert render(source) == cached1
+        assert render(source).encode("utf8") == cached1
         # if that succeeds, we have stored the rendered representation of source in the cache under key1
 
         # now we use some different source, render it and store it in the cache
@@ -164,7 +169,7 @@ class TestSendCached:
         rendered2 = render(source)
         key2 = keycalc(source)
 
-        cache.put(request, key2, rendered2)
+        cache.put(request, key2, rendered2.encode("utf8"))
         url2 = cache.url(request, key2)
         assert 'key=%s' % key2 in url2
 
@@ -174,7 +179,7 @@ class TestSendCached:
                                         key=key2+'.data')
         cached2 = data_cache.content()
 
-        assert render(source) == cached2
+        assert render(source).encode("utf8") == cached2
         # if that succeeds, we have stored the rendered representation of updated source in the cache under key2
 
         assert url2 != url1  # URLs must be different for different source (implies different keys)

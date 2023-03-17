@@ -26,6 +26,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from past.builtins import cmp
+from builtins import range
 import re
 
 from MoinMoin.config import multiconfig
@@ -51,7 +53,7 @@ def macro_HighlighterList(macro, columns='|'.join(available_columns),
     columns = columns and [available_columns.index(column)
                 for column
                 in columns.split('|')
-                if column in available_columns] or range(len(available_columns))
+                if column in available_columns] or list(range(len(available_columns)))
     sort_column = available_columns.index(sort_column) or 0
     do_filter = (filter_re not in (None, ""))
     filter_re = re.compile(filter_re or ".*")

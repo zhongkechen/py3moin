@@ -14,6 +14,9 @@
 
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
 FUNCTIONS = (
     'OnEntityCreated',
     'OnEntityDestroyed',
@@ -1097,7 +1100,7 @@ if __name__ == '__main__':  # pragma: no cover
     import re
     import sys
     try:
-        from urllib import FancyURLopener
+        from urllib.request import FancyURLopener
     except ImportError:
         from urllib.request import FancyURLopener
 

@@ -18,6 +18,8 @@
 r"""highlight.py: Highlight and summarise text.
 
 """
+from builtins import range
+from builtins import object
 __docformat__ = "restructuredtext en"
 
 import re
@@ -57,7 +59,7 @@ class Highlighter(object):
         Returns a list of utf-8 encoded simple strings.
 
         """
-        if isinstance(text, unicode):
+        if isinstance(text, str):
             text = text.encode('utf-8')
 
         words = self._split_re.findall(text)
@@ -87,7 +89,7 @@ class Highlighter(object):
         <BLANKLINE>
 
         """
-        for p in xrange(len(term)):
+        for p in range(len(term)):
             if term[p].islower():
                 return term[p:]
             elif term[p] == 'R':
@@ -154,7 +156,7 @@ class Highlighter(object):
 
         # select high-scoring blocks first, down to zero-scoring
         chars = 0
-        for count in xrange(3, -1, -1):
+        for count in range(3, -1, -1):
             for b in blocks:
                 if b[3] >= count:
                     b[4] = True
@@ -177,7 +179,7 @@ class Highlighter(object):
 
         # trim down to maxlen
         l = 0
-        for i in xrange (len (words2)):
+        for i in range (len (words2)):
             l += len (words2[i])
             if l >= maxlen:
                 words2[i:] = ['..']

@@ -8,7 +8,10 @@
     @copyright: 2006-2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-import StringIO, re, time
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+import io, re, time
 from MoinMoin import wikixml, config, wikiutil
 from MoinMoin.logfile import editlog
 from MoinMoin.util import timefuncs
@@ -170,7 +173,7 @@ def execute(pagename, request):
             logo = request.getQualifiedURL(logo.group(1))
 
         # prepare output
-        out = StringIO.StringIO()
+        out = io.StringIO()
         handler = RssGenerator(out)
 
         # start SAX stream

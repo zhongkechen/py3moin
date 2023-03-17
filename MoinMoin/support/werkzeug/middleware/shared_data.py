@@ -8,6 +8,8 @@ Serve Shared Static Files
 :copyright: 2007 Pallets
 :license: BSD-3-Clause
 """
+from builtins import str
+from builtins import object
 import mimetypes
 import os
 import pkgutil
@@ -106,7 +108,7 @@ class SharedDataMiddleware(object):
         self.cache_timeout = cache_timeout
 
         if hasattr(exports, "items"):
-            exports = exports.items()
+            exports = list(exports.items())
 
         for key, value in exports:
             if isinstance(value, tuple):

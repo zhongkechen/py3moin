@@ -6,13 +6,14 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import py
+from builtins import object
+import pytest
 from MoinMoin._tests import wikiconfig
 
 try:
     from MoinMoin.search.Xapian.tokenizer import WikiAnalyzer
 except ImportError:
-    py.test.skip('xapian is not installed')
+    pytest.skip('xapian is not installed', allow_module_level=True)
 
 class TestWikiAnalyzer(object):
 

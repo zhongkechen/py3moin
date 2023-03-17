@@ -12,7 +12,12 @@ time, along with a navigation aid.
             2010 Paul Boddie
 @license: GNU GPL, see COPYING for details.
 """
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import re, time
 
 from MoinMoin import config, wikiutil, i18n, error
@@ -141,7 +146,7 @@ class SlidePage(Page):
         return Parser()
 
 
-class SlideshowAction:
+class SlideshowAction(object):
 
     name = 'SlideShow'
     maxSlideLinks = 15
@@ -163,7 +168,7 @@ class SlideshowAction:
             self.request.setContentLanguage(language)
             self.request.write(self.template % self)
         except Error as err:
-            self.request.theme.add_msg(wikiutil.escape(unicode(err)), "error")
+            self.request.theme.add_msg(wikiutil.escape(str(err)), "error")
             self.page.send_page()
 
     # Private ----------------------------------------------------------------
@@ -235,7 +240,7 @@ class SlideshowAction:
 
     def formatAttributes(self, attributes):
         """ Return formatted attributes string """
-        formattedPairs = [' %s="%s"' % (k, v) for k, v in attributes.items()]
+        formattedPairs = [' %s="%s"' % (k, v) for k, v in list(attributes.items())]
         return ''.join(formattedPairs)
 
     def adaptToLanguage(self, direction):
@@ -258,10 +263,10 @@ class SlideshowAction:
         """ Return range of slides to display, current centered """
         other = self.maxSlideLinks - 1 # other slides except current
         first, last = self.first_slide(), self.last_slide()
-        start = max(first, (self.slideNumber or 1) - other / 2)
+        start = max(first, (self.slideNumber or 1) - old_div(other, 2))
         end = min(start + other, last)
         start = max(first, end - other)
-        return range(start, end + 1)
+        return list(range(start, end + 1))
 
     def first_slide(self):
         return 1
@@ -298,7 +303,7 @@ class SlideshowAction:
     def item_slides(self):
         if self.slideNumber is None:
             slides = []
-            for n in xrange(0, len(self.page)):
+            for n in range(0, len(self.page)):
                 slides.append(slide_template % {
                     'slide_title' : self.item_slide_title(n + 1),
                     'slide_body' : self.item_slide_body(n + 1)

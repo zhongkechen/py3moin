@@ -1,3 +1,7 @@
+from builtins import bytes
+from builtins import str
+from builtins import map
+from builtins import object
 import warnings
 
 from .._compat import integer_types

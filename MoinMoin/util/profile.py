@@ -38,10 +38,12 @@ Based on code by Oliver Graf
 """
 from __future__ import print_function
 
+from builtins import str
+from builtins import object
 import os, time, gc
 
 
-class Profiler:
+class Profiler(object):
     """ Profile memory usage
 
     Profiler count requests and sample memory usage.
@@ -58,7 +60,7 @@ class Profiler:
         @param collect: should call gc.collect() in each sample
         """
         logname = '%s--%s.log' % (name, time.strftime('%Y-%m-%d--%H-%M'))
-        self.logfile = file(logname, 'a')
+        self.logfile = open(logname, 'a')
         self.requestsPerSample = requestsPerSample
         self.collect = collect
         self.pid = os.getpid()
