@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - This is just a sample for a xmlrpc plugin
 

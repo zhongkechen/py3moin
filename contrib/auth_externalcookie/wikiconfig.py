@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 # This is some sample code you might find useful when you want to use some
 # external cookie (made by some other program, not moin) with moin.
 # See the +++ places for customizing it to your needs. You need to put this

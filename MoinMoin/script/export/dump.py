@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
 MoinMoin - Dump a MoinMoin wiki to static pages
 

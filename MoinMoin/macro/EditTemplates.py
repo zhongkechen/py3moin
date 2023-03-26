@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - Create a list of currentpage?action=edit&template=X links
     for all available templates X. Used by MissingPage.

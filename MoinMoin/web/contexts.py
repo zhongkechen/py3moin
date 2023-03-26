@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - Context objects which are passed thru instead of the classic
                request objects. Currently contains legacy wrapper code for

@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - "text/html+css" Formatter for feeding the GUI editor
 

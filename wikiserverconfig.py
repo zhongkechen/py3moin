@@ -74,7 +74,7 @@ class LocalConfig(DefaultConfig):
 
 try:
     from wikiserverconfig_local import Config
-except ImportError, err:
+except ImportError as err:
     if not str(err).endswith('wikiserverconfig_local'):
         raise
     Config = LocalConfig

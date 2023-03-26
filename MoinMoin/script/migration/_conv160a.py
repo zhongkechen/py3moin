@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - migration from 1.6.0alpha (rev 1844: 58ebb64243cc - used a similar markup as 1.5.8, but with quotes for linking stuff with blanks) to 1.6.0 (creole link style)
 

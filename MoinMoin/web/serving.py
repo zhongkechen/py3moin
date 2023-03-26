@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-1 -*-
 """
     MoinMoin - This module contains additional code related to serving
                requests with the standalone server. It uses werkzeug's
@@ -14,15 +13,18 @@ import os
 from MoinMoin import config
 
 from MoinMoin import version, log
+
 logging = log.getLogger(__name__)
 
 # make werkzeug use our logging framework and configuration:
 import werkzeug._internal
+
 werkzeug._internal._logger = log.getLogger('werkzeug')
 
-from werkzeug.serving import run_simple, BaseRequestHandler
+from werkzeug.serving import run_simple, WSGIRequestHandler  # , BaseRequestHandler
 
-class RequestHandler(BaseRequestHandler):
+
+class RequestHandler(WSGIRequestHandler):
     """
     A request-handler for WSGI, that overrides the default logging
     mechanisms to log via MoinMoin's logging framework.
@@ -40,6 +42,7 @@ class RequestHandler(BaseRequestHandler):
 
     def log_message(self, format, *args):
         logging.info("%s %s", self.address_string(), (format % args))
+
 
 class ProxyTrust(object):
     """
@@ -68,6 +71,7 @@ class ProxyTrust(object):
             del environ['REMOTE_ADDR']
         return self.app(environ, start_response)
 
+
 def make_application(shared=None, trusted_proxies=None):
     """
     Make an instance of the MoinMoin WSGI application. This involves
@@ -90,6 +94,7 @@ def make_application(shared=None, trusted_proxies=None):
         application = make_static_serving_app(application, shared)
 
     return application
+
 
 def switch_user(uid, gid=None):
     """ Switch identity to safe user and group
@@ -129,6 +134,7 @@ def switch_user(uid, gid=None):
         raise RuntimeError("can't change uid/gid to %s/%s" % (uid, gid))
     logging.info("Running as uid/gid %d/%d" % (uid, gid))
 
+
 def run_server(hostname='localhost', port=8080,
                docs=True,
                debug='off',
@@ -158,4 +164,3 @@ def run_server(hostname='localhost', port=8080,
                passthrough_errors=(debug == 'external'),
                request_handler=RequestHandler,
                **kw)
-

@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
 MoinMoin - Create a MoinMoin package from wiki pages specified.
 

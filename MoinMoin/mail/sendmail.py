@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-1 -*-
 """
     MoinMoin - email helper functions
 
@@ -20,9 +19,9 @@ _transdict = {"AT": "@", "DOT": ".", "DASH": "-"}
 
 
 def encodeAddress(address, charset):
-    """ Encode email address to enable non ascii names
+    """Encode email address to enable non ascii names
 
-    e.g. '"Jürgen Hermann" <jh@web.de>'. According to the RFC, the name
+    e.g. '"JÃ¼rgen Hermann" <jh@web.de>'. According to the RFC, the name
     part should be encoded, the address should not.
 
     @param address: email address, possibly using '"name" <address>' format
@@ -107,7 +106,7 @@ def sendmail(request, to, subject, text, mail_from=None):
 
     # Create message headers
     # Don't expose emails addreses of the other subscribers, instead we
-    # use the same mail_from, e.g. u"Jürgen Wiki <noreply@mywiki.org>"
+    # use the same mail_from, e.g. u"JÃ¼rgen Wiki <noreply@mywiki.org>"
     address = encodeAddress(mail_from, charset)
     msg['From'] = address
     msg['To'] = address

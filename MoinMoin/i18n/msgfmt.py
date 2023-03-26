@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: iso-8859-1 -*-
+#!/usr/bin/env python3
+
 """Generate binary message catalog from textual translation description.
 
 This program converts a textual Uniforum-style message catalog (.po file) into
@@ -22,7 +22,7 @@ Options:
     --version
         Display version information and exit.
 
-Written by Martin v. Löwis <loewis@informatik.hu-berlin.de>,
+Written by Martin v. LÃ¶wis <loewis@informatik.hu-berlin.de>,
 refactored / fixed by Thomas Waldmann <tw AT waldmann-edv DOT de>.
 """
 from __future__ import print_function

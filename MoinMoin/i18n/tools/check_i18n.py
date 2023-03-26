@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# -*- coding: iso-8859-1 -*-
+
 """check_i18n - compare texts in the source with the language files
 
 Searches in the MoinMoin sources for calls of _() and tries to extract

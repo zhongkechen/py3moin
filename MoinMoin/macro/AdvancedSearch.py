@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-1 -*-
 """
     MoinMoin - AdvancedSearch Macro
 
@@ -7,7 +6,6 @@
 
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import str
 import sys
 
 from MoinMoin import wikiutil
@@ -18,6 +16,7 @@ import mimetypes
 
 Dependencies = ['pages']
 
+
 def getMimetypes():
     # The types will be listed here, instead of parsing mimetypes.types_map
     types = [
@@ -27,7 +26,7 @@ def getMimetypes():
         'message',
         'text',
         'video',
-        ]
+    ]
     return types
 
 
@@ -63,7 +62,7 @@ def advanced_ui(macro):
     request = macro.request
 
     disabledIfMoinSearch = not request.cfg.xapian_search and \
-            ' disabled="disabled"' or ''
+                           ' disabled="disabled"' or ''
 
     search_boxes = ''.join([
         f.table_row(1),
@@ -81,54 +80,54 @@ def advanced_ui(macro):
             f.table_row(0),
         ]) for txt, input_field in (
             (_('containing all the following terms'),
-                '<input type="text" name="and_terms" size="30" value="%s">'
-                % (form_get(request, 'and_terms', escaped=True) or form_get(request, 'value', escaped=True))),
+             '<input type="text" name="and_terms" size="30" value="%s">'
+             % (form_get(request, 'and_terms', escaped=True) or form_get(request, 'value', escaped=True))),
             (_('containing one or more of the following terms'),
-                '<input type="text" name="or_terms" size="30" value="%s">'
-                % form_get(request, 'or_terms', escaped=True)),
+             '<input type="text" name="or_terms" size="30" value="%s">'
+             % form_get(request, 'or_terms', escaped=True)),
             (_('not containing the following terms'),
-                '<input type="text" name="not_terms" size="30" value="%s">'
-                % form_get(request, 'not_terms', escaped=True)),
-            #('containing only one of the following terms',
+             '<input type="text" name="not_terms" size="30" value="%s">'
+             % form_get(request, 'not_terms', escaped=True)),
+            # ('containing only one of the following terms',
             #    '<input type="text" name="xor_terms" size="30" value="%s">'
             #    % form_get(request, 'xor_terms', escaped=True)),
             # TODO: dropdown-box?
             (_('last modified since (e.g. 2 weeks before)'),
-                '<input type="text" name="mtime" size="30" value="%s">'
-                % form_get(request, 'mtime', escaped=True)),
+             '<input type="text" name="mtime" size="30" value="%s">'
+             % form_get(request, 'mtime', escaped=True)),
         )])
     ])
 
     # category selection
     categories = form_get(request, 'categories')
     c_select = makeSelection('categories',
-            [('', _('any category'))] +
-            [(cat, '%s' % cat) for cat in getCategories(request)],
-            categories, 3, True)
+                             [('', _('any category'))] +
+                             [(cat, '%s' % cat) for cat in getCategories(request)],
+                             categories, 3, True)
 
     # language selection
     searchedlang = form_get(request, 'language')
     langs = dict([(lang, lmeta['x-language-in-english'])
-        for lang, lmeta in list(languages.items())])
+                  for lang, lmeta in list(languages.items())])
     userlang = macro.request.lang
     lang_select = makeSelection('language',
-            [('', _('any language')),
-            (userlang, langs[userlang])] + sorted(list(langs.items()), key=lambda i: i[1]),
-            searchedlang, 3, True)
+                                [('', _('any language')),
+                                 (userlang, langs[userlang])] + sorted(list(langs.items()), key=lambda i: i[1]),
+                                searchedlang, 3, True)
 
     # mimetype selection
     # mimetypes.types_map has non-ascii encoded bytestrings sometimes!
-    coding = sys.getdefaultencoding() # same call used by stdlib mimetypes.py on win32
+    coding = sys.getdefaultencoding()  # same call used by stdlib mimetypes.py on win32
     if coding == 'ascii':  # we might get 'ascii'
         coding = 'utf-8'  # but we upgrade to utf-8, which is sometimes used for /etc/mime.types
-    decode = lambda s: s.decode(coding, 'replace') # use 'replace' -> never crash
+    decode = lambda s: s.decode(coding, 'replace') if isinstance(s, bytes) else s  # use 'replace' -> never crash
     mimetype = form_get(request, 'mimetype')
     mt_select = makeSelection('mimetype',
-            [('', _('any mimetype'))] +
-            [(type, 'all %s files' % type) for type in getMimetypes()] +
-            [(decode(m[1]), '*%s - %s' % (decode(m[0]), decode(m[1])))
-             for m in sorted(mimetypes.types_map.items())],
-            mimetype, 3, True)
+                              [('', _('any mimetype'))] +
+                              [(type, 'all %s files' % type) for type in getMimetypes()] +
+                              [(decode(m[1]), '*%s - %s' % (decode(m[0]), decode(m[1])))
+                               for m in sorted(mimetypes.types_map.items())],
+                              mimetype, 3, True)
 
     # misc search options (checkboxes)
     search_options = ''.join([
@@ -142,33 +141,33 @@ def advanced_ui(macro):
             txt[2],
             f.table_cell(0),
             f.table_row(0),
-            ]) for txt in (
-                (_('Categories'), str(c_select), ''),
-                (_('Language'), str(lang_select), ''),
-                (_('File Type'), str(mt_select), ''),
-                ('', html.INPUT(type='checkbox', name='titlesearch',
-                    value='1', checked=form_get(request, 'titlesearch', escaped=True),
-                    id='titlesearch'),
-                    '<label for="titlesearch">%s</label>' % _('Search only in titles')),
-                ('', html.INPUT(type='checkbox', name='case', value='1',
-                    checked=form_get(request, 'case', escaped=True),
-                    id='case'),
-                    '<label for="case">%s</label>' % _('Case-sensitive search')),
-                ('', html.INPUT(type='checkbox', name='excludeunderlay',
-                    value='1', checked=form_get(request, 'excludeunderlay', escaped=True),
-                    id='excludeunderlay'),
-                    '<label for="excludeunderlay">%s</label>' % _('Exclude underlay')),
-                ('', html.INPUT(type='checkbox', name='nosystemitems',
-                    value='1', checked=form_get(request, 'nosystemitems', escaped=True),
-                    id='nosystempages'),
-                    '<label for="nosystempages">%s</label>' % _('No system items')),
-                ('', html.INPUT(type='checkbox', name='historysearch',
-                    value='1', checked=form_get(request, 'historysearch', escaped=True),
-                    disabled=(not request.cfg.xapian_search or
-                        not request.cfg.xapian_index_history),
-                    id='historysearch'),
-                    '<label for="historysearch">%s</label>' % _('Search in all page revisions'))
-            )
+        ]) for txt in (
+            (_('Categories'), str(c_select), ''),
+            (_('Language'), str(lang_select), ''),
+            (_('File Type'), str(mt_select), ''),
+            ('', html.INPUT(type='checkbox', name='titlesearch',
+                            value='1', checked=form_get(request, 'titlesearch', escaped=True),
+                            id='titlesearch'),
+             '<label for="titlesearch">%s</label>' % _('Search only in titles')),
+            ('', html.INPUT(type='checkbox', name='case', value='1',
+                            checked=form_get(request, 'case', escaped=True),
+                            id='case'),
+             '<label for="case">%s</label>' % _('Case-sensitive search')),
+            ('', html.INPUT(type='checkbox', name='excludeunderlay',
+                            value='1', checked=form_get(request, 'excludeunderlay', escaped=True),
+                            id='excludeunderlay'),
+             '<label for="excludeunderlay">%s</label>' % _('Exclude underlay')),
+            ('', html.INPUT(type='checkbox', name='nosystemitems',
+                            value='1', checked=form_get(request, 'nosystemitems', escaped=True),
+                            id='nosystempages'),
+             '<label for="nosystempages">%s</label>' % _('No system items')),
+            ('', html.INPUT(type='checkbox', name='historysearch',
+                            value='1', checked=form_get(request, 'historysearch', escaped=True),
+                            disabled=(not request.cfg.xapian_search or
+                                      not request.cfg.xapian_index_history),
+                            id='historysearch'),
+             '<label for="historysearch">%s</label>' % _('Search in all page revisions'))
+        )
     ])
 
     # the dialogue
@@ -194,4 +193,3 @@ def advanced_ui(macro):
 def execute(macro, needle):
     # for now, just show the advanced ui
     return advanced_ui(macro)
-

@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - (ab)use logging
     Log some data that can be used for usage analysis and abuse detection.

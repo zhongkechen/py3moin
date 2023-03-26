@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - 1st pass of 1.6a to 1.6 migration
 

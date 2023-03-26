@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-1 -*-
 """
     MoinMoin - WSGI middlewares for profiling
 
@@ -22,7 +21,9 @@ from builtins import object
 from werkzeug.wsgi import get_current_url
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
+
 
 class ProfilerMiddleware(object):
     """ Abstract base class for profiling middlewares.
@@ -31,6 +32,7 @@ class ProfilerMiddleware(object):
     of `run_profile` and `shutdown`, the latter which should be called by
     the code utilizing the profiler.
     """
+
     def __init__(self, app):
         self.app = app
 
@@ -63,8 +65,10 @@ class ProfilerMiddleware(object):
         """ Override in subclasses to clean up when server/script shuts down. """
         pass
 
+
 class CProfileMiddleware(ProfilerMiddleware):
     """ A profiler based on the the cProfile module from the standard lib. """
+
     def __init__(self, app, filename):
         super(CProfileMiddleware, self).__init__(app)
         import cProfile
@@ -75,8 +79,10 @@ class CProfileMiddleware(ProfilerMiddleware):
     def shutdown(self):
         self._profile.dump_stats(self._filename)
 
+
 class HotshotMiddleware(ProfilerMiddleware):
     """ A profiler based on the more recent hotshot module from the stdlib. """
+
     def __init__(self, app, *args, **kwargs):
         super(HotshotMiddleware, self).__init__(app)
         import hotshot
@@ -86,9 +92,11 @@ class HotshotMiddleware(ProfilerMiddleware):
     def shutdown(self):
         self._profile.close()
 
+
 class PycallgraphMiddleware(ProfilerMiddleware):
     """ A call graphing middleware utilizing the pycallgraph 3rd party
     module (available at http://pycallgraph.slowchop.com/). """
+
     def __init__(self, app, filename):
         super(PycallgraphMiddleware, self).__init__(app)
         import pycallgraph

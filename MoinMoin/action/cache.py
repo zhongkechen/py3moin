@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - Send a raw object from the caching system (and offer utility
     functions to put data into cache, calculate cache key, etc.).

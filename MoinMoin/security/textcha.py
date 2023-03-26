@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-1 -*-
 """
     MoinMoin - Text CAPTCHAs
 
@@ -27,13 +26,15 @@ import random
 from time import time
 
 from MoinMoin import log
+from MoinMoin import wikiutil
+from MoinMoin.wikiutil import safe_str_cmp
+
 logging = log.getLogger(__name__)
 
-from MoinMoin import wikiutil
-from werkzeug.security import safe_str_cmp as safe_str_equal
 
-SHA1_LEN = 40 # length of hexdigest
-TIMESTAMP_LEN = 10 # length of timestamp
+SHA1_LEN = 40  # length of hexdigest
+TIMESTAMP_LEN = 10  # length of timestamp
+
 
 class TextCha(object):
     """ Text CAPTCHA support """
@@ -69,7 +70,8 @@ class TextCha(object):
                 lang = cfg.language_default
                 logging.debug(u"TextCha: fallback to language_default == '%s'." % lang)
                 if lang not in textchas:
-                    logging.error(u"TextCha: The textchas do not have content for language_default == '%s'! Falling back to English." % lang)
+                    logging.error(
+                        u"TextCha: The textchas do not have content for language_default == '%s'! Falling back to English." % lang)
                     lang = 'en'
                     if lang not in textchas:
                         logging.error(u"TextCha: The textchas do not have content for 'en', auto-disabling textchas!")
@@ -100,13 +102,13 @@ class TextCha(object):
                 self.question = question
             try:
                 self.answer_regex = self.textchas[self.question]
-                self.answer_re = re.compile(self.answer_regex, re.U|re.I)
+                self.answer_re = re.compile(self.answer_regex, re.U | re.I)
             except KeyError:
                 # this question does not exist, thus there is no answer
                 self.answer_regex = r"[Never match for cheaters]"
                 self.answer_re = None
                 logging.warning(u"TextCha: Non-existing question '%s'. User '%s' trying to cheat?" % (
-                                self.question, self.user_info))
+                    self.question, self.user_info))
             except re.error:
                 logging.error(u"TextCha: Invalid regex in answer for question '%s'" % self.question)
                 self._init_qa()
@@ -125,7 +127,7 @@ class TextCha(object):
                 # ...
             }
         """
-        return not not self.textchas # we don't want to return the dict
+        return not not self.textchas  # we don't want to return the dict
 
     def check_answer(self, given_answer, timestamp, signature):
         """ check if the given answer to the question is correct and within the correct timeframe"""
@@ -143,7 +145,7 @@ class TextCha(object):
                 success = False
                 reason = 'textcha expired'
             try:
-                if not safe_str_equal(self._compute_signature(self.question, timestamp), signature):
+                if not safe_str_cmp(self._compute_signature(self.question, timestamp), signature):
                     success = False
                     reason = 'signature mismatch'
             except TypeError:
@@ -152,13 +154,13 @@ class TextCha(object):
 
             success_status = success and u"success" or u"failure"
             logging.info(u"TextCha: %s (u='%s', a='%s', re='%s', q='%s', rsn='%s')" % (
-                             success_status,
-                             self.user_info,
-                             given_answer,
-                             self.answer_regex,
-                             self.question,
-                             reason,
-                             ))
+                success_status,
+                self.user_info,
+                given_answer,
+                self.answer_regex,
+                self.question,
+                reason,
+            ))
             return success
         else:
             return True
@@ -224,4 +226,3 @@ class TextCha(object):
             return self.check_answer(given_answer, timestamp, signature)
         else:
             return True
-

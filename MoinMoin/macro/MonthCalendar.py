@@ -151,6 +151,7 @@ from __future__ import division
 from builtins import str
 from builtins import range
 from past.utils import old_div
+
 Dependencies = ['namespace', 'time', ]
 
 import re, calendar, time
@@ -165,8 +166,10 @@ from MoinMoin.Page import Page
 # XXX change here ----------------vvvvvv
 calendar.setfirstweekday(calendar.MONDAY)
 
+
 def cliprgb(r, g, b):
     """ clip r,g,b values into range 0..254 """
+
     def clip(x):
         """ clip x value into range 0..254 """
         if x < 0:
@@ -174,7 +177,9 @@ def cliprgb(r, g, b):
         elif x > 254:
             x = 254
         return x
+
     return clip(r), clip(g), clip(b)
+
 
 def yearmonthplusoffset(year, month, offset):
     """ calculate new year/month from year/month and offset """
@@ -188,10 +193,12 @@ def yearmonthplusoffset(year, month, offset):
         year += 1
     return year, month
 
-def parseargs(request, args, defpagename, defyear, defmonth, defoffset, defoffset2, defheight6, defanniversary, deftemplate):
+
+def parseargs(request, args, defpagename, defyear, defmonth, defoffset, defoffset2, defheight6, defanniversary,
+              deftemplate):
     """ parse macro arguments """
     args = wikiutil.parse_quoted_separated(args, name_value=False)
-    args += [None] * 8 # fill up with None to trigger defaults
+    args += [None] * 8  # fill up with None to trigger defaults
     parmpagename, parmyear, parmmonth, parmoffset, parmoffset2, parmheight6, parmanniversary, parmtemplate = args[:8]
     parmpagename = wikiutil.get_unicode(request, parmpagename, 'pagename', defpagename)
     parmyear = wikiutil.get_int(request, parmyear, 'year', defyear)
@@ -207,6 +214,7 @@ def parseargs(request, args, defpagename, defyear, defmonth, defoffset, defoffse
 
     return parmpagename, parmyear, parmmonth, parmoffset, parmoffset2, parmheight6, parmanniversary, parmtemplate
 
+
 def execute(macro, text):
     request = macro.request
     formatter = macro.formatter
@@ -220,7 +228,7 @@ def execute(macro, text):
     thispage = formatter.page.page_name
     # does the url have calendar params (= somebody has clicked on prev/next links in calendar) ?
     if 'calparms' in macro.request.args:
-        has_calparms = 1 # yes!
+        has_calparms = 1  # yes!
         text2 = macro.request.args['calparms']
         cparmpagename, cparmyear, cparmmonth, cparmoffset, cparmoffset2, cparmheight6, cparmanniversary, cparmtemplate = \
             parseargs(request, text2, thispage, currentyear, currentmonth, 0, 0, False, False, u'')
@@ -229,7 +237,7 @@ def execute(macro, text):
     else:
         has_calparms = 0
 
-    if text is None: # macro call without parameters
+    if text is None:  # macro call without parameters
         text = u''
 
     # parse and check arguments
@@ -238,7 +246,7 @@ def execute(macro, text):
 
     # does url have calendar params and is THIS the right calendar to modify (we can have multiple
     # calendars on the same page)?
-    #if has_calparms and (cparmpagename,cparmyear,cparmmonth,cparmoffset) == (parmpagename,parmyear,parmmonth,parmoffset):
+    # if has_calparms and (cparmpagename,cparmyear,cparmmonth,cparmoffset) == (parmpagename,parmyear,parmmonth,parmoffset):
 
     # move all calendars when using the navigation:
     if has_calparms and cparmpagename == parmpagename:
@@ -249,17 +257,19 @@ def execute(macro, text):
         year, month = yearmonthplusoffset(parmyear, parmmonth, parmoffset)
 
     if request.isSpiderAgent and abs(currentyear - year) > 1:
-        return '' # this is a bot and it didn't follow the rules (see below)
+        return ''  # this is a bot and it didn't follow the rules (see below)
     if currentyear == year:
         attrs = {}
     else:
-        attrs = {'rel': 'nofollow' } # otherwise even well-behaved bots will index forever
+        attrs = {'rel': 'nofollow'}  # otherwise even well-behaved bots will index forever
 
     # get the calendar
     monthcal = calendar.monthcalendar(year, month)
 
     # european / US differences
-    months = ('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
+    months = (
+    'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November',
+    'December')
     # Set things up for Monday or Sunday as the first day of the week
     if calendar.firstweekday() == calendar.MONDAY:
         wkend = (5, 6)
@@ -294,19 +304,21 @@ def execute(macro, text):
         chstep = int(old_div(l, steps))
         st = 0
         while st < l:
-            ch = parmpagename[0][st:st+chstep]
+            ch = parmpagename[0][st:st + chstep]
             r, g, b = cliprgb(r, g, b)
             link = Page(request, parmpagename[0]).link_to(request, ch,
-                        rel='nofollow',
-                        style='background-color:#%02x%02x%02x;color:#000000;text-decoration:none' % (r, g, b))
+                                                          rel='nofollow',
+                                                          style='background-color:#%02x%02x%02x;color:#000000;text-decoration:none' % (
+                                                          r, g, b))
             pagelinks = pagelinks + link
-            r, g, b = (r, g+colorstep, b)
+            r, g, b = (r, g + colorstep, b)
             st = st + chstep
-        r, g, b = (255-colorstep, 255, 255-colorstep)
+        r, g, b = (255 - colorstep, 255, 255 - colorstep)
         for page in parmpagename[1:]:
             link = Page(request, page).link_to(request, page,
-                        rel='nofollow',
-                        style='background-color:#%02x%02x%02x;color:#000000;text-decoration:none' % (r, g, b))
+                                               rel='nofollow',
+                                               style='background-color:#%02x%02x%02x;color:#000000;text-decoration:none' % (
+                                               r, g, b))
             pagelinks = pagelinks + '*' + link
         showpagename = '   %s<BR>\n' % pagelinks
     else:
@@ -315,7 +327,7 @@ def execute(macro, text):
         resth1 = '  <th colspan="7" class="cal-header">\n' \
                  '%s' \
                  '   %s&nbsp;%s&nbsp;<b>&nbsp;%s&nbsp;%s</b>&nbsp;%s\n&nbsp;%s\n' \
-                 '  </th>\n' % (showpagename, prevyear, prevmonth, months[month-1], str(year), nextmonth, nextyear)
+                 '  </th>\n' % (showpagename, prevyear, prevmonth, months[month - 1], str(year), nextmonth, nextyear)
     if calendar.firstweekday() == calendar.MONDAY:
         resth1 = '  <th colspan="7" class="cal-header">\n' \
                  '%s' \
@@ -358,7 +370,7 @@ def execute(macro, text):
                     query = {}
                     r, g, b, u = (255, 0, 0, 1)
                     daycontent = daypage.get_raw_body()
-                    header1_re = re.compile(r'^\s*=\s(.*)\s=$', re.MULTILINE) # re.UNICODE
+                    header1_re = re.compile(r'^\s*=\s(.*)\s=$', re.MULTILINE)  # re.UNICODE
                     titletext = []
                     for match in header1_re.finditer(daycontent):
                         if match:
@@ -389,15 +401,15 @@ def execute(macro, text):
                     if otherdaypage.exists():
                         csslink = "cal-usedday"
                         if u == 0:
-                            r, g, b = (r-colorstep, g, b-colorstep)
+                            r, g, b = (r - colorstep, g, b - colorstep)
                         else:
-                            r, g, b = (r, g+colorstep, b)
+                            r, g, b = (r, g + colorstep, b)
                 r, g, b = cliprgb(r, g, b)
                 style = 'background-color:#%02x%02x%02x' % (r, g, b)
                 fmtlink = formatter.url(1, daypage.url(request, query), csslink, **attrs) + str(day) + formatter.url(0)
                 if day == currentday and month == currentmonth and year == currentyear:
                     cssday = "cal-today"
-                    fmtlink = "<b>%s</b>" % fmtlink # for browser with CSS probs
+                    fmtlink = "<b>%s</b>" % fmtlink  # for browser with CSS probs
                 else:
                     cssday = "cal-nottoday"
                 restdn.append('  <td style="%s" class="%s">%s</td>\n' % (style, cssday, fmtlink))
@@ -424,4 +436,3 @@ def execute(macro, text):
     return formatter.rawHTML(result)
 
 # EOF
-

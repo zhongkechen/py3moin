@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin -  This Action is used to create a supplementation subpage e.g. a Discussion page below a comon page
 

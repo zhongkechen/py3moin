@@ -8,7 +8,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import os, time
+import os
+import time
+
 
 def execute(xmlrpcobj, action, site):
     t = time.time()
@@ -17,4 +19,3 @@ def execute(xmlrpcobj, action, site):
     log.write(logentry)
     log.close()
     return 0
-

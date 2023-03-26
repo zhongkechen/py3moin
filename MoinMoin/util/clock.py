@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - Clock
 
@@ -7,8 +7,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import object
 import time
+
 
 class Clock(object):
     """ Helper class for code profiling

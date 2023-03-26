@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-1 -*-
 """
     MoinMoin - SecurityPolicy implementing auto admin rights for some users and some groups.
 
@@ -56,12 +55,13 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-grouppage_autocreate = False # autocreate the group pages - alternatively use templates
-grouppages = ['AdminGroup', 'ReadGroup', 'ReadWriteGroup', ] # names of the subpages defining ACL groups
+grouppage_autocreate = False  # autocreate the group pages - alternatively use templates
+grouppages = ['AdminGroup', 'ReadGroup', 'ReadWriteGroup', ]  # names of the subpages defining ACL groups
 
 from MoinMoin.security import Permissions
 from MoinMoin.Page import Page
 from MoinMoin.PageEditor import PageEditor
+
 
 class SecurityPolicy(Permissions):
     """ Extend the default security policy with autoadmin feature """
@@ -77,10 +77,10 @@ class SecurityPolicy(Permissions):
                 return True
             group_name = "%s/AdminGroup" % mainpage
             if (username in groups.get(group_name, []) and
-                group_name in groups.get(u'AutoAdminGroup', [])):
+                    group_name in groups.get(u'AutoAdminGroup', [])):
                 return True
         except AttributeError:
-            pass # when we get called from xmlrpc, there is no request.page
+            pass  # when we get called from xmlrpc, there is no request.page
         return Permissions.__getattr__(self, 'admin')(pagename)
 
     def save(self, editor, newtext, rev, **kw):
@@ -109,5 +109,3 @@ class SecurityPolicy(Permissions):
 
         # No problem to save if my base class agrees
         return Permissions.save(self, editor, newtext, rev, **kw)
-
-

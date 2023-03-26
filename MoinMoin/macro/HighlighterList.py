@@ -37,9 +37,10 @@ import pygments.lexers
 
 available_columns = ['description', 'names', 'patterns', 'mimetypes']
 
+
 def macro_HighlighterList(macro, columns='|'.join(available_columns),
-        sort_column=tuple(available_columns),
-        sort=True, filter_re=None, _kwargs=None):
+                          sort_column=tuple(available_columns),
+                          sort=True, filter_re=None, _kwargs=None):
     request = macro.request
     _ = request.getText
     f = request.formatter
@@ -48,12 +49,12 @@ def macro_HighlighterList(macro, columns='|'.join(available_columns),
                      _('Lexer names'),
                      _('File patterns'),
                      _('Mimetypes'),
-                    ]
+                     ]
 
     columns = columns and [available_columns.index(column)
-                for column
-                in columns.split('|')
-                if column in available_columns] or list(range(len(available_columns)))
+                           for column
+                           in columns.split('|')
+                           if column in available_columns] or list(range(len(available_columns)))
     sort_column = available_columns.index(sort_column) or 0
     do_filter = (filter_re not in (None, ""))
     filter_re = re.compile(filter_re or ".*")
@@ -61,7 +62,7 @@ def macro_HighlighterList(macro, columns='|'.join(available_columns),
     lexer_list = pygments.lexers.get_all_lexers()
     lexer_data = []
 
-    #expanding tuples if sort_column is not name
+    # expanding tuples if sort_column is not name
     if sort_column != 0:
         for lexer in lexer_list:
             if len(lexer[sort_column]):
@@ -76,49 +77,48 @@ def macro_HighlighterList(macro, columns='|'.join(available_columns),
     else:
         lexer_data.extend(lexer_list)
 
-
-    #filtering
+    # filtering
     if do_filter:
         lexer_data = [lexer for lexer in lexer_data
-                       if filter_re.search(lexer[sort_column])]
+                      if filter_re.search(lexer[sort_column])]
 
-    #sorting
+    # sorting
     if sort:
         lexer_data.sort(cmp=lambda x, y:
-          ((x != y)
-          and cmp(x[sort_column].lower(), y[sort_column].lower())
-          or cmp(x[0].lower(), y[0].lower())))
+        ((x != y)
+         and cmp(x[sort_column].lower(), y[sort_column].lower())
+         or cmp(x[0].lower(), y[0].lower())))
 
-    #generating output
+    # generating output
     ret = []
 
-    #table header
+    # table header
     ret.extend([
         f.table(1),
         f.table_row(1, style="background-color: #ffffcc"),
-        ])
+    ])
     for col in columns:
         ret.extend([
-                    f.table_cell(1),
-                    f.strong(1),
-                    f.text(column_titles[col]), f.strong(0), f.table_cell(0)
-                  ])
+            f.table_cell(1),
+            f.strong(1),
+            f.text(column_titles[col]), f.strong(0), f.table_cell(0)
+        ])
     ret.append(f.table_row(0))
 
-    #table data
+    # table data
     for parser in lexer_data:
         ret.append(f.table_row(1))
 
         for col in columns:
             if col:
                 ret.extend([
-                            f.table_cell(1),
-                            f.code(1),
-                            isinstance(parser[col], str) and f.text(parser[col])
-                              or (f.code(0) + ', ' + f.code(1)).join([f.text(i) for i in parser[col]]),
-                            f.code(0),
-                            f.table_cell(0),
-                          ])
+                    f.table_cell(1),
+                    f.code(1),
+                    isinstance(parser[col], str) and f.text(parser[col])
+                    or (f.code(0) + ', ' + f.code(1)).join([f.text(i) for i in parser[col]]),
+                    f.code(0),
+                    f.table_cell(0),
+                ])
             else:
                 ret.extend([f.table_cell(1), f.text(parser[col]), f.table_cell(0)])
 
@@ -127,4 +127,3 @@ def macro_HighlighterList(macro, columns='|'.join(available_columns),
     ret.append(f.table(0))
 
     return ''.join(ret)
-

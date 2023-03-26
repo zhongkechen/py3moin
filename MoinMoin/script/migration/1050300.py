@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - migration from base rev 1050300
 
@@ -17,7 +17,7 @@ def execute(script, data_dir, rev):
         fname = opj(thisdir, '__init__.py')
         f = open(fname, 'w')
         f.write("""\
-# -*- coding: iso-8859-1 -*-
+
 
 from MoinMoin.util import pysupport
 

@@ -27,9 +27,11 @@ def isbad(name):
             name.endswith('.pickle') or
             name == 'CVS')
 
+
 def isgood(name):
     """ Whether name should be installed """
     return not isbad(name)
+
 
 def makeDataFiles(prefix, dir):
     """ Create distutils data_files structure from dir
@@ -64,7 +66,8 @@ def makeDataFiles(prefix, dir):
     os.path.walk(dir, visit, (prefix, strip, found))
     return found
 
-def visit((prefix, strip, found), dirname, names):
+
+def visit(param1, dirname, names):
     """ Visit directory, create distutil tuple
 
     Add distutil tuple for each directory using this format:
@@ -72,6 +75,7 @@ def visit((prefix, strip, found), dirname, names):
 
     distutil will copy later file1, file2, ... info destination.
     """
+    (prefix, strip, found) = param1
     files = []
     # Iterate over a copy of names, modify names
     for name in names[:]:
@@ -87,6 +91,7 @@ def visit((prefix, strip, found), dirname, names):
     destination = os.path.join(prefix, dirname[strip:])
     found.append((destination, files))
 
+
 def make_filelist(dir, strip_prefix=''):
     """ package_data is pretty stupid: if the globs that can be given there
         match a directory, then setup.py install will fall over that later,
@@ -95,7 +100,9 @@ def make_filelist(dir, strip_prefix=''):
         stripping off the strip_prefix at the left side.
     """
     found = []
-    def _visit((found, strip), dirname, names):
+
+    def _visit(param1, dirname, names):
+        (found, strip) = param1
         files = []
         for name in names:
             path = os.path.join(dirname, name)
@@ -107,6 +114,7 @@ def make_filelist(dir, strip_prefix=''):
 
     os.path.walk(dir, _visit, (found, strip_prefix))
     return found
+
 
 #############################################################################
 ### Build script files
@@ -135,13 +143,13 @@ class build_scripts_create(build_scripts):
         """
         if not self.package_name:
             raise Exception("You have to inherit build_scripts_create and"
-                " provide a package name")
+                            " provide a package name")
 
         self.mkpath(self.build_dir)
         for script in self.scripts:
             outfile = os.path.join(self.build_dir, os.path.basename(script))
 
-            #if not self.force and not newer(script, outfile):
+            # if not self.force and not newer(script, outfile):
             #    self.announce("not copying %s (up-to-date)" % script)
             #    continue
 
@@ -155,7 +163,7 @@ class build_scripts_create(build_scripts):
                 'python': os.path.normpath(sys.executable),
                 'package': self.package_name,
                 'module': module,
-                'package_location': '/usr/lib/python/site-packages', # FIXME: we need to know the correct path
+                'package_location': '/usr/lib/python/site-packages',  # FIXME: we need to know the correct path
             }
 
             self.announce("creating %s" % outfile)
@@ -164,20 +172,20 @@ class build_scripts_create(build_scripts):
             try:
                 if sys.platform == "win32":
                     file.write('@echo off\n'
-                        'if NOT "%%_4ver%%" == "" %(python)s -c "from %(package)s.script.%(module)s import run; run()" %%$\n'
-                        'if     "%%_4ver%%" == "" %(python)s -c "from %(package)s.script.%(module)s import run; run()" %%*\n'
-                        % script_vars)
+                               'if NOT "%%_4ver%%" == "" %(python)s -c "from %(package)s.script.%(module)s import run; run()" %%$\n'
+                               'if     "%%_4ver%%" == "" %(python)s -c "from %(package)s.script.%(module)s import run; run()" %%*\n'
+                               % script_vars)
                 else:
                     file.write("#! %(python)s\n"
-                        "#Fix and uncomment those 2 lines if your moin command doesn't find the MoinMoin package:\n"
-                        "#import sys\n"
-                        "#sys.path.insert(0, '%(package_location)s')\n"
-                        "from %(package)s.script.%(module)s import run\n"
-                        "run()\n"
-                        % script_vars)
+                               "#Fix and uncomment those 2 lines if your moin command doesn't find the MoinMoin package:\n"
+                               "#import sys\n"
+                               "#sys.path.insert(0, '%(package_location)s')\n"
+                               "from %(package)s.script.%(module)s import run\n"
+                               "run()\n"
+                               % script_vars)
             finally:
                 file.close()
-                os.chmod(outfile, 0755)
+                os.chmod(outfile, 0o755)
 
 
 class build_scripts_moin(build_scripts_create):
@@ -194,9 +202,9 @@ def scriptname(path):
         script = script + ".bat"
     return script
 
+
 # build list of scripts from their implementation modules
 moin_scripts = [scriptname(fn) for fn in glob.glob('MoinMoin/script/[!_]*.py')]
-
 
 #############################################################################
 ### Call setup()
@@ -205,11 +213,11 @@ moin_scripts = [scriptname(fn) for fn in glob.glob('MoinMoin/script/[!_]*.py')]
 setup_args = {
     'name': "moin",
     'version': release,
-    'description': "MoinMoin %s is an easy to use, full-featured and extensible wiki software package" % (release, ),
+    'description': "MoinMoin %s is an easy to use, full-featured and extensible wiki software package" % (release,),
     'author': "Juergen Hermann et al.",
     'author_email': "moin-user@python.org",
     # maintainer(_email) not active because distutils/register can't handle author and maintainer at once
-    'download_url': 'https://static.moinmo.in/files/moin-%s.tar.gz' % (release, ),
+    'download_url': 'https://static.moinmo.in/files/moin-%s.tar.gz' % (release,),
     'url': "https://moinmo.in/",
     'license': "GNU GPL",
     'long_description': """
@@ -316,20 +324,20 @@ Topic :: Text Processing :: Markup""".splitlines(),
         'MoinMoin.xmlrpc',
 
         # all other _tests are missing here, either we have all or nothing:
-        #'MoinMoin._tests',
+        # 'MoinMoin._tests',
     ],
 
     'package_dir': {'MoinMoin.i18n': 'MoinMoin/i18n',
                     'MoinMoin.web.static': 'MoinMoin/web/static',
-                   },
+                    },
     'package_data': {'MoinMoin.i18n': ['README', 'Makefile', 'MoinMoin.pot', 'POTFILES.in',
                                        '*.po',
                                        'tools/*',
                                        'jabberbot/*',
-                                      ],
+                                       ],
                      'MoinMoin.web.static': make_filelist('MoinMoin/web/static/htdocs',
                                                           strip_prefix='MoinMoin/web/static/'),
-                    },
+                     },
 
     # Override certain command classes with our own ones
     'cmdclass': {
@@ -350,15 +358,14 @@ if hasattr(distutils.dist.DistributionMetadata, 'get_keywords'):
 if hasattr(distutils.dist.DistributionMetadata, 'get_platforms'):
     setup_args['platforms'] = "any"
 
-
 if __name__ == '__main__':
     try:
         setup(**setup_args)
-    except distutils.errors.DistutilsPlatformError, ex:
-        print
-        print str(ex)
+    except distutils.errors.DistutilsPlatformError as ex:
+        print("")
+        print(str(ex))
 
-        print """
+        print("""
 POSSIBLE CAUSE
 
 "distutils" often needs developer support installed to work
@@ -366,5 +373,5 @@ correctly, which is usually located in a separate package
 called "python%d.%d-dev(el)".
 
 Please contact the system administrator to have it installed.
-""" % sys.version_info[:2]
+""" % sys.version_info[:2])
         sys.exit(1)

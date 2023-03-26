@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - Extension Converter Package
 
@@ -6,7 +6,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-# -*- coding: iso-8859-1 -*-
+
 
 from MoinMoin.util import pysupport
 

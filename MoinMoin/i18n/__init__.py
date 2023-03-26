@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-1 -*-
 """
     MoinMoin - internationalization (aka i18n)
 
@@ -26,13 +25,13 @@
 """
 
 from future import standard_library
+
 standard_library.install_aliases()
-from builtins import str
-from builtins import object
 import os, gettext, glob
 from io import BytesIO, StringIO
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
 from MoinMoin import caching
@@ -52,6 +51,7 @@ system_pages = {}
 
 translations = {}
 
+
 def po_filename(request, language, domain, i18n_dir='i18n'):
     """ we use MoinMoin/i18n/<language>[.<domain>].mo as filename for the PO file.
 
@@ -59,6 +59,7 @@ def po_filename(request, language, domain, i18n_dir='i18n'):
               language data from there.
     """
     return os.path.join(request.cfg.moinmoin_dir, i18n_dir, "%s.%s.po" % (language, domain))
+
 
 def i18n_init(request):
     """ this is called early from request initialization and makes sure we
@@ -82,17 +83,17 @@ def i18n_init(request):
             _system_pages = {}
             for pagename in strings.all_pages:
                 _system_pages[pagename] = ('en', pagename)
-            for lang_file in glob.glob(po_filename(request, language='*', domain='MoinMoin')): # XXX only MoinMoin domain for now
+            for lang_file in glob.glob(
+                    po_filename(request, language='*', domain='MoinMoin')):  # XXX only MoinMoin domain for now
                 language, domain, ext = os.path.basename(lang_file).split('.')
                 t = Translation(language, domain)
-                f = open(lang_file)
-                t.load_po(f)
-                f.close()
+                with open(lang_file, encoding="utf-8") as f:
+                    t.load_po(f)
                 logging.debug("loading translation %r" % language)
                 encoding = 'utf-8'
                 _languages[language] = {}
                 for key, value in list(t.info.items()):
-                    #logging.debug("meta key %s value %r" % (key, value))
+                    # logging.debug("meta key %s value %r" % (key, value))
                     _languages[language][key] = value
                 for pagename in strings.all_pages:
                     try:
@@ -110,7 +111,7 @@ def i18n_init(request):
             except caching.CacheError:
                 pass
 
-        if languages is None: # another thread maybe has done it before us
+        if languages is None:  # another thread maybe has done it before us
             try:
                 logging.debug("loading language metadata from disk cache")
                 d = meta_cache.content()
@@ -119,6 +120,7 @@ def i18n_init(request):
             except caching.CacheError:
                 pass
     request.clock.stop('i18n_init')
+
 
 def bot_translations(request):
     """Return translations to be used by notification bot
@@ -133,9 +135,8 @@ def bot_translations(request):
     for lang_file in glob.glob(po_filename(request, i18n_dir=po_dir, language='*', domain='JabberBot')):
         language, domain, ext = os.path.basename(lang_file).split('.')
         t = Translation(language, domain)
-        f = open(lang_file)
-        t.load_po(f)
-        f.close()
+        with open(lang_file, encoding="utf-8") as f:
+            t.load_po(f)
         t.loadLanguage(request, trans_dir=po_dir)
         translations[language] = {}
 
@@ -143,6 +144,7 @@ def bot_translations(request):
             translations[language][key] = text
 
     return translations
+
 
 class Translation(object):
     """ This class represents a translation. Usually this is a translation
@@ -152,6 +154,7 @@ class Translation(object):
         translation of the MoinMoin distribution. If you do a translation for
         a third-party plugin, you have to use a different and unique value.
     """
+
     def __init__(self, language, domain='MoinMoin'):
         self.language = language
         self.domain = domain
@@ -179,7 +182,7 @@ class Translation(object):
         except KeyError as err:
             logging.warning("metadata problem in %r: %s" % (self.language, str(err)))
         try:
-            assert self.direction in ('ltr', 'rtl', )
+            assert self.direction in ('ltr', 'rtl',)
         except (AttributeError, AssertionError) as err:
             logging.warning("direction problem in %r: %s" % (self.language, str(err)))
 
@@ -239,9 +242,8 @@ class Translation(object):
 
         if needsupdate:
             logging.debug("langfilename %s needs update" % langfilename)
-            f = open(langfilename)
-            self.load_po(f)
-            f.close()
+            with open(langfilename, encoding="utf-8") as f:
+                self.load_po(f)
             trans = self.translation
             unformatted = trans._catalog
             self.has_wikimarkup = self.info.get('x-haswikimarkup', 'False') == 'True'
@@ -260,6 +262,7 @@ def getDirection(lang):
     """ Return the text direction for a language, either 'ltr' or 'rtl'. """
     return languages[lang]['x-direction']
 
+
 def getText(original, request, lang, **kw):
     """ Return a translation of some original text.
 
@@ -276,13 +279,13 @@ def getText(original, request, lang, **kw):
                       Only specify this option for wiki==True, it doesn't do
                       anything for wiki==False.
     """
-    formatted = kw.get('wiki', False) # 1.6 and early 1.7 (until 2/2008) used 'formatted' with True as default!
+    formatted = kw.get('wiki', False)  # 1.6 and early 1.7 (until 2/2008) used 'formatted' with True as default!
     percent = kw.get('percent', False)
     if original == u"":
-        return u"" # we don't want to get *.po files metadata!
+        return u""  # we don't want to get *.po files metadata!
 
     global translations
-    if not lang in translations: # load translation if needed
+    if not lang in translations:  # load translation if needed
         t = Translation(lang)
         t.loadLanguage(request)
         translations[lang] = t
@@ -301,11 +304,11 @@ def getText(original, request, lang, **kw):
                 translated = translation.formatted[key]
                 if translated is None:
                     logging.error("formatting a %r text that is already being formatted: %r" % (lang, original))
-                    translated = original + u'*' # get some error indication to the UI
+                    translated = original + u'*'  # get some error indication to the UI
             else:
-                translation.formatted[key] = None # we use this as "formatting in progress" indicator
+                translation.formatted[key] = None  # we use this as "formatting in progress" indicator
                 translated = translation.formatMarkup(request, translated, percent)
-                translation.formatted[key] = translated # remember it
+                translation.formatted[key] = translated  # remember it
     else:
         try:
             if languages is None:
@@ -327,7 +330,7 @@ def getText(original, request, lang, **kw):
             if lang != 'en':
                 logging.debug("falling back to english, requested string not in %r translation: %r" % (lang, original))
                 translated = getText(original, request, 'en', wiki=formatted, percent=percent)
-            elif formatted: # and lang == 'en'
+            elif formatted:  # and lang == 'en'
                 logging.debug("formatting for %r on the fly: %r" % (lang, original))
                 translated = translations[lang].formatMarkup(request, original, percent)
     return translated
@@ -406,6 +409,7 @@ def browserLanguages(request):
                 fallback.append(baselang)
     return fallback
 
+
 def get_browser_language(request):
     """
     Return the language that is supported by wiki and what user browser
@@ -418,8 +422,7 @@ def get_browser_language(request):
     """
     available = wikiLanguages()
     if available and not request.cfg.language_ignore_browser:
-            for lang in browserLanguages(request):
-                if lang in available:
-                    return lang
+        for lang in browserLanguages(request):
+            if lang in available:
+                return lang
     return ''
-

@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - User Accounts
 
@@ -26,7 +26,8 @@ import os, time, codecs, base64
 import hashlib
 import hmac
 from copy import deepcopy
-import md5crypt
+
+from MoinMoin.support import md5crypt
 
 try:
     import crypt
@@ -37,9 +38,8 @@ from MoinMoin import log
 logging = log.getLogger(__name__)
 
 from MoinMoin import config, caching, wikiutil, i18n, events
-from werkzeug.security import safe_str_cmp as safe_str_equal
 from MoinMoin.util import timefuncs, random_string
-from MoinMoin.wikiutil import url_quote_plus
+from MoinMoin.wikiutil import url_quote_plus, safe_str_cmp
 
 # for efficient lookup <attr> -> userid, we keep an index of this in the cache.
 # the attribute names in here should be uniquely identifying a user.
@@ -746,7 +746,7 @@ class User(object):
                         logging.error('in user profile %r, password hash with unknown scheme encountered: %r' % (self.id, scheme))
                         raise NotImplementedError
 
-                    if safe_str_equal(epwd, scheme.encode("ascii") + enc):
+                    if safe_str_cmp(epwd, scheme.encode("ascii") + enc):
                         password_correct = True
                         recompute_hash = scheme != wanted_scheme
 
@@ -1281,7 +1281,7 @@ class User(object):
         # check hmac
         # key must be of type string
         h = hmac.new(str(self.recoverpass_key), str(stamp), digestmod=hashlib.sha1).hexdigest()
-        if not safe_str_equal(h, parts[1]):
+        if not safe_str_cmp(h, parts[1]):
             return False
         self.recoverpass_key = ""
         self.enc_password = encodePassword(self._cfg, newpass)

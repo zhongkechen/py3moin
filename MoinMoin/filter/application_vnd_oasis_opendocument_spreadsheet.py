@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - OpenOffice.org 2.x Calc Filter (OpenDocument Spreadsheet)
 

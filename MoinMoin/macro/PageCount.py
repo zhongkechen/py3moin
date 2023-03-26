@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     Outputs the page count of the wiki.
 

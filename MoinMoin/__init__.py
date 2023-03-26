@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
 MoinMoin - a wiki engine in Python
 

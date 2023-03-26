@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - Wiki XMLRPC v1 and v2 Interface + plugin extensions
 

@@ -13,6 +13,7 @@ show_configuration_error = True
 
 if show_configuration_error:
     from MoinMoin.error import ConfigurationError
+
     raise ConfigurationError("""\
 Please edit your wikiconfig/farmconfig and fix your DefaultConfig import:\r\n
 \r\n
@@ -25,4 +26,3 @@ MoinMoin/multiconfig.py for an alternative, but temporary workaround.
 
 else:
     from MoinMoin.config.multiconfig import *
-

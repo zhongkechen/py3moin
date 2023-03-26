@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """MoinMoin Desktop Edition (MMDE) - Configuration
 
 ONLY to be used for MMDE - if you run a personal wiki on your notebook or PC.
@@ -64,7 +64,7 @@ class LocalConfig(multiconfig.DefaultConfig):
 
 try:
     from wikiconfig_local import Config
-except ImportError, err:
+except ImportError as err:
     if not str(err).endswith('wikiconfig_local'):
         raise
     Config = LocalConfig

@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - set or delete bookmarks (in time) for RecentChanges
 

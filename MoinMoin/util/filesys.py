@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-1 -*-
 """
     MoinMoin - File System Utilities
 
@@ -8,14 +7,21 @@
 """
 from __future__ import division
 
-from builtins import str
-from past.utils import old_div
-import sys, os, shutil, time, errno
-from stat import S_ISDIR, ST_MODE, S_IMODE
+import errno
+import os
+import shutil
+import sys
+import time
 import warnings
+from stat import S_ISDIR, ST_MODE, S_IMODE
+from os import rename
+
+from past.utils import old_div
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
+
 
 #############################################################################
 ### Misc Helpers
@@ -33,9 +39,8 @@ def chmod(name, mode, catchexception=True):
             raise
 
 
-from werkzeug.posixemulation import *
-
 rename_overwrite = rename
+
 
 def rename_no_overwrite(oldname, newname, delete_old=False):
     """ Multiplatform rename
@@ -114,9 +119,11 @@ def access_denied_decorator(fn):
                         time.sleep(0.01)
                         continue
                     raise
+
         return wrapper
     else:
         return fn
+
 
 stat = access_denied_decorator(os.stat)
 mkdir = access_denied_decorator(os.mkdir)
@@ -157,8 +164,8 @@ def fuid(filename, max_staleness=3600):
         st = os.stat(filename)
     except (IOError, OSError):
         uid = None  # for permanent errors on stat() this does not change, but
-                    # having a changing value would be pointless because if we
-                    # can't even stat the file, it is unlikely we can read it.
+        # having a changing value would be pointless because if we
+        # can't even stat the file, it is unlikely we can read it.
     else:
         fake_mtime = int(st.st_mtime)
         if not st.st_ino and max_staleness:
@@ -170,16 +177,16 @@ def fuid(filename, max_staleness=3600):
                 # keep same fake_mtime for each max_staleness interval
                 fake_mtime = int(old_div(now, max_staleness)) * max_staleness
         uid = (st.st_mtime,  # might have a rather rough granularity, e.g. 2s
-                             # on FAT, 1s on ext3 and might not change on fast
-                             # updates
+               # on FAT, 1s on ext3 and might not change on fast
+               # updates
                st.st_ino,  # inode number (will change if the update is done
-                           # by e.g. renaming a temp file to the real file).
-                           # not supported on win32 (0 ever)
+               # by e.g. renaming a temp file to the real file).
+               # not supported on win32 (0 ever)
                st.st_size,  # likely to change on many updates, but not
-                            # sufficient alone
+               # sufficient alone
                fake_mtime,  # trick to workaround file system / platform
-                            # limitations causing permanent trouble
-              )
+               # limitations causing permanent trouble
+               )
     return uid
 
 
@@ -197,8 +204,8 @@ def copystat(src, dst):
             st = os.stat(src)
             mode = S_IMODE(st[ST_MODE])
             if hasattr(os, 'chmod'):
-                os.chmod(dst, mode) # KEEP THIS ONE!
-        #else: pass # we are on Win9x,ME - no chmod here
+                os.chmod(dst, mode)  # KEEP THIS ONE!
+        # else: pass # we are on Win9x,ME - no chmod here
     else:
         shutil.copystat(src, dst)
 
@@ -242,13 +249,16 @@ def copytree(src, dst, symlinks=False):
     if errors:
         raise EnvironmentError(str(errors))
 
+
 # Code could come from http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/65203
 
 # we currently do not support locking
 LOCK_EX = LOCK_SH = LOCK_NB = 0
 
+
 def lock(file, flags):
     raise NotImplementedError
+
 
 def unlock(file):
     raise NotImplementedError
@@ -287,10 +297,11 @@ else:
 
 # dircache stuff seems to be broken on win32 (at least for FAT32, maybe NTFS).
 # dircache stuff is also broken on POSIX if updates happen too fast (< 1s).
-DCENABLED = 0 # set to 0 to completely disable dircache usage
+DCENABLED = 0  # set to 0 to completely disable dircache usage
 
 # Note: usage of the dc* functions below is deprecated, they'll get removed soon.
 dc_deprecated = "dircache function calls (dcdisable,dclistdir,dcreset) are deprecated, please fix caller"
+
 
 def dcdisable():
     warnings.warn(dc_deprecated, DeprecationWarning, stacklevel=2)
@@ -305,10 +316,10 @@ def dclistdir(path):
     else:
         return os.listdir(path)
 
+
 def dcreset():
     warnings.warn(dc_deprecated, DeprecationWarning, stacklevel=2)
     if sys.platform == 'win32' or not DCENABLED:
         return
     else:
         return
-

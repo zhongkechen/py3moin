@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+
 """
     MoinMoin - convert content in 1.6.0alpha (rev 1844: 58ebb64243cc) wiki markup to 1.6.0 style
                by using a modified 1.6.0alpha parser as translator.

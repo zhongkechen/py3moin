@@ -61,7 +61,7 @@ def migrate(destdir):
         fname = opj(thisdir, '__init__.py')
         f = open(fname, 'w')
         f.write('''\
-# -*- coding: iso-8859-1 -*-
+
 
 from MoinMoin.util import pysupport
 

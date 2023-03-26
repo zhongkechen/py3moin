@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-1 -*-
 """
     MoinMoin - Multiple configuration handler and Configuration defaults class
 
@@ -733,9 +732,10 @@ def _default_password_checker(cfg, request, username, password,
        username_lower in password_lower or password_lower in username_lower:
         return _("Password is too easy (password contains name or name contains password).")
 
+    # add more keyboards!
     keyboards = (r"`1234567890-=qwertyuiop[]\asdfghjkl;'zxcvbnm,./", # US kbd
-                 r"^1234567890ߴqwertzuiop�+asdfghjkl��#yxcvbnm,.-", # german kbd
-                ) # add more keyboards!
+                 r"^1234567890ß´qwertzuiopü+asdfghjklöä#yxcvbnm,.-", # german kbd
+                )
     for kbd in keyboards:
         rev_kbd = kbd[::-1]
         if password in kbd or password in rev_kbd or \

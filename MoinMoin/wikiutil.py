@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-1 -*-
 """
     MoinMoin - Wiki Utility Functions
 
@@ -14,13 +13,9 @@ from __future__ import division
 import html
 
 from future import standard_library
+
 standard_library.install_aliases()
-from builtins import zip
-from builtins import chr
-from builtins import str
-from builtins import range
 from past.utils import old_div
-from builtins import object
 import codecs
 import hmac, hashlib
 import os
@@ -29,26 +24,45 @@ import time
 import urllib.request, urllib.parse, urllib.error
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
 from MoinMoin import config
 from inspect import getargspec, isfunction, isclass, ismethod
 
-from MoinMoin import web # needed so that next lines work:
 import werkzeug
-from werkzeug.security import safe_str_cmp as safe_str_equal
+import werkzeug.urls
 from MoinMoin.util import pysupport, lock
+
+
+def safe_str_cmp(a: str, b: str) -> bool:
+    """This function compares strings in somewhat constant time. This
+    requires that the length of at least one string is known in advance.
+
+    Returns `True` if the two strings are equal, or `False` if they are not.
+    """
+
+    if isinstance(a, str):
+        a = a.encode("utf-8")  # type: ignore
+
+    if isinstance(b, str):
+        b = b.encode("utf-8")  # type: ignore
+
+    return hmac.compare_digest(a, b)
+
 
 # Exceptions
 class InvalidFileNameError(Exception):
     """ Called when we find an invalid file name """
     pass
 
+
 # constants for page names
 PARENT_PREFIX = "../"
 PARENT_PREFIX_LEN = len(PARENT_PREFIX)
 CHILD_PREFIX = "/"
 CHILD_PREFIX_LEN = len(CHILD_PREFIX)
+
 
 #############################################################################
 ### Getting data from user/Sending data to user
@@ -112,6 +126,7 @@ def url_quote(s, safe='/', want_unicode=None):
         log.exception("call with deprecated want_unicode param, please fix caller")
     return werkzeug.urls.url_quote(s, charset=config.charset, safe=safe)
 
+
 def url_quote_plus(s, safe='/', want_unicode=None):
     """ see werkzeug.urls.url_quote_plus, we use a different safe param default value """
     try:
@@ -119,6 +134,7 @@ def url_quote_plus(s, safe='/', want_unicode=None):
     except AssertionError:
         log.exception("call with deprecated want_unicode param, please fix caller")
     return werkzeug.urls.url_quote_plus(s, charset=config.charset, safe=safe)
+
 
 def url_unquote(s, want_unicode=None):
     """ see werkzeug.urls.url_unquote """
@@ -176,7 +192,7 @@ def makeQueryString(qstr=None, want_unicode=None, **kw):
         return qstr
     if isinstance(qstr, dict):
         qstr.update(kw)
-        return werkzeug.urls.url_encode(qstr, charset=config.charset, encode_keys=True)
+        return werkzeug.urls.url_encode(qstr, charset=config.charset)
     else:
         raise ValueError("Unsupported argument type, should be dict.")
 
@@ -238,6 +254,7 @@ def make_breakable(text, maxlen):
         else:
             newtext.append(part)
     return " ".join(newtext)
+
 
 ########################################################################
 ### Storage
@@ -317,7 +334,7 @@ def unquoteWikiname(filename, charsets=[config.charset]):
             raise InvalidFileNameError(filename)
         try:
             for i in range(0, len(group), 2):
-                byte = group[i:i+2]
+                byte = group[i:i + 2]
                 character = chr(int(byte, 16))
                 parts.append(character)
         except ValueError:
@@ -334,11 +351,12 @@ def unquoteWikiname(filename, charsets=[config.charset]):
     # FIXME: This looks wrong, because at this stage "()" can be both errors
     # like open "(" without close ")", or unquoted valid characters in the file name.
     # Filter invalid filenames. Any left (xx) must be invalid
-    #if '(' in wikiname or ')' in wikiname:
+    # if '(' in wikiname or ')' in wikiname:
     #    raise InvalidFileNameError(filename)
 
     wikiname = decodeUserInput(wikiname, charsets)
     return wikiname
+
 
 # time scaling
 def timestamp2version(ts):
@@ -347,7 +365,8 @@ def timestamp2version(ts):
         We don't want to use floats, so we just scale by 1e6 to get
         an integer in usecs.
     """
-    return int(ts*1000000) # has to be long for py 2.2.x
+    return int(ts * 1000000)  # has to be long for py 2.2.x
+
 
 def version2timestamp(v):
     """ Convert version number to UNIX timestamp (float).
@@ -359,13 +378,15 @@ def version2timestamp(v):
 # This is the list of meta attribute names to be treated as integers.
 # IMPORTANT: do not use any meta attribute names with "-" (or any other chars
 # invalid in python attribute names), use e.g. _ instead.
-INTEGER_METAS = ['current', 'revision', # for page storage (moin 2.0)
-                 'data_format_revision', # for data_dir format spec (use by mig scripts)
-                ]
+INTEGER_METAS = ['current', 'revision',  # for page storage (moin 2.0)
+                 'data_format_revision',  # for data_dir format spec (use by mig scripts)
+                 ]
+
 
 class MetaDict(dict):
     """ store meta informations as a dict.
     """
+
     def __init__(self, metafilename, cache_directory):
         """ create a MetaDict from metafilename """
         dict.__init__(self)
@@ -391,7 +412,7 @@ class MetaDict(dict):
 
         try:
             metafile = codecs.open(self.metafilename, "r", "utf-8")
-            meta = metafile.read() # this is much faster than the file's line-by-line iterator
+            meta = metafile.read()  # this is much faster than the file's line-by-line iterator
             metafile.close()
         except IOError:
             meta = u''
@@ -435,14 +456,14 @@ class MetaDict(dict):
         if not self.wlock.acquire(5.0):
             raise EnvironmentError("Could not lock in MetaDict")
         try:
-            self._get_meta() # refresh cache
+            self._get_meta()  # refresh cache
             try:
                 oldvalue = dict.__getitem__(self, key)
             except KeyError:
                 oldvalue = None
             if value != oldvalue:
                 dict.__setitem__(self, key, value)
-                self._put_meta() # sync cache
+                self._put_meta()  # sync cache
         finally:
             self.wlock.release()
 
@@ -452,11 +473,11 @@ class MetaDict(dict):
 # don't ever change this - DEPRECATED, only needed for 1.5 > 1.6 migration conversion
 QUOTE_CHARS = u'"'
 
-
 #############################################################################
 ### InterWiki
 #############################################################################
 INTERWIKI_PAGE = "InterWikiMap"
+
 
 def generate_file_list(request):
     """ generates a list of all files. for internal use. """
@@ -484,7 +505,8 @@ def get_max_mtime(file_list, page):
     if timestamps:
         return max(timestamps)
     else:
-        return 0 # no files / pages there
+        return 0  # no files / pages there
+
 
 def load_wikimap(request):
     """ load interwiki map (once, and only on demand) """
@@ -497,10 +519,10 @@ def load_wikimap(request):
     try:
         _interwiki_list = request.cfg.cache.interwiki_list
         old_mtime = request.cfg.cache.interwiki_mtime
-        if request.cfg.cache.interwiki_ts + (1*60) < now: # 1 minutes caching time
+        if request.cfg.cache.interwiki_ts + (1 * 60) < now:  # 1 minutes caching time
             max_mtime = get_max_mtime(request.cfg.shared_intermap_files, Page(request, INTERWIKI_PAGE))
             if max_mtime > old_mtime:
-                raise AttributeError # refresh cache
+                raise AttributeError  # refresh cache
             else:
                 request.cfg.cache.interwiki_ts = now
     except AttributeError:
@@ -536,9 +558,11 @@ def load_wikimap(request):
         # save for later
         request.cfg.cache.interwiki_list = _interwiki_list
         request.cfg.cache.interwiki_ts = now
-        request.cfg.cache.interwiki_mtime = get_max_mtime(request.cfg.shared_intermap_files, Page(request, INTERWIKI_PAGE))
+        request.cfg.cache.interwiki_mtime = get_max_mtime(request.cfg.shared_intermap_files,
+                                                          Page(request, INTERWIKI_PAGE))
 
     return _interwiki_list
+
 
 def split_wiki(wikiurl):
     """
@@ -560,6 +584,7 @@ def split_wiki(wikiurl):
         except ValueError:
             wikitag, tail = 'Self', wikiurl
     return wikitag, tail
+
 
 def split_interwiki(wikiurl):
     """ Split a interwiki name, into wikiname and pagename, e.g:
@@ -583,6 +608,7 @@ def split_interwiki(wikiurl):
         wikiname, pagename = 'Self', wikiurl
     return wikiname, pagename
 
+
 def resolve_wiki(request, wikiurl):
     """
     Resolve an interwiki link.
@@ -605,6 +631,7 @@ def resolve_wiki(request, wikiurl):
     else:
         return (wikiname, request.script_root, "/InterWiki", True)
 
+
 def resolve_interwiki(request, wikiname, pagename):
     """ Resolve an interwiki reference (wikiname:pagename).
 
@@ -619,6 +646,7 @@ def resolve_interwiki(request, wikiname, pagename):
         return (wikiname, _interwiki_list[wikiname], pagename, False)
     else:
         return (wikiname, request.script_root, "/InterWiki", True)
+
 
 def join_wiki(wikiurl, wikitail):
     """
@@ -693,7 +721,7 @@ def filterCategoryPages(request, pagelist):
     return [pn for pn in pagelist if func(pn)]
 
 
-def getLocalizedPage(request, pagename): # was: getSysPage
+def getLocalizedPage(request, pagename):  # was: getSysPage
     """ Get a system page according to user settings and available translations.
 
     We include some special treatment for the case that <pagename> is the
@@ -788,7 +816,7 @@ def getInterwikiHomePage(request, username=None):
     if username is None and request.user.valid:
         username = request.user.name
     if not username:
-        return None # anon user
+        return None  # anon user
 
     homewiki = request.cfg.user_homewiki
     if homewiki == request.cfg.interwikiname:
@@ -818,6 +846,7 @@ def AbsPageName(context, pagename):
             pagename = pagename[CHILD_PREFIX_LEN:]
     return pagename
 
+
 def RelPageName(context, pagename):
     """
     Return the relative pagename for some context.
@@ -836,8 +865,8 @@ def RelPageName(context, pagename):
         return pagename[len(context):]
     else:
         # some kind of sister/aunt
-        context_frags = context.split('/')   # A, B, C, D, E
-        pagename_frags = pagename.split('/') # A, B, C, F
+        context_frags = context.split('/')  # A, B, C, D, E
+        pagename_frags = pagename.split('/')  # A, B, C, F
         # first throw away common parents:
         common = 0
         for cf, pf in zip(context_frags, pagename_frags):
@@ -845,8 +874,8 @@ def RelPageName(context, pagename):
                 common += 1
             else:
                 break
-        context_frags = context_frags[common:] # D, E
-        pagename_frags = pagename_frags[common:] # F
+        context_frags = context_frags[common:]  # D, E
+        pagename_frags = pagename_frags[common:]  # F
         go_up = len(context_frags)
         return PARENT_PREFIX * go_up + '/'.join(pagename_frags)
 
@@ -854,7 +883,7 @@ def RelPageName(context, pagename):
 def pagelinkmarkup(pagename, text=None):
     """ return markup that can be used as link to page <pagename> """
     from MoinMoin.parser.text_moin_wiki import Parser
-    if re.match(Parser.word_rule + "$", pagename, re.U|re.X) and \
+    if re.match(Parser.word_rule + "$", pagename, re.U | re.X) and \
             (text is None or text == pagename):
         return pagename
     else:
@@ -864,47 +893,48 @@ def pagelinkmarkup(pagename, text=None):
             text = '|%s' % text
         return u'[[%s%s]]' % (pagename, text)
 
+
 #############################################################################
 ### mimetype support
 #############################################################################
 import mimetypes
 
 MIMETYPES_MORE = {
- # OpenOffice 2.x & other open document stuff
- '.odt': 'application/vnd.oasis.opendocument.text',
- '.ods': 'application/vnd.oasis.opendocument.spreadsheet',
- '.odp': 'application/vnd.oasis.opendocument.presentation',
- '.odg': 'application/vnd.oasis.opendocument.graphics',
- '.odc': 'application/vnd.oasis.opendocument.chart',
- '.odf': 'application/vnd.oasis.opendocument.formula',
- '.odb': 'application/vnd.oasis.opendocument.database',
- '.odi': 'application/vnd.oasis.opendocument.image',
- '.odm': 'application/vnd.oasis.opendocument.text-master',
- '.ott': 'application/vnd.oasis.opendocument.text-template',
- '.ots': 'application/vnd.oasis.opendocument.spreadsheet-template',
- '.otp': 'application/vnd.oasis.opendocument.presentation-template',
- '.otg': 'application/vnd.oasis.opendocument.graphics-template',
- # some systems (like Mac OS X) don't have some of these:
- '.patch': 'text/x-diff',
- '.diff': 'text/x-diff',
- '.py': 'text/x-python',
- '.cfg': 'text/plain',
- '.conf': 'text/plain',
- '.irc': 'text/plain',
- '.md5': 'text/plain',
- '.csv': 'text/csv',
- '.flv': 'video/x-flv',
- '.wmv': 'video/x-ms-wmv',
- '.swf': 'application/x-shockwave-flash',
- '.moin': 'text/moin-wiki',
- '.creole': 'text/creole',
- # Windows Server 2003 / Python 2.7 has no or strange entries for these:
- '.svg': 'image/svg+xml',
- '.svgz': 'image/svg+xml',
- '.png': 'image/png',
- '.jpg': 'image/jpeg',
- '.jpeg': 'image/jpeg',
- '.gif': 'image/gif',
+    # OpenOffice 2.x & other open document stuff
+    '.odt': 'application/vnd.oasis.opendocument.text',
+    '.ods': 'application/vnd.oasis.opendocument.spreadsheet',
+    '.odp': 'application/vnd.oasis.opendocument.presentation',
+    '.odg': 'application/vnd.oasis.opendocument.graphics',
+    '.odc': 'application/vnd.oasis.opendocument.chart',
+    '.odf': 'application/vnd.oasis.opendocument.formula',
+    '.odb': 'application/vnd.oasis.opendocument.database',
+    '.odi': 'application/vnd.oasis.opendocument.image',
+    '.odm': 'application/vnd.oasis.opendocument.text-master',
+    '.ott': 'application/vnd.oasis.opendocument.text-template',
+    '.ots': 'application/vnd.oasis.opendocument.spreadsheet-template',
+    '.otp': 'application/vnd.oasis.opendocument.presentation-template',
+    '.otg': 'application/vnd.oasis.opendocument.graphics-template',
+    # some systems (like Mac OS X) don't have some of these:
+    '.patch': 'text/x-diff',
+    '.diff': 'text/x-diff',
+    '.py': 'text/x-python',
+    '.cfg': 'text/plain',
+    '.conf': 'text/plain',
+    '.irc': 'text/plain',
+    '.md5': 'text/plain',
+    '.csv': 'text/csv',
+    '.flv': 'video/x-flv',
+    '.wmv': 'video/x-ms-wmv',
+    '.swf': 'application/x-shockwave-flash',
+    '.moin': 'text/moin-wiki',
+    '.creole': 'text/creole',
+    # Windows Server 2003 / Python 2.7 has no or strange entries for these:
+    '.svg': 'image/svg+xml',
+    '.svgz': 'image/svg+xml',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
 }
 
 # add all mimetype patterns of pygments
@@ -925,7 +955,7 @@ MIMETYPES_sanitize_mapping = {
     ('application', 'javascript'): ('text', 'javascript'),
 }
 
-MIMETYPES_spoil_mapping = {} # inverse mapping of above
+MIMETYPES_spoil_mapping = {}  # inverse mapping of above
 for _key, _value in list(MIMETYPES_sanitize_mapping.items()):
     MIMETYPES_spoil_mapping[_value] = _key
 
@@ -934,9 +964,9 @@ class MimeType(object):
     """ represents a mimetype like text/plain """
 
     def __init__(self, mimestr=None, filename=None):
-        self.major = self.minor = None # sanitized mime type and subtype
-        self.params = {} # parameters like "charset" or others
-        self.charset = None # this stays None until we know for sure!
+        self.major = self.minor = None  # sanitized mime type and subtype
+        self.params = {}  # parameters like "charset" or others
+        self.charset = None  # this stays None until we know for sure!
         self.raw_mimestr = mimestr
 
         if mimestr:
@@ -959,14 +989,14 @@ class MimeType(object):
         mimetype, parameters = parameters[0], parameters[1:]
         mimetype = mimetype.split('/')
         if len(mimetype) >= 2:
-            major, minor = mimetype[:2] # we just ignore more than 2 parts
+            major, minor = mimetype[:2]  # we just ignore more than 2 parts
         else:
             major, minor = self.parse_format(mimetype[0])
         self.major = major.lower()
         self.minor = minor.lower()
         for param in parameters:
             key, value = param.split('=')
-            if value[0] == '"' and value[-1] == '"': # remove quotes
+            if value[0] == '"' and value[-1] == '"':  # remove quotes
                 value = value[1:-1]
             self.params[key.lower()] = value
         if 'charset' in self.params:
@@ -1053,8 +1083,10 @@ class MimeType(object):
 class PluginError(Exception):
     """ Base class for plugin errors """
 
+
 class PluginMissingError(PluginError):
     """ Raised when a plugin is not found """
+
 
 class PluginAttributeError(PluginError):
     """ Raised when plugin does not contain an attribtue """
@@ -1200,7 +1232,7 @@ def getPlugins(kind, cfg):
 def searchAndImportPlugin(cfg, type, name, what=None):
     type2classname = {"parser": "Parser",
                       "formatter": "Formatter",
-    }
+                      }
     if what is None:
         what = type2classname[type]
     mt = MimeType(name)
@@ -1266,15 +1298,18 @@ def getParserForExtension(cfg, extension):
 class BracketError(Exception):
     pass
 
+
 class BracketUnexpectedCloseError(BracketError):
     def __init__(self, bracket):
         self.bracket = bracket
         BracketError.__init__(self, "Unexpected closing bracket %s" % bracket)
 
+
 class BracketMissingCloseError(BracketError):
     def __init__(self, bracket):
         self.bracket = bracket
         BracketError.__init__(self, "Missing closing bracket %s" % bracket)
+
 
 class ParserPrefix(object):
     """
@@ -1282,6 +1317,7 @@ class ParserPrefix(object):
     the possible prefixes for parse_quoted_separated_ext
     and implementing rich equal comparison.
     """
+
     def __init__(self, prefix):
         self.prefix = prefix
 
@@ -1290,6 +1326,7 @@ class ParserPrefix(object):
 
     def __repr__(self):
         return '<ParserPrefix(%s)>' % self.prefix.encode('utf-8')
+
 
 def parse_quoted_separated_ext(args, separator=None, name_value_separator=None,
                                brackets=None, seplimit=0, multikey=False,
@@ -1358,21 +1395,21 @@ def parse_quoted_separated_ext(args, separator=None, name_value_separator=None,
     if not isinstance(args, str):
         raise TypeError('args must be unicode')
     max = len(args)
-    result = []         # result list
-    cur = [None]        # current item
-    quoted = None       # we're inside quotes, indicates quote character used
-    skipquote = 0       # next quote is a quoted quote
-    noquote = False     # no quotes expected because word didn't start with one
-    seplimit_reached = False # number of separators exhausted
-    separator_count = 0 # number of separators encountered
+    result = []  # result list
+    cur = [None]  # current item
+    quoted = None  # we're inside quotes, indicates quote character used
+    skipquote = 0  # next quote is a quoted quote
+    noquote = False  # no quotes expected because word didn't start with one
+    seplimit_reached = False  # number of separators exhausted
+    separator_count = 0  # number of separators encountered
     SPACE = [' ', '\t', ]
-    nextitemsep = [separator]   # used for skipping trailing space
+    nextitemsep = [separator]  # used for skipping trailing space
     SPACE = [' ', '\t', ]
     if separator is None:
         nextitemsep = SPACE[:]
         separators = SPACE
     else:
-        nextitemsep = [separator]   # used for skipping trailing space
+        nextitemsep = [separator]  # used for skipping trailing space
         separators = [separator]
     if name_value_separator:
         nextitemsep.append(name_value_separator)
@@ -1409,7 +1446,7 @@ def parse_quoted_separated_ext(args, separator=None, name_value_separator=None,
         char = args[idx]
         next = None
         if idx + 1 < max:
-            next = args[idx+1]
+            next = args[idx + 1]
         if skipquote:
             skipquote -= 1
         if not separator is None and not quoted and char in SPACE:
@@ -1449,7 +1486,7 @@ def parse_quoted_separated_ext(args, separator=None, name_value_separator=None,
             quoted = char
         elif char == quoted and not skipquote:
             if next == quoted:
-                skipquote = 2 # will be decremented right away
+                skipquote = 2  # will be decremented right away
             else:
                 quoted = None
         elif not quoted and char in opening:
@@ -1504,6 +1541,7 @@ def parse_quoted_separated_ext(args, separator=None, name_value_separator=None,
 
     return result
 
+
 def parse_quoted_separated(args, separator=',', name_value=True, seplimit=0):
     result = []
     positional = result
@@ -1530,6 +1568,7 @@ def parse_quoted_separated(args, separator=',', name_value=True, seplimit=0):
     if name_value:
         return result, keywords, trailing
     return result
+
 
 def get_bool(request, arg, name=None, default=None):
     """
@@ -1731,6 +1770,7 @@ class IEFArgument(object):
     Base class for new argument parsers for
     invoke_extension_function.
     """
+
     def __init__(self):
         pass
 
@@ -1762,6 +1802,7 @@ class UnitArgument(IEFArgument):
     the default unit. NOTE: This doesn't work with a choice
     (tuple or list) argtype.
     """
+
     def __init__(self, default, argtype, units=['mm'], defaultunit=None):
         """
         Initialise a UnitArgument giving the default,
@@ -1802,6 +1843,7 @@ class required_arg(object):
     for a function passed to invoke_extension_function() in
     order to get generic checking that the argument is given.
     """
+
     def __init__(self, argtype):
         """
         Initialise a required_arg
@@ -1871,7 +1913,7 @@ def invoke_extension_function(request, function, args, fixed_args=[]):
                 # treat choice specially and return None if no choice
                 # is given in the value
                 return get_choice(request, value, name, list(default.argtype),
-                       default_none=True)
+                                  default_none=True)
             else:
                 return _convert_arg(request, value, default.argtype, name)
         return value
@@ -2025,12 +2067,12 @@ def parseAttributes(request, attrstring, endtoken=None, extension=None):
         # call extension function with the current token, the parser, and the dict
         if extension:
             found_flag, msg = extension(key, parser, attrs)
-            #logging.debug("%r = extension(%r, parser, %r)" % (msg, key, attrs))
+            # logging.debug("%r = extension(%r, parser, %r)" % (msg, key, attrs))
             if found_flag:
                 continue
             elif msg:
                 break
-            #else (we found nothing, but also didn't have an error msg) we just continue below:
+            # else (we found nothing, but also didn't have an error msg) we just continue below:
 
         try:
             eq = parser.get_token()
@@ -2050,7 +2092,7 @@ def parseAttributes(request, attrstring, endtoken=None, extension=None):
             msg = _('Expected a value for key "%(token)s"') % {'token': key}
             break
 
-        key = escape(key) # make sure nobody cheats
+        key = escape(key)  # make sure nobody cheats
 
         # safely escape and quote value
         if val[0] in ["'", '"']:
@@ -2108,12 +2150,12 @@ class ParameterParser(object):
         bool_re = r"(?P<bool>(([10])|([Tt]rue)|([Ff]alse)))"
         float_re = r"(?P<float>-?\d+\.\d+([eE][+-]?\d+)?)"
         string_re = (r"(?P<string>('([^']|(\'))*?')|" +
-                                r'("([^"]|(\"))*?"))')
+                     r'("([^"]|(\"))*?"))')
         name_re = name % "name"
         name_param_re = name % "name_param"
 
         param_re = r"\s*(\s*%s\s*=\s*)?(%s|%s|%s|%s|%s)\s*(,|$)" % (
-                   name_re, float_re, int_re, bool_re, string_re, name_param_re)
+            name_re, float_re, int_re, bool_re, string_re, name_param_re)
         self.param_re = re.compile(param_re, re.U)
         self._parse_pattern(pattern)
 
@@ -2162,7 +2204,8 @@ class ParameterParser(object):
                 pvalue = int(match.group("int"))
                 ptype = 'i'
             elif match.group("bool"):
-                pvalue = (match.group("bool") == "1") or (match.group("bool") == "True") or (match.group("bool") == "true")
+                pvalue = (match.group("bool") == "1") or (match.group("bool") == "True") or (
+                        match.group("bool") == "true")
                 ptype = 'b'
             elif match.group("float"):
                 pvalue = float(match.group("float"))
@@ -2211,27 +2254,27 @@ class ParameterParser(object):
         return fixed_count, parameter_dict
 
     def _check_type(self, pvalue, ptype, format):
-        if ptype == 'n' and 's' in format: # n as s
+        if ptype == 'n' and 's' in format:  # n as s
             return pvalue
 
         if ptype in format:
-            return pvalue # x -> x
+            return pvalue  # x -> x
 
         if ptype == 'i':
             if 'f' in format:
-                return float(pvalue) # i -> f
+                return float(pvalue)  # i -> f
             elif 'b' in format:
-                return pvalue != 0 # i -> b
+                return pvalue != 0  # i -> b
         elif ptype == 's':
             if 'b' in format:
                 if pvalue.lower() == 'false':
-                    return False # s-> b
+                    return False  # s-> b
                 elif pvalue.lower() == 'true':
-                    return True # s-> b
+                    return True  # s-> b
                 else:
                     raise ValueError('%r does not match format %r' % (pvalue, format))
 
-        if 's' in format: # * -> s
+        if 's' in format:  # * -> s
             return str(pvalue)
 
         raise ValueError('%r does not match format %r' % (pvalue, format))
@@ -2281,6 +2324,7 @@ def normalize_pagename(name, cfg):
     name = u'/'.join(normalized)
     return name
 
+
 def taintfilename(basename):
     """
     Make a filename that is supposed to be a plain name secure, i.e.
@@ -2300,7 +2344,7 @@ def drawing2fname(drawing):
     config.drawing_extensions = ['.tdraw', '.adraw',
                                  '.svg',
                                  '.png', '.jpg', '.jpeg', '.gif',
-                                ]
+                                 ]
     fname, ext = os.path.splitext(drawing)
     # note: do not just check for empty extension or stuff like drawing:foo.bar
     # will fail, instead of being expanded to foo.bar.tdraw
@@ -2340,13 +2384,14 @@ def getUnicodeIndexGroup(name):
     @return: group letter or None
     """
     c = name[0]
-    if u'\uAC00' <= c <= u'\uD7AF': # Hangul Syllables
+    if u'\uAC00' <= c <= u'\uD7AF':  # Hangul Syllables
         return chr(0xac00 + (old_div(int(ord(c) - 0xac00), 588)) * 588)
     else:
-        return c.upper() # we put lower and upper case words into the same index group
+        return c.upper()  # we put lower and upper case words into the same index group
 
 
-def isStrictWikiname(name, word_re=re.compile(r"^(?:[%(u)s][%(l)s]+){2,}$" % {'u': config.chars_upper, 'l': config.chars_lower})):
+def isStrictWikiname(name, word_re=re.compile(
+    r"^(?:[%(u)s][%(l)s]+){2,}$" % {'u': config.chars_upper, 'l': config.chars_lower})):
     """
     Check whether this is NOT an extended name.
 
@@ -2404,13 +2449,13 @@ def link_tag(request, params, text=None, formatter=None, on=None, **kw):
         formatter = request.html_formatter
     if 'css_class' in kw:
         css_class = kw['css_class']
-        del kw['css_class'] # one time is enough
+        del kw['css_class']  # one time is enough
     else:
         css_class = None
     id = kw.get('id', None)
     name = kw.get('name', None)
     if text is None:
-        text = params # default
+        text = params  # default
     if formatter:
         url = "%s/%s" % (request.script_root, params)
         # formatter.url will escape the url part
@@ -2418,9 +2463,9 @@ def link_tag(request, params, text=None, formatter=None, on=None, **kw):
             tag = formatter.url(on, url, css_class, **kw)
         else:
             tag = (formatter.url(1, url, css_class, **kw) +
-                formatter.rawHTML(text) +
-                formatter.url(0))
-    else: # this shouldn't be used any more:
+                   formatter.rawHTML(text) +
+                   formatter.url(0))
+    else:  # this shouldn't be used any more:
         if on is not None and not on:
             tag = '</a>'
         else:
@@ -2434,12 +2479,15 @@ def link_tag(request, params, text=None, formatter=None, on=None, **kw):
             tag = '<a%s href="%s/%s">' % (attrs, request.script_root, params)
             if not on:
                 tag = "%s%s</a>" % (tag, text)
-        logging.warning("wikiutil.link_tag called without formatter and without request.html_formatter. tag=%r" % (tag, ))
+        logging.warning(
+            "wikiutil.link_tag called without formatter and without request.html_formatter. tag=%r" % (tag,))
     return tag
+
 
 def containsConflictMarker(text):
     """ Returns true if there is a conflict marker in the text. """
     return "/!\\ '''Edit conflict" in text
+
 
 def pagediff(request, pagename1, rev1, pagename2, rev2, **kw):
     """
@@ -2461,6 +2509,7 @@ def pagediff(request, pagename1, rev1, pagename2, rev2, **kw):
     lines = diff_text.diff(lines1, lines2, **kw)
     return lines
 
+
 def anchor_name_from_text(text):
     '''
     Generate an anchor name from the given text.
@@ -2474,6 +2523,7 @@ def anchor_name_from_text(text):
     if not res[:1].isalpha():
         return 'A%s' % res
     return res
+
 
 def split_anchor(pagename):
     """
@@ -2500,6 +2550,7 @@ def split_anchor(pagename):
         return parts
     else:
         return pagename, ""
+
 
 ########################################################################
 ### Tickets - usually used in forms to make sure that form submissions
@@ -2575,7 +2626,7 @@ def checkTicket(request, ticket):
     #       if the ticket was created within a session.
     ourticket = createTicket(request, timestamp_str)
     logging.debug("checkTicket: returning %r, got %r, expected %r" % (ticket == ourticket, ticket, ourticket))
-    return safe_str_equal(ticket, ourticket)
+    return safe_str_cmp(ticket, ourticket)
 
 
 def renderText(request, Parser, text):
@@ -2590,6 +2641,7 @@ def renderText(request, Parser, text):
     del out
     return result
 
+
 def get_processing_instructions(body):
     """ Extract the processing instructions / acl / etc. at the beginning of a page's body.
 
@@ -2601,7 +2653,7 @@ def get_processing_instructions(body):
     pi = []
     while body.startswith('#'):
         try:
-            line, body = body.split('\n', 1) # extract first line
+            line, body = body.split('\n', 1)  # extract first line
         except ValueError:
             line = body
             body = ''
@@ -2611,14 +2663,14 @@ def get_processing_instructions(body):
             body = line + '\n' + body
             break
 
-        if line[1] == '#':# two hash marks are a comment
+        if line[1] == '#':  # two hash marks are a comment
             comment = line[2:]
             if not comment.startswith(' '):
                 # we don't require a blank after the ##, so we put one there
                 comment = ' ' + comment
                 line = '##%s' % comment
 
-        verb, args = (line[1:] + ' ').split(' ', 1) # split at the first blank
+        verb, args = (line[1:] + ' ').split(' ', 1)  # split at the first blank
         pi.append((verb.lower(), args.strip()))
 
     return pi, body
@@ -2650,7 +2702,7 @@ class Version(tuple):
             (-
              (?P<additional>.+)
             )?""",
-            re.VERBOSE)
+        re.VERBOSE)
 
     @classmethod
     def parse_version(cls, version):
@@ -2676,4 +2728,3 @@ class Version(tuple):
         if self.additional:
             version_str += "-%s" % self.additional
         return version_str
-

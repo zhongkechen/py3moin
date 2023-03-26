@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-1 -*-
 """
     MoinMoin - Utility functions for the web-layer
 
@@ -12,7 +11,6 @@ import time
 
 from werkzeug.utils import redirect
 from werkzeug.exceptions import abort
-from werkzeug.http import cookie_date
 from werkzeug.wrappers import Response
 
 from MoinMoin import caching
@@ -23,6 +21,7 @@ from MoinMoin.web.exceptions import Forbidden, SurgeProtection
 
 logging = log.getLogger(__name__)
 
+
 def check_forbidden(request):
     """ Simple action and host access checks
 
@@ -32,8 +31,8 @@ def check_forbidden(request):
     args = request.args
     action = args.get('action')
     if ((args or request.method != 'GET') and
-        action not in ['rss_rc', 'show', 'sitemap'] and
-        not (action == 'AttachFile' and args.get('do') == 'get')):
+            action not in ['rss_rc', 'show', 'sitemap'] and
+            not (action == 'AttachFile' and args.get('do') == 'get')):
         if request.isSpiderAgent:
             raise Forbidden()
     if request.cfg.hosts_deny:
@@ -46,6 +45,7 @@ def check_forbidden(request):
                 logging.debug("hosts_deny (ip): %s" % remote_addr)
                 raise Forbidden()
     return False
+
 
 def check_surge_protect(request, kick=False, action=None, username=None):
     """ Check for excessive requests
@@ -120,15 +120,17 @@ def check_surge_protect(request, kick=False, action=None, username=None):
         timestamps.append((now, surge_indicator))
         if surge_detected:
             if len(timestamps) < maxnum * 2:
-                timestamps.append((now + request.cfg.surge_lockout_time, surge_indicator)) # continue like that and get locked out
+                timestamps.append(
+                    (now + request.cfg.surge_lockout_time, surge_indicator))  # continue like that and get locked out
 
-        if current_action not in ('cache', 'AttachFile', ): # don't add cache/AttachFile accesses to all or picture galleries will trigger SP
-            action = 'all' # put a total limit on user's requests
+        if current_action not in (
+        'cache', 'AttachFile',):  # don't add cache/AttachFile accesses to all or picture galleries will trigger SP
+            action = 'all'  # put a total limit on user's requests
             maxnum, dt = limits.get(action, default_limit)
             events = surgedict.setdefault(current_id, {})
             timestamps = events.setdefault(action, [])
 
-            if kick: # ban this guy, NOW
+            if kick:  # ban this guy, NOW
                 timestamps.extend([(now + request.cfg.surge_lockout_time, "!")] * (2 * maxnum))
 
             surge_detected = surge_detected or len(timestamps) > maxnum
@@ -137,7 +139,8 @@ def check_surge_protect(request, kick=False, action=None, username=None):
             timestamps.append((now, surge_indicator))
             if surge_detected:
                 if len(timestamps) < maxnum * 2:
-                    timestamps.append((now + request.cfg.surge_lockout_time, surge_indicator)) # continue like that and get locked out
+                    timestamps.append((now + request.cfg.surge_lockout_time,
+                                       surge_indicator))  # continue like that and get locked out
 
         data = []
         for id, events in list(surgedict.items()):
@@ -158,6 +161,7 @@ def check_surge_protect(request, kick=False, action=None, username=None):
     else:
         return False
 
+
 def redirect_last_visited(request):
     pagetrail = request.user.getTrail()
     if pagetrail:
@@ -174,6 +178,7 @@ def redirect_last_visited(request):
         url = wikiutil.getFrontPage(request).url(request)
     url = request.getQualifiedURL(url)
     return abort(redirect(url))
+
 
 class UniqueIDGenerator(object):
     def __init__(self, pagename=None):
@@ -252,6 +257,7 @@ class UniqueIDGenerator(object):
             return base
         return u'%s-%d' % (base, count)
 
+
 FATALTMPL = """
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
@@ -261,6 +267,8 @@ FATALTMPL = """
 %(body)s
 </pre></body></html>
 """
+
+
 def fatal_response(error):
     """ Create a response from MoinMoin.error.FatalError instances. """
     html = FATALTMPL % dict(title=error.__class__.__name__,
