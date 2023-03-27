@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "py3moin"
+version = "3.0.0a1"
+description = ""
+authors = ["Zhongke Chen <ch3n2k@gmail.com>"]
+packages = [{ include = "MoinMoin" }]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pytest = "^7.2"
+passlib = "^1.7"
+future = "^0.18"
+html-sanitizer = "^1.9"
+werkzeug = "^2.2"
+parsedatetime = "*"
+pygments = "*"
+secure-cookie = "*"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

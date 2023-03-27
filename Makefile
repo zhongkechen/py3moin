@@ -95,7 +95,7 @@ update-underlay:
 	cd $(share); rm -rf underlay; tar xf underlay.tar
 
 test:
-	./pytest MoinMoin/ --ignore MoinMoin/support/ --ignore Moinmoin/search/Xapian/
+	pytest MoinMoin/ --ignore MoinMoin/support/ --ignore Moinmoin/search/Xapian/
 
 coverage:
 	@python MoinMoin/_tests/maketestwiki.py
