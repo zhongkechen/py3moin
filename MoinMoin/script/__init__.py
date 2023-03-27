@@ -106,7 +106,7 @@ class Script(object):
         self.def_values = def_values
 
         global _start_time
-        _start_time = time.clock()
+        _start_time = time.process_time()
 
         import optparse
         from MoinMoin import version
@@ -152,7 +152,7 @@ class Script(object):
     def logRuntime(self):
         """ Print the total command run time. """
         if self.options.show_timing:
-            log("Needed %.3f secs." % (time.clock() - _start_time, ))
+            log("Needed %.3f secs." % (time.process_time() - _start_time, ))
 
 
 class MoinScript(Script):

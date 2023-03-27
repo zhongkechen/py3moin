@@ -17,7 +17,6 @@ from io import StringIO
 
 from werkzeug import Request as RequestBase
 from werkzeug import Response as WerkzeugResponseBase
-# from werkzeug.wrappers import BaseResponse, ETagResponseMixin, CommonResponseDescriptorsMixin, WWWAuthenticateMixin
 from werkzeug.wrappers import ResponseStream
 from werkzeug.datastructures import EnvironHeaders, Headers, HeaderSet
 from werkzeug.urls import url_encode, url_join, url_quote
@@ -144,8 +143,9 @@ class Href(object):
             )
         return to_native(rv)
 
+
 class Request(ResponseBase, RequestBase):
-    """ A full featured Request/Response object.
+    """ A full-featured Request/Response object.
 
     To better distinguish incoming and outgoing data/headers,
     incoming versions are prefixed with 'in_' in contrast to

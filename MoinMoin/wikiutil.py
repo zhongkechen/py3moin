@@ -162,10 +162,10 @@ def parseQueryString(qstr, want_unicode=None):
         log.exception("call with deprecated want_unicode param, please fix caller")
     try:
         return werkzeug.urls.url_decode(qstr, charset=config.charset, errors='strict',
-                                        decode_keys=False, include_empty=False)
+                                        include_empty=False)
     except UnicodeDecodeError:
         return werkzeug.urls.url_decode(qstr, charset='iso-8859-1', errors='replace',
-                                        decode_keys=False, include_empty=False)
+                                        include_empty=False)
 
 
 def makeQueryString(qstr=None, want_unicode=None, **kw):
@@ -261,7 +261,7 @@ def make_breakable(text, maxlen):
 ########################################################################
 
 # Precompiled patterns for file name [un]quoting
-UNSAFE = re.compile(r'[^a-zA-Z0-9_]+')
+UNSAFE = re.compile(rb'[^a-zA-Z0-9_]+')
 QUOTED = re.compile(r'\(([a-fA-F0-9]+)\)')
 
 
@@ -278,21 +278,20 @@ def quoteWikinameFS(wikiname, charset=config.charset):
     @return: quoted name, safe for any file system
     """
     filename = wikiname
+    if isinstance(filename, str):
+        filename = filename.encode("utf8")
 
     quoted = []
     location = 0
     for needle in UNSAFE.finditer(filename):
         # append leading safe stuff
-        quoted.append(filename[location:needle.start()])
+        quoted.append(filename[location:needle.start()].decode("utf8"))
         location = needle.end()
         # Quote and append unsafe stuff
-        quoted.append('(')
-        for character in needle.group():
-            quoted.append('%02x' % ord(character))
-        quoted.append(')')
+        quoted.append('(' + needle.group().hex() + ')')
 
     # append rest of string
-    quoted.append(filename[location:])
+    quoted.append(filename[location:].decode("utf8"))
     return ''.join(quoted)
 
 
@@ -330,13 +329,10 @@ def unquoteWikiname(filename, charsets=[config.charset]):
         # Append quoted stuff
         group = needle.group(1)
         # Filter invalid filenames
-        if (len(group) % 2 != 0):
+        if len(group) % 2 != 0:
             raise InvalidFileNameError(filename)
         try:
-            for i in range(0, len(group), 2):
-                byte = group[i:i + 2]
-                character = chr(int(byte, 16))
-                parts.append(character)
+            parts.append(bytes.fromhex(group).decode("utf8"))
         except ValueError:
             # byte not in hex, e.g 'xy'
             raise InvalidFileNameError(filename)
@@ -354,7 +350,6 @@ def unquoteWikiname(filename, charsets=[config.charset]):
     # if '(' in wikiname or ')' in wikiname:
     #    raise InvalidFileNameError(filename)
 
-    wikiname = decodeUserInput(wikiname, charsets)
     return wikiname
 
 

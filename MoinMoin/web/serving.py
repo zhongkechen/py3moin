@@ -34,8 +34,7 @@ class RequestHandler(WSGIRequestHandler):
 
     # override the logging functions
     def log_request(self, code='-', size='-'):
-        self.log_message('"%s" %s %s',
-                         self.requestline, code, size)
+        self.log_message('"%s" %s %s', self.requestline, code, size)
 
     def log_error(self, format, *args):
         self.log_message(format, *args)
