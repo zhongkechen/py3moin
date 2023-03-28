@@ -23,4 +23,7 @@ dist
 .tox
 .vagrant
 .DS_Store
+.python-version
+mywiki*
+docker-compose.yml
 
