@@ -6,7 +6,7 @@ ONLY to be used for MMDE - if you run a personal wiki on your notebook or PC.
 This is NOT intended for internet or server or multiuser use due to relaxed security settings!
 """
 
-import sys, os
+import os
 
 from MoinMoin.config import multiconfig, url_prefix_static
 

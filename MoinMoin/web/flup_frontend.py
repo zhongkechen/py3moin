@@ -23,7 +23,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import os, sys
+import os
+import sys
 
 try:
     import flup.server.fcgi

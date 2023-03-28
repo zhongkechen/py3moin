@@ -6,7 +6,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import sys, os
+import os
+import sys
 
 # a) Configuration of Python's code search path
 #    If you already have set up the PYTHONPATH environment variable for the

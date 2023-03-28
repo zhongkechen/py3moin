@@ -2,7 +2,6 @@
     Standalone server configuration, you can either use this file or
     commandline options to configure server options.
 """
-import os
 
 from MoinMoin.script.server.standalone import DefaultConfig
 
