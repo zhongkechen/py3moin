@@ -10,7 +10,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import object
 import time
 from MoinMoin.Page import Page
 from MoinMoin.util.abuse import log_attempt

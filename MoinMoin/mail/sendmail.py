@@ -6,11 +6,12 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
-import os, re
+import os
+import re
 from email.header import Header
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
 from MoinMoin import config

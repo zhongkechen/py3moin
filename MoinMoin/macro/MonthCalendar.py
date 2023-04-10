@@ -146,11 +146,6 @@ This creates a calendar which uses MonthCalendarTemplate for directly editing
 nonexisting day pages:
 <<MonthCalendar(,,,,,,,MonthCalendarTemplate)>>
 """
-from __future__ import division
-
-from builtins import str
-from builtins import range
-from past.utils import old_div
 
 Dependencies = ['namespace', 'time', ]
 
@@ -298,10 +293,10 @@ def execute(macro, text):
         r, g, b = (255, 0, 0)
         l = len(parmpagename[0])
         steps = len(parmpagename)
-        maxsteps = (old_div(255, colorstep))
+        maxsteps = (255 // colorstep)
         if steps > maxsteps:
             steps = maxsteps
-        chstep = int(old_div(l, steps))
+        chstep = int(l // steps)
         st = 0
         while st < l:
             ch = parmpagename[0][st:st + chstep]

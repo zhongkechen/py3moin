@@ -11,9 +11,6 @@
                 2009 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import division
-from past.utils import old_div
-from builtins import object
 import time
 
 from secure_cookie.session import Session, FilesystemSessionStore
@@ -199,7 +196,7 @@ class FileSessionService(SessionService):
 
         cookie_lifetime = _get_session_lifetime(context, userobj)
         # we use 60s granularity, so we don't trigger session storage updates too often
-        cookie_expires = int(old_div(time.time(), 60)) * 60 + cookie_lifetime
+        cookie_expires = int(time.time() // 60) * 60 + cookie_lifetime
         # when transiting logged-in -> logged out we want to kill the session
         # to protect privacy (do not show trail, even if anon sessions are on)
         kill_session = not userobj.valid and 'user.id' in session

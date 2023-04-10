@@ -5,7 +5,6 @@
     @copyright: 2006 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import str
 from MoinMoin.filter import EXIF
 
 def execute(indexobj, filename):

@@ -11,8 +11,6 @@
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import next
-from builtins import object
 import xmlrpc.client
 INVALID = object()
 

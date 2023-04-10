@@ -60,7 +60,6 @@
 # you will have to configure logging.
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
 logging_config = """\
 [DEFAULT]
 # Default loglevel, to adjust verbosity: DEBUG, INFO, WARNING, ERROR, CRITICAL

@@ -15,9 +15,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
-from builtins import range
-from builtins import object
 import gdchart
 from MoinMoin.util.web import Color
 

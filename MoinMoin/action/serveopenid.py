@@ -8,8 +8,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
-from builtins import object
 from MoinMoin.util.moinoid import MoinOpenIDStore, strbase64
 from MoinMoin import wikiutil
 from openid.consumer.discover import OPENID_1_0_TYPE, \

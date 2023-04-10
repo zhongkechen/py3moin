@@ -8,8 +8,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
-from builtins import object
 DAYS = 30 # we look for spam edits in the last x days
 
 import time

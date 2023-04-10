@@ -5,8 +5,6 @@
                 2008-2008 MoinMoin:FlorianKrupicka
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import str
-from builtins import object
 import time
 
 from werkzeug.utils import redirect

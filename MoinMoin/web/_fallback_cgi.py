@@ -8,10 +8,10 @@
     @copyright: 2003-2006 Phillip J. Eby <pje at telecommunity.com>
     @license: Public Domain
 """
-from builtins import object
-from future.utils import raise_
-import os, sys
+import os
+import sys
 
+from future.utils import raise_
 
 __all__ = ['WSGIServer']
 

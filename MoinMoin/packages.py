@@ -8,12 +8,12 @@
 """
 from __future__ import print_function
 
-from builtins import str
-from builtins import object
-import os, re, sys
+import os
+import re
+import sys
 import zipfile
 
-from MoinMoin import config, wikiutil, caching, user
+from MoinMoin import config, wikiutil
 from MoinMoin.Page import Page
 from MoinMoin.PageEditor import PageEditor
 from MoinMoin.logfile import editlog, eventlog

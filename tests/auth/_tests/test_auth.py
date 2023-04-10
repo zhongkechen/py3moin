@@ -5,8 +5,6 @@
     @copyright: 2008 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import str
-from builtins import object
 import pytest
 
 from MoinMoin.web.request import TestRequest, evaluate_request

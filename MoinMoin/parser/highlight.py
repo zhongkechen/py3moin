@@ -5,8 +5,6 @@
     @copyright: 2008 Radomir Dopieralski <moindev@sheep.art.pl>
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import range
-from builtins import object
 import hashlib
 import re
 

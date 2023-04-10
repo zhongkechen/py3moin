@@ -33,7 +33,6 @@
 
 """
 
-from builtins import str
 import sys
 
 def error(msg):

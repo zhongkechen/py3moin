@@ -10,8 +10,6 @@
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import object
-import time, re
 import urllib.parse
 import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse
 

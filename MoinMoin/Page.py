@@ -33,10 +33,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import filter
-from builtins import str
-from builtins import object
-import os, re, codecs
+import codecs
+import os
+import re
 
 from MoinMoin import log
 

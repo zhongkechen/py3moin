@@ -5,7 +5,6 @@
     @copyright: 2008 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import object
 import sys, os, time
 import shutil, tempfile
 

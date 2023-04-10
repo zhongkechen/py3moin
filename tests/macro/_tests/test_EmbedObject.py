@@ -6,7 +6,6 @@
                 2008 MoinMoin:JohannesBerg
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import object
 import pytest
 
 from MoinMoin.action import AttachFile

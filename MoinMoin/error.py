@@ -7,7 +7,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
 import sys
 
 from MoinMoin import config

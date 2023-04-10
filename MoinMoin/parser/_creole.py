@@ -22,9 +22,6 @@
     @license: BSD, see COPYING for details.
 """
 
-from builtins import chr
-from builtins import range
-from builtins import object
 import re
 import sys
 

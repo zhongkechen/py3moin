@@ -11,10 +11,7 @@
     @copyright: 2001 Juergen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
 
-from builtins import str
-from builtins import range
 _imperr = None
 try:
     from teud import xmldoc, pydoc

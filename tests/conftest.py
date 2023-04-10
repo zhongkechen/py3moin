@@ -20,7 +20,6 @@ use a Config class to define the required configuration within the test class.
 @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
 import atexit
 import sys
 import os.path

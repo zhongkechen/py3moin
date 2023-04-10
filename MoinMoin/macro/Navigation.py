@@ -7,8 +7,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import zip
-from builtins import object
 import re
 from MoinMoin.Page import Page
 from MoinMoin import wikiutil

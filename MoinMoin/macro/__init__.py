@@ -14,8 +14,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
-from builtins import object
 from MoinMoin.util import pysupport
 modules = pysupport.getPackageModules(__file__)
 

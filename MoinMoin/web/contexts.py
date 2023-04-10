@@ -12,9 +12,7 @@ from future import standard_library
 from werkzeug import Response
 
 standard_library.install_aliases()
-from builtins import str
 from past.builtins import basestring
-from builtins import object
 import time, inspect, io, sys, warnings
 
 from werkzeug.datastructures import Headers

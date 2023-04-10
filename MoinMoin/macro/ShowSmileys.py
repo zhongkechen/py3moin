@@ -10,7 +10,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import range
 from MoinMoin import config
 from MoinMoin.util.dataset import TupleDataset, Column
 from MoinMoin.widget.browser import DataBrowserWidget

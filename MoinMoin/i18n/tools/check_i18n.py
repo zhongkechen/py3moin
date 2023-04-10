@@ -23,10 +23,7 @@ TODO: fix it for the changed i18n stuff of moin 1.6
 @copyright: 2003 Florian Festi, Nir Soffer, Thomas Waldmann
 @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
 
-from builtins import str
-from builtins import object
 output_encoding = 'utf-8'
 
 # These lead to crashes (MemoryError - due to missing codecs?)

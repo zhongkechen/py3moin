@@ -5,7 +5,6 @@
     @copyright: 2009 Canonical, Inc.
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import str
 import re
 import logging
 import copy

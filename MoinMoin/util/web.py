@@ -6,7 +6,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import object
 def getIntegerInput(request, fieldname, default=None, minval=None, maxval=None):
     """ Get an integer value from a request parameter. If the value
         is out of bounds, it's made to fit into those bounds.

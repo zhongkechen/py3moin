@@ -7,12 +7,6 @@
                 2007 by MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import division
-
-from builtins import zip
-from builtins import str
-from builtins import range
-from builtins import object
 from past.utils import old_div
 import re
 

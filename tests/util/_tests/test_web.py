@@ -6,8 +6,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
-from builtins import object
 from MoinMoin import wikiutil
 from MoinMoin.util import web
 from MoinMoin.widget import html

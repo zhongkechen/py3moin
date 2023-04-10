@@ -5,10 +5,6 @@
     @copyright: 2007-2008 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import str
-from builtins import range
-from builtins import object
-
 import pytest
 
 from MoinMoin import caching

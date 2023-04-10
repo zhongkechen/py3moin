@@ -7,8 +7,10 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import object
-import tempfile, os, time, shutil
+import os
+import shutil
+import tempfile
+import time
 
 import pytest
 

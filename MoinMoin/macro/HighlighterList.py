@@ -27,7 +27,6 @@
 """
 
 from past.builtins import cmp
-from builtins import range
 import re
 
 from MoinMoin.config import multiconfig

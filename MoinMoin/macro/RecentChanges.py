@@ -9,7 +9,6 @@
 """
 from __future__ import division
 from past.builtins import cmp
-from builtins import range
 from past.utils import old_div
 import time
 

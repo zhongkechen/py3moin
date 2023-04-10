@@ -28,9 +28,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import next
-from builtins import range
-from builtins import object
 from csv import reader, QUOTE_NONE, QUOTE_MINIMAL, Sniffer
 from _csv import Error
 

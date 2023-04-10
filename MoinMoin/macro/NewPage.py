@@ -13,7 +13,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import object
 from MoinMoin import wikiutil
 
 Dependencies = ["language"]

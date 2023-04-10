@@ -9,9 +9,6 @@
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
-from builtins import range
-from builtins import object
 import hashlib
 import re
 import os

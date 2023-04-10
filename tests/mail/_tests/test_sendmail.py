@@ -6,8 +6,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
-from builtins import object
 from email.charset import Charset, QP
 from email.header import Header
 from MoinMoin.mail import sendmail

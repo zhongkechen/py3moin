@@ -21,8 +21,6 @@ choice:
 This is the integration file for Python.
 """
 
-from builtins import object
-import cgi
 import os
 import re
 import string

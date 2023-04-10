@@ -12,8 +12,6 @@ from __future__ import print_function
 #The loader does not check the owner of the files, so be aware of faked session
 #files.
 
-from builtins import range
-from builtins import object
 import os
 from MoinMoin import wikiutil
 

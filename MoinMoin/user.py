@@ -20,11 +20,12 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
-from builtins import object
-import os, time, codecs, base64
+import base64
+import codecs
 import hashlib
 import hmac
+import os
+import time
 from copy import deepcopy
 
 from MoinMoin.support import md5crypt

@@ -9,7 +9,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import object
 class Column(object):
     """ Meta-data for a column.
     """

@@ -25,11 +25,12 @@ Options:
 Written by Martin v. Löwis <loewis@informatik.hu-berlin.de>,
 refactored / fixed by Thomas Waldmann <tw AT waldmann-edv DOT de>.
 """
-from __future__ import print_function
 
-from builtins import object
-import sys, os
-import getopt, struct, array
+import array
+import getopt
+import os
+import struct
+import sys
 
 __version__ = "1.3"
 

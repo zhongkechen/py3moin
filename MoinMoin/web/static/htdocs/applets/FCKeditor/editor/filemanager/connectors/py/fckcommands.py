@@ -23,11 +23,6 @@ http://www.mozilla.org/MPL/MPL-1.1.html
 Connector for Python (CGI and WSGI).
 
 """
-from __future__ import division
-
-from builtins import str
-from past.utils import old_div
-from builtins import object
 import os
 try: # Windows needs stdio set for binary mode for file upload to work.
 	import msvcrt

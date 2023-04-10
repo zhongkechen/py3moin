@@ -10,17 +10,17 @@
 """
 from __future__ import print_function
 
-from builtins import str
-from builtins import object
-import sys, re, time
 import email
-from email.utils import getaddresses, parsedate_tz, mktime_tz
+import re
+import sys
+import time
 from email.header import decode_header
+from email.utils import getaddresses, parsedate_tz, mktime_tz
 
 from MoinMoin import wikiutil, user
-from MoinMoin.action.AttachFile import add_attachment, AttachmentAlreadyExists
 from MoinMoin.Page import Page
 from MoinMoin.PageEditor import PageEditor
+from MoinMoin.action.AttachFile import add_attachment, AttachmentAlreadyExists
 
 infile = sys.stdin
 

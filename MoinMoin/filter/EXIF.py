@@ -136,12 +136,6 @@
 #
 # lambda x: ''.join(map(chr, x))
 #
-from __future__ import print_function
-from __future__ import division
-from builtins import chr
-from builtins import str
-from builtins import range
-from builtins import object
 from past.utils import old_div
 def make_string(seq):
     str = ""

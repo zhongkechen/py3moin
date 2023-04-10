@@ -7,7 +7,6 @@
 
 """
 
-from builtins import object
 from MoinMoin import caching, logfile
 from MoinMoin.Page import Page
 from MoinMoin.logfile import eventlog

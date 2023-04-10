@@ -7,9 +7,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
-import os
-
 from MoinMoin import wikiutil, config
 from MoinMoin.action import ActionBase, AttachFile
 from MoinMoin.PageEditor import PageEditor

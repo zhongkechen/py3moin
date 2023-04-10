@@ -9,7 +9,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
 from MoinMoin import user
 from MoinMoin.Page import Page
 from MoinMoin.mail import sendmail

@@ -9,8 +9,6 @@
                 2007 Johannes Berg
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import str
-from builtins import range
 import hashlib
 
 from MoinMoin import config, wikiutil

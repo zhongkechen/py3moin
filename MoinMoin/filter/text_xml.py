@@ -6,7 +6,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
 import re
 
 from MoinMoin import log

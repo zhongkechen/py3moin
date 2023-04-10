@@ -24,7 +24,6 @@ pre.codearea span.ConsWord { color: #008080; font-weight: bold; }
 
 """
 
-from builtins import object
 import hashlib
 import re
 

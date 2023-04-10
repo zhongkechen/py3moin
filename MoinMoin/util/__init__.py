@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Utility Functions
     General helper functions that are not directly wiki related.
@@ -10,11 +9,10 @@
 from future import standard_library
 
 standard_library.install_aliases()
-from builtins import str
-from builtins import chr
-from builtins import range
-from builtins import object
-import os, sys, re, random
+import os
+import sys
+import re
+import random
 
 # do the pickle magic once here, so we can just import from here:
 # cPickle can encode normal and Unicode strings

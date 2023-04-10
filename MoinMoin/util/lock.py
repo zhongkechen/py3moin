@@ -7,7 +7,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import object
 import os, sys, tempfile, time, errno
 
 from MoinMoin import log

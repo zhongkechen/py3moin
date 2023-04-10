@@ -5,8 +5,6 @@
     @copyright: 2007 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import object
-
 from MoinMoin.macro import Action
 
 from tests._tests import become_trusted, create_page, make_macro, nuke_page

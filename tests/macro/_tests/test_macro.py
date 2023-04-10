@@ -7,8 +7,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import object
-
 import pytest
 
 from tests._tests import become_trusted, create_page, make_macro, nuke_page

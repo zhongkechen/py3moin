@@ -8,7 +8,6 @@
                 2006 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import str
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
 from MoinMoin.web.utils import check_surge_protect

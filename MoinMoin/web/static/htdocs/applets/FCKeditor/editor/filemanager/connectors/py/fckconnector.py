@@ -25,13 +25,10 @@ Base Connector for Python (CGI and WSGI).
 See config.py for configuration settings
 
 """
-from builtins import object
-import cgi, os
+import cgi
 
-from fckutil import *
-from fckcommands import * 	# default command's implementation
-from fckoutput import * 	# base http, xml and html output mixins
-import config as Config
+from fckcommands import *  # default command's implementation
+
 
 class FCKeditorConnectorBase( object ):
 	"The base connector class. Subclass it to extend functionality (see Zope example)"

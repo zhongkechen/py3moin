@@ -11,9 +11,6 @@
                 2006-2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import division
-from builtins import str
-from past.utils import old_div
 import re
 
 from MoinMoin import PageEditor
@@ -119,7 +116,7 @@ class PageGraphicalEditor(PageEditor.PageEditor):
             self.set_raw_body(preview, modified=1)
 
         # send header stuff
-        lock_timeout = old_div(self.lock.timeout, 60)
+        lock_timeout = self.lock.timeout // 60
         lock_page = wikiutil.escape(self.page_name, quote=1)
         lock_expire = _("Your edit lock on %(lock_page)s has expired!") % {'lock_page': lock_page}
         lock_mins = _("Your edit lock on %(lock_page)s will expire in # minutes.") % {'lock_page': lock_page}

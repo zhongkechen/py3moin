@@ -6,8 +6,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import range
-from builtins import object
 Dependencies = []
 
 class Parser(object):

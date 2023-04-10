@@ -4,8 +4,6 @@
     @copyright: 2006, 2007 Johannes Berg <johannes@sipsolutions.net>
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import str
-from builtins import range
 import hashlib
 from random import randint
 import time
