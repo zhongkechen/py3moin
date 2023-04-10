@@ -158,7 +158,7 @@ class PageEditor(Page):
         from MoinMoin import i18n
         from MoinMoin.action import SpellCheck
         request = self.request
-        form = request.form
+        form = request.request.form
         _ = self._
 
         raw_body = ''
@@ -285,9 +285,9 @@ Please review the page and save then. Do not save this page as it is!""")
             # If the page exists, we get the text from the page.
             # TODO: maybe warn if template argument was ignored because the page exists?
             raw_body = self.get_raw_body()
-        elif 'template' in request.values:
+        elif 'template' in request.request.values:
             # If the page does not exist, we try to get the content from the template parameter.
-            template_page = wikiutil.unquoteWikiname(request.values['template'])
+            template_page = wikiutil.unquoteWikiname(request.request.values['template'])
             template_page_escaped = wikiutil.escape(template_page)
             if request.user.may.read(template_page):
                 raw_body = Page(request, template_page).get_raw_body()
@@ -344,7 +344,7 @@ Please review the page and save then. Do not save this page as it is!""")
 
         # send form
         request.write('<form id="editor" method="post" action="%s#preview" onSubmit="flgChange = false;">' % (
-                request.href(self.page_name)
+                request.request.href(self.page_name)
         ))
 
         # yet another weird workaround for broken IE6 (it expands the text
@@ -361,7 +361,7 @@ Please review the page and save then. Do not save this page as it is!""")
         request.write('<input type="hidden" name="ticket" value="%s">' % wikiutil.createTicket(request))
 
         # Save backto in a hidden input
-        backto = request.values.get('backto')
+        backto = request.request.values.get('backto')
         if backto:
             request.write(str(html.INPUT(type="hidden", name="backto", value=backto)))
 
@@ -536,10 +536,10 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
         self._save_draft(newtext, rev) # shall we really save a draft on CANCEL?
         self.lock.release()
 
-        backto = request.values.get('backto')
+        backto = request.request.values.get('backto')
         if backto:
             pg = Page(request, backto)
-            request.http_redirect(pg.url(request))
+            request.response.http_redirect(pg.url(request))
         else:
             request.theme.add_msg(_('Edit was cancelled.'), "error")
             self.send_page()
@@ -696,7 +696,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
 
             # Remove cache entry (if exists)
             pg = Page(self.request, self.page_name)
-            key = self.request.form.get('key', 'text_html') # XXX see cleanup code in deletePage
+            key = self.request.request.form.get('key', 'text_html') # XXX see cleanup code in deletePage
             caching.CacheEntry(self.request, pg, key, scope='item').remove()
             caching.CacheEntry(self.request, pg, "pagelinks", scope='item').remove()
 

@@ -24,6 +24,7 @@ from MoinMoin.widget.dialog import Status
 from MoinMoin.util import web
 from MoinMoin.parser.text_moin_wiki import Parser as WikiParser
 
+
 def execute(pagename, request):
     if not request.user.may.write(pagename):
         _ = request.getText

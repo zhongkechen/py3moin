@@ -18,7 +18,7 @@ def execute(pagename, request):
     """ edit a page """
     _ = request.getText
 
-    if 'button_preview' in request.form and 'button_spellcheck' in request.form:
+    if 'button_preview' in request.request.form and 'button_spellcheck' in request.request.form:
         # multiple buttons pressed at once? must be some spammer/bot
         check_surge_protect(request, kick=True) # get rid of him
         return
@@ -38,7 +38,7 @@ def execute(pagename, request):
     if editor not in valideditors:
         editor = request.cfg.editor_default
 
-    editorparam = request.values.get('editor', editor)
+    editorparam = request.request.values.get('editor', editor)
     if editorparam == "guipossible":
         lasteditor = editor
     elif editorparam == "textonly":
@@ -54,13 +54,13 @@ def execute(pagename, request):
         editor = 'text'
 
     rev = request.rev or 0
-    savetext = request.form.get('savetext')
-    comment = request.form.get('comment', u'')
-    category = request.form.get('category')
-    rstrip = int(request.form.get('rstrip', '0'))
-    trivial = int(request.form.get('trivial', '0'))
+    savetext = request.request.form.get('savetext')
+    comment = request.request.form.get('comment', u'')
+    category = request.request.form.get('category')
+    rstrip = int(request.request.form.get('rstrip', '0'))
+    trivial = int(request.request.form.get('trivial', '0'))
 
-    if 'button_switch' in request.form:
+    if 'button_switch' in request.request.form:
         if editor == 'text':
             editor = 'gui'
         else: # 'gui'
@@ -75,18 +75,18 @@ def execute(pagename, request):
         pg = PageEditor(request, pagename)
 
     # is invoked without savetext start editing
-    if savetext is None or 'button_load_draft' in request.form:
+    if savetext is None or 'button_load_draft' in request.request.form:
         pg.sendEditor()
         return
 
     # did user hit cancel button?
-    cancelled = 'button_cancel' in request.form
+    cancelled = 'button_cancel' in request.request.form
 
     from MoinMoin.error import ConvertError
     try:
         if lasteditor == 'gui':
             # convert input from Graphical editor
-            format = request.form.get('format', 'wiki')
+            format = request.request.form.get('format', 'wiki')
             if format == 'wiki':
                 converter_name = 'text_html_text_moin_wiki'
             else:
@@ -144,18 +144,18 @@ def execute(pagename, request):
         savetext += category + u'\n' # Should end with newline!
 
     if (request.cfg.edit_ticketing and
-        not wikiutil.checkTicket(request, request.form.get('ticket', ''))):
+        not wikiutil.checkTicket(request, request.request.form.get('ticket', ''))):
         request.theme.add_msg(_('Please use the interactive user interface to use action %(actionname)s!') % {'actionname': 'edit' }, "error")
         pg.sendEditor(preview=savetext, comment=comment, staytop=1)
 
     # Preview, spellcheck or spellcheck add new words
-    elif ('button_preview' in request.form or
-        'button_spellcheck' in request.form or
-        'button_newwords' in request.form):
+    elif ('button_preview' in request.request.form or
+        'button_spellcheck' in request.request.form or
+        'button_newwords' in request.request.form):
         pg.sendEditor(preview=savetext, comment=comment)
 
     # Preview with mode switch
-    elif 'button_switch' in request.form:
+    elif 'button_switch' in request.request.form:
         pg.sendEditor(preview=savetext, comment=comment, staytop=1)
 
     # Save new text

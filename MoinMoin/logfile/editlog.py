@@ -177,7 +177,7 @@ class EditLog(LogFile):
         """
         if request.cfg.log_remote_addr or self.force_ip:
             if host is None:
-                host = request.remote_addr or ''
+                host = request.request.remote_addr or ''
 
             if request.cfg.log_reverse_dns_lookups:
                 import socket
