@@ -137,7 +137,7 @@ class Page(object):
         To change a page's content, use the PageEditor class.
     """
 
-    def __init__(self, request, page_name, **kw):
+    def __init__(self, context, page_name, **kw):
         """ Create page object.
 
         Note that this is a 'lean' operation, since the text for the page
@@ -150,8 +150,8 @@ class Page(object):
                             None or no kw arg will use default formatter
         @keyword include_self: if 1, include current user (default: 0)
         """
-        self.request = request
-        self.cfg = request.cfg
+        self.request = context
+        self.cfg = context.cfg
         self.page_name = page_name
         self.rev = kw.get('rev', 0)  # revision of this page
         self.include_self = kw.get('include_self', 0)
@@ -766,7 +766,7 @@ class Page(object):
             url = '%s?%s' % (url, querystr)
 
         if not relative:
-            url = '%s/%s' % (request.script_root, url)
+            url = '%s/%s' % (request.request.script_root, url)
 
         # Add anchor
         if anchor:
@@ -1127,9 +1127,9 @@ class Page(object):
         @keyword send_special: if True, this is a special page send
         @keyword omit_footnotes: if True, do not send footnotes (used by include macro)
         """
-        request = self.request
-        _ = request.getText
-        request.clock.start('send_page')
+        context = self.request
+        _ = context.getText
+        context.clock.start('send_page')
         emit_headers = keywords.get('emit_headers', 1)
         content_only = keywords.get('content_only', 0)
         omit_footnotes = keywords.get('omit_footnotes', 0)
@@ -1138,105 +1138,105 @@ class Page(object):
         send_special = keywords.get('send_special', False)
         print_mode = keywords.get('print_mode', 0)
         if print_mode:
-            media = request.values.get('media', 'print')
+            media = context.request.values.get('media', 'print')
         else:
             media = 'screen'
         self.hilite_re = (keywords.get('hilite_re') or
-                          request.values.get('highlight'))
+                          context.request.values.get('highlight'))
 
         # count hit?
         if keywords.get('count_hit', 0):
-            eventlog.EventLog(request).add(request, 'VIEWPAGE', {'pagename': self.page_name})
+            eventlog.EventLog(context).add(context, 'VIEWPAGE', {'pagename': self.page_name})
 
         # load the text
         body = self.data
         pi = self.pi
 
         if 'redirect' in pi and not (
-                'action' in request.values or 'redirect' in request.values or content_only):
+                'action' in context.values or 'redirect' in context.values or content_only):
             # redirect to another page
             # note that by including "action=show", we prevent endless looping
             # (see code in "request") or any cascaded redirection
             pagename, anchor = wikiutil.split_anchor(pi['redirect'])
-            redirect_url = Page(request, pagename).url(request,
+            redirect_url = Page(context, pagename).url(context,
                                                        querystr={'action': 'show', 'redirect': self.page_name, },
                                                        anchor=anchor)
             # we do NOT use 301 as a page edit may change the redirect to
             # another target or even remove it again. so we can't really say
             # it is permanent (301) or we might run into issues with clients
             # like chrome that cache permanent redirects.
-            request.http_redirect(redirect_url, code=302)
+            context.http_redirect(redirect_url, code=302)
             return
 
         # if necessary, load the formatter
         if self.default_formatter:
             from MoinMoin.formatter.text_html import Formatter
-            self.formatter = Formatter(request, store_pagelinks=1)
+            self.formatter = Formatter(context, store_pagelinks=1)
         elif not self.formatter:
-            Formatter = wikiutil.searchAndImportPlugin(request.cfg, "formatter", self.output_mimetype)
-            self.formatter = Formatter(request)
+            Formatter = wikiutil.searchAndImportPlugin(context.cfg, "formatter", self.output_mimetype)
+            self.formatter = Formatter(context)
 
         # save formatter
         no_formatter = object()
-        old_formatter = getattr(request, "formatter", no_formatter)
-        request.formatter = self.formatter
+        old_formatter = getattr(context, "formatter", no_formatter)
+        context.formatter = self.formatter
 
         self.formatter.setPage(self)
         if self.hilite_re:
             try:
                 self.formatter.set_highlight_re(self.hilite_re)
             except re.error as err:
-                request.theme.add_msg(_('Invalid highlighting regular expression "%(regex)s": %(error)s') % {
+                context.theme.add_msg(_('Invalid highlighting regular expression "%(regex)s": %(error)s') % {
                     'regex': wikiutil.escape(self.hilite_re),
                     'error': wikiutil.escape(str(err)),
                 }, "warning")
                 self.hilite_re = None
             else:
-                if getattr(request.cfg, "show_highlight_msg", False):
-                    request.theme.add_msg(_(u'Text matching regular expression '
+                if getattr(context.cfg, "show_highlight_msg", False):
+                    context.theme.add_msg(_(u'Text matching regular expression '
                                             '"%(regex)s" is highlighted. %(switch_link)s.') % {
                                               'regex': wikiutil.escape(self.hilite_re),
                                               'switch_link': ''.join([
-                                                  request.formatter.url(1, request.getQualifiedURL(
-                                                      self.url(request, dict([i for i in
-                                                                              list(request.values.items())
+                                                  context.formatter.url(1, context.getQualifiedURL(
+                                                      self.url(context, dict([i for i in
+                                                                              list(context.values.items())
                                                                               if i[0] != 'highlight'])))),
                                                   _(u"Switch to non-highlighted view"),
-                                                  request.formatter.url(0)
+                                                  context.formatter.url(0)
                                               ])
                                           }, "info")
 
         if 'deprecated' in pi:
             # deprecated page, append last backup version to current contents
             # (which should be a short reason why the page is deprecated)
-            request.theme.add_msg(
+            context.theme.add_msg(
                 _('The backed up content of this page is deprecated and will rank lower in search results!'), "warning")
 
             revisions = self.getRevList()
             if len(revisions) >= 2:  # XXX shouldn't that be ever the case!? Looks like not.
-                oldpage = Page(request, self.page_name, rev=revisions[1])
+                oldpage = Page(context, self.page_name, rev=revisions[1])
                 body += oldpage.get_data()
                 del oldpage
 
-        lang = self.pi.get('language', request.cfg.language_default)
-        request.setContentLanguage(lang)
+        lang = self.pi.get('language', context.cfg.language_default)
+        context.setContentLanguage(lang)
 
         # start document output
         page_exists = self.exists()
         if not content_only:
             if emit_headers:
-                request.content_type = "%s; charset=%s" % (self.output_mimetype, self.output_charset)
+                context.response.content_type = "%s; charset=%s" % (self.output_mimetype, self.output_charset)
                 if page_exists:
-                    if not request.user.may.read(self.page_name):
-                        request.status_code = 403
+                    if not context.user.may.read(self.page_name):
+                        context.response.status_code = 403
                     else:
-                        request.status_code = 200
-                    if not request.cacheable:
+                        context.response.status_code = 200
+                    if not context.cacheable:
                         # use "nocache" headers if we're using a method that is not simply "display"
-                        request.disableHttpCaching(level=2)
-                    elif request.user.valid:
+                        context.disableHttpCaching(level=2)
+                    elif context.user.valid:
                         # use nocache headers if a user is logged in (which triggers personalisation features)
-                        request.disableHttpCaching(level=1)
+                        context.disableHttpCaching(level=1)
                     else:
                         # TODO: we need to know if a page generates dynamic content -
                         # if it does, we must not use the page file mtime as last modified value
@@ -1245,82 +1245,82 @@ class Page(object):
                         # request.headers['Last-Modified'] = util.timefuncs.formathttpdate(lastmod)
                         pass
                 else:
-                    request.status_code = 404
+                    context.response.status_code = 404
 
             if not page_exists and self.request.isSpiderAgent:
                 # don't send any 404 content to bots
                 return
 
-            request.write(self.formatter.startDocument(self.page_name))
+            context.write(self.formatter.startDocument(self.page_name))
 
             # send the page header
             if self.default_formatter:
                 if self.rev:
-                    request.theme.add_msg("<strong>%s</strong><br>" % (
+                    context.theme.add_msg("<strong>%s</strong><br>" % (
                             _('Revision %(rev)d as of %(date)s') % {
                         'rev': self.rev,
-                        'date': wikiutil.escape(self.mtime_printable(request))
+                        'date': wikiutil.escape(self.mtime_printable(context))
                     }), "info")
 
                 # This redirect message is very annoying.
                 # Less annoying now without the warning sign.
-                if 'redirect' in request.values:
-                    redir = request.values['redirect']
-                    request.theme.add_msg('<strong>%s</strong><br>' % (
+                if 'redirect' in context.request.values:
+                    redir = context.request.values['redirect']
+                    context.theme.add_msg('<strong>%s</strong><br>' % (
                             _('Redirected from page "%(page)s"') % {'page':
-                                                                        wikiutil.link_tag(request,
+                                                                        wikiutil.link_tag(context,
                                                                                           wikiutil.quoteWikinameURL(
                                                                                               redir) + "?action=show",
                                                                                           self.formatter.text(redir))}),
                                           "info")
                 if 'redirect' in pi:
-                    request.theme.add_msg('<strong>%s</strong><br>' % (
+                    context.theme.add_msg('<strong>%s</strong><br>' % (
                             _('This page redirects to page "%(page)s"') % {'page': wikiutil.escape(pi['redirect'])}),
                                           "info")
 
                 # Page trail
                 trail = None
                 if not print_mode:
-                    request.user.addTrail(self)
-                    trail = request.user.getTrail()
+                    context.user.addTrail(self)
+                    trail = context.user.getTrail()
 
                 title = self.split_title()
 
                 html_head = ''
-                if request.cfg.openid_server_enabled:
+                if context.cfg.openid_server_enabled:
                     openid_username = self.page_name
-                    userid = user.getUserId(request, openid_username)
+                    userid = user.getUserId(context, openid_username)
 
                     if userid is None and 'openid.user' in self.pi:
                         openid_username = self.pi['openid.user']
-                        userid = user.getUserId(request, openid_username)
+                        userid = user.getUserId(context, openid_username)
 
-                    openid_group_name = request.cfg.openid_server_restricted_users_group
+                    openid_group_name = context.cfg.openid_server_restricted_users_group
                     if userid is not None and (
                             not openid_group_name or (
-                            openid_group_name in request.groups and
-                            openid_username in request.groups[openid_group_name])):
+                            openid_group_name in context.groups and
+                            openid_username in context.groups[openid_group_name])):
                         html_head = '<link rel="openid2.provider" href="%s">' % \
-                                    wikiutil.escape(request.getQualifiedURL(self.url(request,
+                                    wikiutil.escape(context.getQualifiedURL(self.url(context,
                                                                                      querystr={
                                                                                          'action': 'serveopenid'})),
                                                     True)
                         html_head += '<link rel="openid.server" href="%s">' % \
-                                     wikiutil.escape(request.getQualifiedURL(self.url(request,
+                                     wikiutil.escape(context.getQualifiedURL(self.url(context,
                                                                                       querystr={
                                                                                           'action': 'serveopenid'})),
                                                      True)
                         html_head += '<meta http-equiv="x-xrds-location" content="%s">' % \
-                                     wikiutil.escape(request.getQualifiedURL(self.url(request,
+                                     wikiutil.escape(context.getQualifiedURL(self.url(context,
                                                                                       querystr={'action': 'serveopenid',
                                                                                                 'yadis': 'ep'})), True)
-                    elif self.page_name == request.cfg.page_front_page:
+                    elif self.page_name == context.cfg.page_front_page:
                         html_head = '<meta http-equiv="x-xrds-location" content="%s">' % \
-                                    wikiutil.escape(request.getQualifiedURL(self.url(request,
+                                    wikiutil.escape(context.getQualifiedURL(self.url(context,
                                                                                      querystr={'action': 'serveopenid',
                                                                                                'yadis': 'idp'})), True)
 
-                request.theme.send_title(title, page=self, print_mode=print_mode, media=media, pi_refresh=pi.get('refresh'),
+                context.theme.send_title(title, page=self, print_mode=print_mode, media=media, pi_refresh=pi.get('refresh'),
                                          allow_doubleclick=1, trail=trail, html_head=html_head)
 
         # special pages handling, including denying access
@@ -1329,59 +1329,59 @@ class Page(object):
         if not send_special:
             if not page_exists and not body:
                 special = 'missing'
-            elif not request.user.may.read(self.page_name):
+            elif not context.user.may.read(self.page_name):
                 special = 'denied'
 
             # if we have a special page, output it, unless
             #  - we should only output content (this is for say the pagelinks formatter)
             #  - we have a non-default formatter
             if special and not content_only and self.default_formatter:
-                self._specialPageText(request, special)  # this recursively calls send_page
+                self._specialPageText(context, special)  # this recursively calls send_page
 
         # if we didn't short-cut to a special page, output this page
         if not special:
             # start wiki content div
-            request.write(self.formatter.startContent(content_id))
+            context.write(self.formatter.startContent(content_id))
 
             # parse the text and send the page content
-            self.send_page_content(request, body,
+            self.send_page_content(context, body,
                                    format=pi['format'],
                                    format_args=pi['formatargs'],
                                    do_cache=do_cache,
                                    start_line=pi['lines'])
 
             # check for pending footnotes
-            if getattr(request, 'footnotes', None) and not omit_footnotes:
+            if getattr(context, 'footnotes', None) and not omit_footnotes:
                 from MoinMoin.macro.FootNote import emit_footnotes
-                request.write(emit_footnotes(request, self.formatter))
+                context.write(emit_footnotes(context, self.formatter))
 
             # end wiki content div
-            request.write(self.formatter.endContent())
+            context.write(self.formatter.endContent())
 
         # end document output
         if not content_only:
             # send the page footer
             if self.default_formatter:
-                request.theme.send_footer(self.page_name, print_mode=print_mode)
+                context.theme.send_footer(self.page_name, print_mode=print_mode)
 
-            request.write(self.formatter.endDocument())
+            context.write(self.formatter.endDocument())
 
-        request.clock.stop('send_page')
+        context.clock.stop('send_page')
         if not content_only and self.default_formatter:
-            request.theme.send_closing_html()
+            context.theme.send_closing_html()
 
         # cache the pagelinks
         if do_cache and self.default_formatter and page_exists:
-            cache = caching.CacheEntry(request, self, 'pagelinks', scope='item', use_pickle=True)
+            cache = caching.CacheEntry(context, self, 'pagelinks', scope='item', use_pickle=True)
             if cache.needsUpdate(self._text_filename()):
                 links = self.formatter.pagelinks
                 cache.update(links)
 
         # restore old formatter (hopefully we dont throw any exception that is catched again)
         if old_formatter is no_formatter:
-            del request.formatter
+            del context.formatter
         else:
-            request.formatter = old_formatter
+            context.formatter = old_formatter
 
     def getFormatterName(self):
         """ Return a formatter name as used in the caching system

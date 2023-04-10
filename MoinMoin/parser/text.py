@@ -27,7 +27,7 @@ class Parser(object):
     def __init__(self, raw, request, **kw):
         self.raw = raw
         self.request = request
-        self.form = request.form
+        self.form = request.request.form
         self._ = request.getText
         self.start_line = kw.get('start_line', 0)
 

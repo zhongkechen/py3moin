@@ -351,7 +351,7 @@ def userLanguage(request):
     return lang
 
 
-def requestLanguage(request):
+def requestLanguage(context):
     """
     Return the language from request environment (or a default / fallback).
 
@@ -364,12 +364,12 @@ def requestLanguage(request):
     """
     # Or try to return one of the user browser accepted languages, if it
     # is available on this wiki...
-    lang = get_browser_language(request)
+    lang = get_browser_language(context)
     if not lang:
         available = wikiLanguages() or ["en"]
         # Or return the wiki default language...
-        if request.cfg.language_default in available:
-            lang = request.cfg.language_default
+        if context.cfg.language_default in available:
+            lang = context.cfg.language_default
         # If everything else fails, read the manual... or return 'en'
         else:
             lang = 'en'
@@ -385,7 +385,7 @@ def wikiLanguages():
     return languages
 
 
-def browserLanguages(request):
+def browserLanguages(context):
     """
     Return the accepted languages as set in the user browser.
 
@@ -396,7 +396,7 @@ def browserLanguages(request):
     the request, normalizing to lower case.
     """
     fallback = []
-    accepted = request.accept_languages
+    accepted = context.request.accept_languages
     if accepted:
         # Add base language for each sub language. If the user specified
         # a sub language like "en-us", we will try to to provide it or

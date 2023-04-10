@@ -14,7 +14,7 @@ from MoinMoin import log
 logging = log.getLogger(__name__)
 
 
-def log_attempt(system, success, request=None, username=None, pagename=None):
+def log_attempt(system, success, context=None, username=None, pagename=None):
     """
     log attempts to use <system>, log success / failure / username / ip
 
@@ -26,12 +26,12 @@ def log_attempt(system, success, request=None, username=None, pagename=None):
     @param pagename: name of the page (optional)
     """
     if username is None:
-        if request and hasattr(request, 'user') and request.user.valid:
-            username = request.user.name
+        if context and hasattr(context, 'user') and context.user.valid:
+            username = context.user.name
         else:
             username = u'anonymous'
     level = (logging.WARNING, logging.INFO)[success]
     msg = """: %s: status %s: username "%s": ip %s: page %s"""
     status = ("failure", "success")[success]
-    ip = request and request.remote_addr or 'unknown'
+    ip = context and context.request.remote_addr or 'unknown'
     logging.log(level, msg, system, status, username, ip, pagename)

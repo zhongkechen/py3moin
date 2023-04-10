@@ -132,7 +132,7 @@ def getAttachUrl(pagename, filename, request, addts=0, do='get'):
             # thus we need to give pagename= also.
             args['ticket'] = wikiutil.createTicket(request,
                                                    pagename=pagename, action=action_name)
-        url = request.href(pagename, **args)
+        url = request.request.href(pagename, **args)
         return url
 
 

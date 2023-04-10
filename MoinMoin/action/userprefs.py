@@ -64,12 +64,12 @@ def _create_page(request, cancel=False):
     # returns text, title, msg_class, msg
     pagename = request.page.page_name
 
-    if 'handler' in request.values:
+    if 'handler' in request.request.values:
         msg_class, msg = _handle_submission(request)
     else:
         msg_class, msg = None, None
 
-    sub = request.args.get('sub', '')
+    sub = request.request.args.get('sub', '')
     cls = None
     if sub and sub not in request.cfg.userprefs_disabled:
         try:

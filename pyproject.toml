@@ -11,11 +11,11 @@ pytest = "^7.2"
 passlib = "^1.7"
 future = "^0.18"
 html-sanitizer = "^1.9"
-werkzeug = "^2.2"
+werkzeug = "^2.2.3"
 parsedatetime = "^2.6"
 flup = "^1.0"
 pygments = "^2.14"
-secure-cookie = "*"
+secure-cookie = "^0.2.0"
 
 
 

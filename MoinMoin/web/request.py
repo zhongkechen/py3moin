@@ -8,11 +8,9 @@ import sys
 
 from future import standard_library
 
-from MoinMoin.support.passlib.utils import to_unicode
+from passlib.utils import to_unicode
 
 standard_library.install_aliases()
-from builtins import object
-import re
 from io import StringIO
 
 from werkzeug import Request as RequestBase
@@ -20,8 +18,7 @@ from werkzeug import Response as WerkzeugResponseBase
 from werkzeug.wrappers import ResponseStream
 from werkzeug.datastructures import EnvironHeaders, Headers, HeaderSet
 from werkzeug.urls import url_encode, url_join, url_quote
-from werkzeug.routing import Rule
-from werkzeug.test import create_environ, Client
+from werkzeug.test import create_environ
 from werkzeug.utils import cached_property
 
 from MoinMoin import config
@@ -53,6 +50,7 @@ class ResponseBase(WerkzeugResponseBase, ModifiedResponseStreamMixin):
     """
     similar to werkzeug.Response, but with ModifiedResponseStreamMixin
     """
+
 
 def to_native(x, charset=sys.getdefaultencoding(), errors="strict"):
     if x is None or isinstance(x, str):
@@ -144,7 +142,7 @@ class Href(object):
         return to_native(rv)
 
 
-class Request(ResponseBase, RequestBase):
+class Request(RequestBase):
     """ A full-featured Request/Response object.
 
     To better distinguish incoming and outgoing data/headers,
@@ -160,13 +158,12 @@ class Request(ResponseBase, RequestBase):
     headers = None
 
     def __init__(self, environ, populate_request=True, shallow=False):
-        ResponseBase.__init__(self)
         RequestBase.__init__(self, environ, populate_request, shallow)
         self.href = Href(self.script_root or '/', self.charset)
-        self.abs_href = Href(self.url_root, self.charset)
-        self.headers = Headers([('Content-Type', 'text/html')])
-        self.response = []
-        self.status_code = 200
+        # self.abs_href = Href(self.url_root, self.charset)
+        # self.headers = Headers([('Content-Type', 'text/html')])
+        # self.response = []
+        # self.status_code = 200
 
     # Note: we inherit a .stream attribute from RequestBase and this needs
     # to refer to the input stream because inherited functionality of werkzeug

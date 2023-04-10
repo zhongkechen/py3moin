@@ -10,22 +10,22 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
-from builtins import object
 from MoinMoin import userform, wikiutil
 from MoinMoin.Page import Page
 from MoinMoin.widget import html
 
-def execute(pagename, request):
-    return LoginHandler(pagename, request).handle()
+
+def execute(pagename, context):
+    return LoginHandler(pagename, context).handle()
+
 
 class LoginHandler(object):
-    def __init__(self, pagename, request):
-        self.request = request
-        self._ = request.getText
-        self.cfg = request.cfg
+    def __init__(self, pagename, context):
+        self.context = context
+        self._ = context.getText
+        self.cfg = context.cfg
         self.pagename = pagename
-        self.page = Page(request, pagename)
+        self.page = Page(context, pagename)
 
     def handle_multistage(self):
         """Handle a multistage request.
@@ -34,51 +34,51 @@ class LoginHandler(object):
         now set up the login form for that.
         """
         _ = self._
-        request = self.request
+        context = self.context
         form = html.FORM(method='POST', name='logincontinue', action=self.pagename)
         form.append(html.INPUT(type='hidden', name='action', value='login'))
         form.append(html.INPUT(type='hidden', name='login', value='1'))
         form.append(html.INPUT(type='hidden', name='stage',
-                               value=request._login_multistage_name))
+                               value=context._login_multistage_name))
 
-        request.theme.send_title(_("Login"), pagename=self.pagename)
+        context.theme.send_title(_("Login"), pagename=self.pagename)
         # Start content (important for RTL support)
-        request.write(request.formatter.startContent("content"))
+        context.response.write(context.formatter.startContent("content"))
 
-        extra = request._login_multistage(request, form)
-        request.write(str(form))
+        extra = context._login_multistage(context, form)
+        context.response.write(str(form))
         if extra:
-            request.write(extra)
+            context.response.write(extra)
 
-        request.write(request.formatter.endContent())
-        request.theme.send_footer(self.pagename)
-        request.theme.send_closing_html()
+        context.response.write(context.formatter.endContent())
+        context.theme.send_footer(self.pagename)
+        context.theme.send_closing_html()
 
     def handle(self):
         _ = self._
-        request = self.request
-        form = request.values
+        context = self.context
+        form = context.request.values
 
         error = None
 
         islogin = form.get('login', '')
 
         if islogin: # user pressed login button
-            if request._login_multistage:
+            if context._login_multistage:
                 return self.handle_multistage()
-            if hasattr(request, '_login_messages'):
-                for msg in request._login_messages:
-                    request.theme.add_msg(wikiutil.escape(msg), "error")
+            if hasattr(context, '_login_messages'):
+                for msg in context._login_messages:
+                    context.theme.add_msg(wikiutil.escape(msg), "error")
             return self.page.send_page()
 
         else: # show login form
-            request.theme.send_title(_("Login"), pagename=self.pagename)
+            context.theme.send_title(_("Login"), pagename=self.pagename)
             # Start content (important for RTL support)
-            request.write(request.formatter.startContent("content"))
+            context.write(context.formatter.startContent("content"))
 
-            request.write(userform.getLogin(request))
+            context.write(userform.getLogin(context))
 
-            request.write(request.formatter.endContent())
-            request.theme.send_footer(self.pagename)
-            request.theme.send_closing_html()
+            context.write(context.formatter.endContent())
+            context.theme.send_footer(self.pagename)
+            context.theme.send_closing_html()
 

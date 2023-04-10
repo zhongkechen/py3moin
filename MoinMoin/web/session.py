@@ -80,7 +80,7 @@ def _get_session_lifetime(request, userobj):
     return abs(lifetime)
 
 
-def get_cookie_name(request, name, usage, software='MOIN'):
+def get_cookie_name(context, name, usage, software='MOIN'):
     """
     Determine the full cookie name for some software (usually 'MOIN') using
     it for some usage (e.g. 'SESSION') for some wiki (or group of wikis)
@@ -115,14 +115,14 @@ def get_cookie_name(request, name, usage, software='MOIN'):
     if name is None:
         url_components = [
             # cookies do not store the port, thus we add it to the cookie name:
-            request.environ['SERVER_PORT'],
+            context.request.environ['SERVER_PORT'],
             # we always store path=/ into cookie, thus we add the path to the name:
-            ('ROOT' + request.script_root).replace('/', '_'),
+            ('ROOT' + context.request.script_root).replace('/', '_'),
         ]
         name = '_'.join(url_components)
 
     elif name is 'siteidmagic':
-        name = request.cfg.siteid  # == config name, unique per farm
+        name = context.cfg.siteid  # == config name, unique per farm
 
     return "%s_%s_%s" % (software, usage, name)
 
@@ -147,12 +147,12 @@ class FileSessionService(SessionService):
         return FilesystemSessionStore(path=path, filename_template='%s',
                                       session_class=MoinSession, mode=0o666 & config.umask)
 
-    def get_session(self, request, sid=None):
+    def get_session(self, context, sid=None):
         if sid is None:
-            cookie_name = get_cookie_name(request, name=request.cfg.cookie_name, usage=self.cookie_usage)
-            sid = request.cookies.get(cookie_name, None)
+            cookie_name = get_cookie_name(context, name=context.cfg.cookie_name, usage=self.cookie_usage)
+            sid = context.request.cookies.get(cookie_name, None)
         logging.debug("get_session for sid %r" % sid)
-        store = self._store_get(request)
+        store = self._store_get(context)
         if sid is None:
             session = store.new()
         else:
@@ -164,7 +164,7 @@ class FileSessionService(SessionService):
                     # the browser should've killed that cookie already.
                     # clock not in sync? trying to cheat?
                     logging.debug("session has expired (expiry: %r now: %r)" % (expiry, now))
-                    self.destroy_session(request, session)
+                    self.destroy_session(context, session)
                     session = store.new()
         logging.debug("get_session returns session %r" % session)
         return session
@@ -178,26 +178,26 @@ class FileSessionService(SessionService):
         store = self._store_get(request)
         store.delete(session)
 
-    def finalize(self, request, session):
-        if request.user.auth_method == 'setuid':
-            userobj = request._setuid_real_user
-            setuid = request.user.id
+    def finalize(self, context, session):
+        if context.user.auth_method == 'setuid':
+            userobj = context._setuid_real_user
+            setuid = context.user.id
         else:
-            userobj = request.user
+            userobj = context.user
             setuid = None
         logging.debug("finalize userobj = %r, setuid = %r" % (userobj, setuid))
 
-        cfg = request.cfg
+        cfg = context.cfg
         # we use different cookie names for different wikis:
-        cookie_name = get_cookie_name(request, name=cfg.cookie_name, usage=self.cookie_usage)
+        cookie_name = get_cookie_name(context, name=cfg.cookie_name, usage=self.cookie_usage)
         # we always use path='/' except if explicitly overridden by configuration,
         # which is usually not needed and not recommended:
         cookie_path = cfg.cookie_path or '/'
         # a secure cookie is not transmitted over unsecure connections:
         cookie_secure = (cfg.cookie_secure or  # True means: force secure cookies
-                         cfg.cookie_secure is None and request.is_secure)  # None means: https -> secure cookie
+                         cfg.cookie_secure is None and context.request.is_secure)  # None means: https -> secure cookie
 
-        cookie_lifetime = _get_session_lifetime(request, userobj)
+        cookie_lifetime = _get_session_lifetime(context, userobj)
         # we use 60s granularity, so we don't trigger session storage updates too often
         cookie_expires = int(old_div(time.time(), 60)) * 60 + cookie_lifetime
         # when transiting logged-in -> logged out we want to kill the session
@@ -207,14 +207,14 @@ class FileSessionService(SessionService):
             logging.debug("logout detected, will kill session")
         if cookie_lifetime and not kill_session:
             logging.debug("setting session cookie: %r" % (session.sid, ))
-            request.set_cookie(cookie_name, session.sid,
+            context.response.set_cookie(cookie_name, session.sid,
                                max_age=cookie_lifetime, expires=cookie_expires,
                                path=cookie_path, domain=cfg.cookie_domain,
                                secure=cookie_secure, httponly=cfg.cookie_httponly)
         elif not session.new:
             # we still got a cookie, but we don't want it. kill it.
             logging.debug("deleting session cookie!")
-            request.delete_cookie(cookie_name, path=cookie_path, domain=cfg.cookie_domain)
+            context.response.delete_cookie(cookie_name, path=cookie_path, domain=cfg.cookie_domain)
 
         def update_session(key, val):
             """ put key/val into session, avoid writing if it is unchanged """
@@ -260,11 +260,11 @@ class FileSessionService(SessionService):
                 and
                 session.should_save # only if we really have something (modified) to save
                ):
-                store = self._store_get(request)
+                store = self._store_get(context)
                 logging.debug("saving session: %r" % session)
                 store.save(session)
         elif not session.new:
             # we killed the cookie (see above), so we can kill the session store, too
             logging.debug("destroying session: %r" % session)
-            self.destroy_session(request, session)
+            self.destroy_session(context, session)
 

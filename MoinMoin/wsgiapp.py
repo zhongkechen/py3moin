@@ -10,13 +10,15 @@ from builtins import str
 from builtins import object
 import os
 
+from werkzeug import Response
+
 from MoinMoin import log
 
 logging = log.getLogger(__name__)
 
 from MoinMoin.web.contexts import AllContext, Context, XMLRPCContext
 from MoinMoin.web.exceptions import HTTPException
-from MoinMoin.web.request import Request, MoinMoinFinish, HeaderSet
+from MoinMoin.web.request import Request, MoinMoinFinish, HeaderSet, ResponseBase
 from MoinMoin.web.utils import check_forbidden, check_surge_protect, fatal_response, \
     redirect_last_visited
 from MoinMoin.Page import Page
@@ -49,6 +51,7 @@ def init(request):
         context, request = request, request.request
     else:
         context = AllContext(request)
+
     context.clock.start('total')
     context.clock.start('init')
 
@@ -94,7 +97,7 @@ def run(context):
             context.cfg.session_service.finalize(context, context.session)
             return response
         except MoinMoinFinish:
-            return request
+            return context.response
     finally:
         context.finish()
         context.clock.stop('run')
@@ -132,7 +135,7 @@ def dispatch(request, context, action_name='show'):
     hs = HeaderSet(('Cookie', 'User-Agent'))
     if not cfg.language_ignore_browser:
         hs.add('Accept-Language')
-    request.headers['Vary'] = str(hs)
+    context.response.headers['Vary'] = str(hs)
 
     # Handle request. We have these options:
     # 1. jump to page where user left off
@@ -142,7 +145,7 @@ def dispatch(request, context, action_name='show'):
     else:
         response = handle_action(context, pagename, action_name)
     if isinstance(response, Context):
-        response = response.request
+        response = response.response
     return response
 
 
@@ -267,8 +270,8 @@ class Application(object):
         self.Request = AppRequest
 
     def __call__(self, environ, start_response):
+        request = None
         try:
-            request = None
             request = self.Request(environ)
             context = init(request)
             try:

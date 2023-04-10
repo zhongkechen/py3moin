@@ -35,7 +35,7 @@ class Login(object):
         """ Create the complete HTML form code. """
         _ = self._
         request = self.request
-        action = "%s%s" % (request.script_root, request.path)
+        action = "%s%s" % (request.request.script_root, request.request.path)
         hints = []
         for authm in request.cfg.auth:
             hint = authm.login_hint(request)
@@ -113,6 +113,7 @@ document.getElementById("loginform").submit();
 """)
 
         return str(self._form)
+
 
 def getLogin(request):
     """ Return HTML code for the login. """

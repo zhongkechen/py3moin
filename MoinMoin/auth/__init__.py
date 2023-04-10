@@ -450,7 +450,7 @@ def handle_logout(request, userobj):
         return userobj
 
     for authmethod in request.cfg.auth:
-        userobj, cont = authmethod.logout(request, userobj, cookie=request.cookies)
+        userobj, cont = authmethod.logout(request, userobj, cookie=request.request.cookies)
         if not cont:
             break
     return userobj
@@ -458,7 +458,7 @@ def handle_logout(request, userobj):
 def handle_request(request, userobj):
     """ Handle the per-request callbacks of the configured authentication methods. """
     for authmethod in request.cfg.auth:
-        userobj, cont = authmethod.request(request, userobj, cookie=request.cookies)
+        userobj, cont = authmethod.request(request, userobj, cookie=request.request.cookies)
         if not cont:
             break
     return userobj

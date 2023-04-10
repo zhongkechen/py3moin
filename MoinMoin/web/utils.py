@@ -22,22 +22,22 @@ from MoinMoin.web.exceptions import Forbidden, SurgeProtection
 logging = log.getLogger(__name__)
 
 
-def check_forbidden(request):
+def check_forbidden(context):
     """ Simple action and host access checks
 
     Spider agents are checked against the called actions,
     hosts against the blacklist. Raises Forbidden if triggered.
     """
-    args = request.args
+    args = context.request.args
     action = args.get('action')
-    if ((args or request.method != 'GET') and
+    if ((args or context.request.method != 'GET') and
             action not in ['rss_rc', 'show', 'sitemap'] and
             not (action == 'AttachFile' and args.get('do') == 'get')):
-        if request.isSpiderAgent:
+        if context.isSpiderAgent:
             raise Forbidden()
-    if request.cfg.hosts_deny:
-        remote_addr = request.remote_addr
-        for host in request.cfg.hosts_deny:
+    if context.cfg.hosts_deny:
+        remote_addr = context.request.remote_addr
+        for host in context.cfg.hosts_deny:
             if host[-1] == '.' and remote_addr.startswith(host):
                 logging.debug("hosts_deny (net): %s" % remote_addr)
                 raise Forbidden()
@@ -47,7 +47,7 @@ def check_forbidden(request):
     return False
 
 
-def check_surge_protect(request, kick=False, action=None, username=None):
+def check_surge_protect(context, kick=False, action=None, username=None):
     """ Check for excessive requests
 
     Raises a SurgeProtection exception on wiki overuse.
@@ -57,16 +57,16 @@ def check_surge_protect(request, kick=False, action=None, username=None):
     @param action: specify the action explicitly (default: request.action)
     @param username: give username (for action == 'auth-name')
     """
-    limits = request.cfg.surge_action_limits
+    limits = context.cfg.surge_action_limits
     if not limits:
         return False
 
-    remote_addr = request.remote_addr or ''
+    remote_addr = context.request.remote_addr or ''
     if remote_addr.startswith('127.'):
         return False
 
-    validuser = request.user.valid
-    current_action = action or request.action
+    validuser = context.user.valid
+    current_action = action or context.action
     if current_action == 'auth-ip':
         # for checking if some specific ip tries to authenticate too often,
         # not considering the username it tries to authenticate as (could
@@ -85,7 +85,7 @@ def check_surge_protect(request, kick=False, action=None, username=None):
         current_id = username
     else:
         # general case
-        current_id = validuser and request.user.name or remote_addr
+        current_id = validuser and context.user.name or remote_addr
 
     default_limit = limits.get('default', (30, 60))
 
@@ -95,7 +95,7 @@ def check_surge_protect(request, kick=False, action=None, username=None):
 
     try:
         # if we have common farm users, we could also use scope='farm':
-        cache = caching.CacheEntry(request, 'surgeprotect', 'surge-log', scope='wiki', use_encode=True)
+        cache = caching.CacheEntry(context, 'surgeprotect', 'surge-log', scope='wiki', use_encode=True)
         if cache.exists():
             data = cache.content()
             data = data.split("\n")
@@ -121,7 +121,7 @@ def check_surge_protect(request, kick=False, action=None, username=None):
         if surge_detected:
             if len(timestamps) < maxnum * 2:
                 timestamps.append(
-                    (now + request.cfg.surge_lockout_time, surge_indicator))  # continue like that and get locked out
+                    (now + context.cfg.surge_lockout_time, surge_indicator))  # continue like that and get locked out
 
         if current_action not in (
         'cache', 'AttachFile',):  # don't add cache/AttachFile accesses to all or picture galleries will trigger SP
@@ -131,7 +131,7 @@ def check_surge_protect(request, kick=False, action=None, username=None):
             timestamps = events.setdefault(action, [])
 
             if kick:  # ban this guy, NOW
-                timestamps.extend([(now + request.cfg.surge_lockout_time, "!")] * (2 * maxnum))
+                timestamps.extend([(now + context.cfg.surge_lockout_time, "!")] * (2 * maxnum))
 
             surge_detected = surge_detected or len(timestamps) > maxnum
 
@@ -139,7 +139,7 @@ def check_surge_protect(request, kick=False, action=None, username=None):
             timestamps.append((now, surge_indicator))
             if surge_detected:
                 if len(timestamps) < maxnum * 2:
-                    timestamps.append((now + request.cfg.surge_lockout_time,
+                    timestamps.append((now + context.cfg.surge_lockout_time,
                                        surge_indicator))  # continue like that and get locked out
 
         data = []
@@ -152,12 +152,12 @@ def check_surge_protect(request, kick=False, action=None, username=None):
     except Exception:
         pass
 
-    if surge_detected and validuser and request.user.auth_method in request.cfg.auth_methods_trusted:
-        logging.info("Trusted user %s would have triggered surge protection if not trusted.", request.user.name)
+    if surge_detected and validuser and context.user.auth_method in context.cfg.auth_methods_trusted:
+        logging.info("Trusted user %s would have triggered surge protection if not trusted.", context.user.name)
         return False
     elif surge_detected:
         logging.warning("Surge Protection: action=%s id=%s (ip: %s)", current_action, current_id, remote_addr)
-        raise SurgeProtection(retry_after=request.cfg.surge_lockout_time)
+        raise SurgeProtection(retry_after=context.cfg.surge_lockout_time)
     else:
         return False
 

@@ -9,6 +9,8 @@
 """
 
 from future import standard_library
+from werkzeug import Response
+
 standard_library.install_aliases()
 from builtins import str
 from past.builtins import basestring
@@ -26,7 +28,7 @@ from MoinMoin.config import multiconfig
 from MoinMoin.formatter import text_html
 from MoinMoin.theme import load_theme_fallback
 from MoinMoin.util.clock import Clock
-from MoinMoin.web.request import Request, MoinMoinFinish
+from MoinMoin.web.request import Request, MoinMoinFinish, ResponseBase
 from MoinMoin.web.utils import UniqueIDGenerator
 from MoinMoin.web.exceptions import Forbidden, SurgeProtection
 
@@ -76,6 +78,7 @@ class EnvironProxy(property):
         return "<%s for '%s'>" % (self.__class__.__name__,
                                   self.name)
 
+
 class Context(object):
     """ Standard implementation for the context interface.
 
@@ -86,7 +89,11 @@ class Context(object):
         assert isinstance(request, Request)
 
         self.request = request
-        self.environ = environ = request.environ
+        self.response = ResponseBase()
+        self.response.headers = Headers([('Content-Type', 'text/html')])
+        self.response.response = []
+        self.response.status_code = 200
+        self.environ = request.environ
         self.personalities = self.environ.setdefault(
             'context.personalities', []
         )
@@ -108,6 +115,7 @@ class Context(object):
 
     def __repr__(self):
         return "<%s %r>" % (self.__class__.__name__, self.personalities)
+
 
 class BaseContext(Context):
     """ Implements a basic context, that provides some common attributes.
@@ -183,8 +191,8 @@ class BaseContext(Context):
         should set the content direction to the user language before they
         call send_title!
         """
-        self.content_lang = lang
-        self.current_lang = lang
+        self.response.content_lang = lang
+        self.response.current_lang = lang
 
     def initTheme(self):
         """ Set theme - forced theme, user theme or wiki default """
@@ -203,33 +211,6 @@ class HTTPContext(BaseContext):
     _auth_redirected = EnvironProxy('old._auth_redirected', 0)
     cacheable = EnvironProxy('old.cacheable', 0)
     writestack = EnvironProxy('old.writestack', lambda o: list())
-
-    # proxy some descriptors of the underlying WSGI request, since
-    # setting on those does not work over __(g|s)etattr__-proxies
-    class _proxy(property):
-        def __init__(self, name):
-            self.name = name
-            property.__init__(self, self.get, self.set, self.delete)
-        def get(self, obj):
-            return getattr(obj.request, self.name)
-        def set(self, obj, value):
-            setattr(obj.request, self.name, value)
-        def delete(self, obj):
-            delattr(obj.request, self.name)
-
-    mimetype = _proxy('mimetype')
-    content_type = _proxy('content_type')
-    status = _proxy('status')
-    status_code = _proxy('status_code')
-
-    del _proxy
-
-    # proxy further attribute lookups to the underlying request first
-    def __getattr__(self, name):
-        try:
-            return getattr(self.request, name)
-        except AttributeError as e:
-            return super(HTTPContext, self).__getattribute__(name)
 
     # methods regarding manipulation of HTTP related data
     def read(self, n=None):
@@ -265,15 +246,15 @@ class HTTPContext(BaseContext):
 
         Details: http://support.microsoft.com/support/kb/articles/Q234/0/67.ASP
         """
-        if level == 1 and self.headers.get('Pragma') == 'no-cache':
+        if level == 1 and self.request.headers.get('Pragma') == 'no-cache':
             return
 
         if level == 1:
-            self.headers['Cache-Control'] = 'private, must-revalidate, max-age=10'
+            self.response.headers['Cache-Control'] = 'private, must-revalidate, max-age=10'
         elif level == 2:
-            self.headers['Cache-Control'] = 'no-cache'
-            self.headers['Pragma'] = 'no-cache'
-        self.request.expires = time.time() - 3600 * 24 * 365
+            self.response.headers['Cache-Control'] = 'no-cache'
+            self.response.headers['Pragma'] = 'no-cache'
+        self.response.expires = time.time() - 3600 * 24 * 365
 
     def http_redirect(self, url, code=302):
         """ Raise a simple redirect exception. """
@@ -294,7 +275,7 @@ class HTTPContext(BaseContext):
     # the output related methods
     def write(self, *data):
         """ Write to output stream. """
-        self.request.out_stream.writelines(data)
+        self.response.out_stream.writelines(data)
 
     def redirectedOutput(self, function, *args, **kw):
         """ Redirect output during function, return redirected output """
@@ -327,7 +308,7 @@ class HTTPContext(BaseContext):
             return iter(lambda: fileobj.read(bufsize), '')
         file_wrapper = self.environ.get('wsgi.file_wrapper', simple_wrapper)
         self.request.direct_passthrough = True
-        self.request.response = file_wrapper(fileobj, bufsize)
+        self.response = file_wrapper(fileobj, bufsize)
         raise MoinMoinFinish('sent file')
 
     # fully deprecated functions, with warnings
@@ -364,6 +345,7 @@ class HTTPContext(BaseContext):
         # e.g. mapping 'http://netloc' -> '/'
         result = wikiutil.mapURL(self, result)
         return result
+
 
 class AuxilaryMixin(object):
     """

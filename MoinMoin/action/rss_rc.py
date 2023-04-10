@@ -77,34 +77,34 @@ def execute(pagename, request):
     page_pattern = cfg.rss_page_filter_pattern
 
     try:
-        max_items = min(int(request.values.get('items', max_items)),
+        max_items = min(int(request.request.values.get('items', max_items)),
                         items_limit)
     except ValueError:
         pass
     try:
-        unique = int(request.values.get('unique', unique))
+        unique = int(request.request.values.get('unique', unique))
     except ValueError:
         pass
     try:
-        diffs = int(request.values.get('diffs', diffs))
+        diffs = int(request.request.values.get('diffs', diffs))
     except ValueError:
         pass
     ## ddiffs inserted by Ralf Zosel <ralf@zosel.com>, 04.12.2003
     try:
-        ddiffs = int(request.values.get('ddiffs', ddiffs))
+        ddiffs = int(request.request.values.get('ddiffs', ddiffs))
     except ValueError:
         pass
     try:
-        max_lines = min(int(request.values.get('lines', max_lines)),
+        max_lines = min(int(request.request.values.get('lines', max_lines)),
                         lines_limit)
     except ValueError:
         pass
     try:
-        show_att = int(request.values.get('show_att', show_att))
+        show_att = int(request.request.values.get('show_att', show_att))
     except ValueError:
         pass
     try:
-        page_pattern = request.values.get('page', page_pattern)
+        page_pattern = request.request.values.get('page', page_pattern)
     except ValueError:
         pass
 
@@ -143,30 +143,30 @@ def execute(pagename, request):
 
     # for 304, we look at if-modified-since and if-none-match headers,
     # one of them must match and the other is either not there or must match.
-    if request.if_modified_since == timestamp:
-        if request.if_none_match:
-            if request.if_none_match == etag:
-                request.status_code = 304
+    if request.request.if_modified_since == timestamp:
+        if request.request.if_none_match:
+            if request.request.if_none_match == etag:
+                request.response.status_code = 304
         else:
-            request.status_code = 304
-    elif request.if_none_match == etag:
-        if request.if_modified_since:
-            if request.if_modified_since == timestamp:
-                request.status_code = 304
+            request.response.status_code = 304
+    elif request.request.if_none_match == etag:
+        if request.request.if_modified_since:
+            if request.request.if_modified_since == timestamp:
+                request.response.status_code = 304
         else:
-            request.status_code = 304
+            request.response.status_code = 304
     else:
         # generate an Expires header, using whatever setting the admin
         # defined for suggested cache lifetime of the RecentChanges RSS doc
         expires = time.time() + cfg.rss_cache
 
-        request.mimetype = 'application/rss+xml'
-        request.expires = expires
-        request.last_modified = lastmod
-        request.headers['Etag'] = etag
+        request.response.mimetype = 'application/rss+xml'
+        request.response.expires = expires
+        request.response.last_modified = lastmod
+        request.response.headers['Etag'] = etag
 
         # send the generated XML document
-        baseurl = request.url_root
+        baseurl = request.request.url_root
 
         logo = re.search(r'src="([^"]*)"', cfg.logo_string)
         if logo:
@@ -211,7 +211,7 @@ def execute(pagename, request):
 
         # emit channel description
         handler.startNode('channel', {
-            (handler.xmlns['rdf'], 'about'): request.url_root,
+            (handler.xmlns['rdf'], 'about'): request.request.url_root,
             })
         handler.simpleNode('title', cfg.sitename)
         page = Page(request, pagename)

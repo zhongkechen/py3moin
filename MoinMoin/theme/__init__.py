@@ -800,13 +800,13 @@ class ThemeBase(object):
         @return: search form html
         """
         _ = self.request.getText
-        form = self.request.values
+        form = self.request.request.values
         updates = {
             'search_label': _('Search:'),
             'search_value': wikiutil.escape(form.get('value', ''), 1),
             'search_full_label': _('Text'),
             'search_title_label': _('Titles'),
-            'url': self.request.href(d['page'].page_name)
+            'url': self.request.request.href(d['page'].page_name)
             }
         d.update(updates)
 
@@ -1119,7 +1119,7 @@ var search_hint = "%(search_hint)s";
             'options': '\n'.join(options),
             'rev_field': rev and '<input type="hidden" name="rev" value="%d">' % rev or '',
             'do_button': _("Do"),
-            'url': self.request.href(page.page_name)
+            'url': self.request.request.href(page.page_name)
             }
         html = '''
 <form class="actionsmenu" method="GET" action="%(url)s">
@@ -1194,7 +1194,7 @@ actionsMenuInit('%(label)s');
         # so you don't need editbar.
         if (page.exists(includeDeleted=1) and
             self.request.user.may.read(page.page_name)):
-            form = self.request.form
+            form = self.request.request.form
             action = self.request.action
             # Do not show editbar on edit but on save/cancel
             return not (action == 'edit' and
@@ -1633,7 +1633,7 @@ var gui_editor_link_text = "%(text)s";
             page = Page(request, pagename)
         if keywords.get('msg', ''):
             raise DeprecationWarning("Using send_page(msg=) is deprecated! Use theme.add_msg() instead!")
-        scriptname = request.script_root
+        scriptname = request.request.script_root
 
         # get name of system pages
         page_front_page = wikiutil.getFrontPage(request).page_name
@@ -1672,9 +1672,9 @@ var gui_editor_link_text = "%(text)s";
 
         # search engine precautions / optimization:
         # if it is an action or edit/search, send query headers (noindex,nofollow):
-        if request.query_string:
+        if request.request.query_string:
             user_head.append(request.cfg.html_head_queries)
-        elif request.method == 'POST':
+        elif request.request.method == 'POST':
             user_head.append(request.cfg.html_head_posts)
         # we don't want to have BadContent stuff indexed:
         elif pagename in ['BadContent', 'LocalBadContent', ]:
@@ -1721,7 +1721,7 @@ var gui_editor_link_text = "%(text)s";
         ))
 
         # Links
-        output.append('<link rel="Start" href="%s">\n' % request.href(page_front_page))
+        output.append('<link rel="Start" href="%s">\n' % request.request.href(page_front_page))
         if pagename:
             output.append('<link rel="Alternate" title="%s" href="%s">\n' % (
                     _('Wiki Markup'), page.url(request, querystr=dict(action='raw'))))
@@ -1759,10 +1759,10 @@ var gui_editor_link_text = "%(text)s";
             AttachFile.send_link_rel(request, pagename)
 
         output.extend([
-            '<link rel="Search" href="%s">\n' % request.href(page_find_page),
-            '<link rel="Index" href="%s">\n' % request.href(page_title_index),
-            '<link rel="Glossary" href="%s">\n' % request.href(page_word_index),
-            '<link rel="Help" href="%s">\n' % request.href(page_help_formatting),
+            '<link rel="Search" href="%s">\n' % request.request.href(page_find_page),
+            '<link rel="Index" href="%s">\n' % request.request.href(page_title_index),
+            '<link rel="Glossary" href="%s">\n' % request.request.href(page_word_index),
+            '<link rel="Help" href="%s">\n' % request.request.href(page_help_formatting),
                       ])
 
         output.append("</head>\n")

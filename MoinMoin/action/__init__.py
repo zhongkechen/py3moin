@@ -250,19 +250,19 @@ def do_raw(pagename, request):
             mimetype = None
         Page(request, pagename, rev=rev).send_raw(mimetype=mimetype)
 
-def do_show(pagename, request, content_only=0, count_hit=1, cacheable=1, print_mode=0, mimetype=u'text/html'):
+def do_show(pagename, context, content_only=0, count_hit=1, cacheable=1, print_mode=0, mimetype=u'text/html'):
     """ show a page, either current revision or the revision given by "rev=" value.
         if count_hit is non-zero, we count the request for statistics.
     """
     # We must check if the current page has different ACLs.
-    if not request.user.may.read(pagename):
-        Page(request, pagename).send_page()
+    if not context.user.may.read(pagename):
+        Page(context, pagename).send_page()
     else:
-        mimetype = request.values.get('mimetype', mimetype)
-        rev = request.rev or 0
+        mimetype = context.request.values.get('mimetype', mimetype)
+        rev = context.rev or 0
         if rev == 0:
-            request.cacheable = cacheable
-        Page(request, pagename, rev=rev, formatter=mimetype).send_page(
+            context.cacheable = cacheable
+        Page(context, pagename, rev=rev, formatter=mimetype).send_page(
             count_hit=count_hit,
             print_mode=print_mode,
             content_only=content_only,
