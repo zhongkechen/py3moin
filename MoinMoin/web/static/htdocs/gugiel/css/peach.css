@@ -1,0 +1,37 @@
+html a.download {
+    border: 1px solid #fa4;
+    background: #fd9 url(../img/moin-download.png) no-repeat 8px 50%;
+}
+html #navibar {
+    border-bottom: 1px solid #fc7;
+}
+html #navibar li {
+    border: 1px solid #fc7;
+    border-bottom: none;
+    background: #feb;
+}
+html #navibar li.current {
+    border: 1px solid #fa4;
+    border-bottom: 1px solid #fd9;
+    background: #fd9;
+}
+html .editbar {
+    border: 1px solid #fa4;
+    background: #fd9;
+}
+html #message {
+    border: 1px solid #fc7;
+    background: #feb;
+}
+html .sidebar {
+    border: 1px solid #fc7;
+    background: #feb;
+}
+.recentchanges td {
+	border-bottom: 1px solid #fc7;
+	background: #feb;
+}
+.rcdaybreak td {
+        border: 1px solid #fa4;
+	background: #fd9;
+}

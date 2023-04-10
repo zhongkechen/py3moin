@@ -1,0 +1,62 @@
+html a.download {
+    border: 1px solid #699;
+    background: #7bb url(../img/moin-download.png) no-repeat 8px 50%;
+}
+html #navibar {
+    border-bottom: 1px solid #699;
+}
+html #navibar li {
+    border: 1px solid #699;
+    border-bottom: none;
+    background: #9dd;
+}
+html #navibar li.current {
+    border: 1px solid #699;
+    border-bottom: 1px solid #7bb;
+    background: #7bb;
+}
+html .editbar {
+    border: 1px solid #699;
+    background: #7bb;
+}
+html #message {
+    border: 1px solid #699;
+    background: #9dd;
+}
+html .sidebar {
+    border: 1px solid #699;
+    background: #9dd;
+}
+.recentchanges td {
+	border-bottom: 1px solid #699;
+	background: #9dd;
+}
+.rcdaybreak td {
+        border: 1px solid #699;
+	background: #7bb;
+}
+html .codearea {
+    border-color: #9cc;
+    background-color: #eff;
+}
+html a { color: #098 }
+html a:visited { color: #256 }
+html .editbar a { color: #022 }
+html a.nonexistent, .badinterwiki { color: #777 }
+html a:hover { color: #000 }
+
+#content h1,
+#content h2,
+#content h3,
+#content h4 {
+        letter-spacing: 0.0125em;
+        line-height: 1.2;
+        font-family: Century Schoolbook, URW Bookman L, serif;
+        margin-bottom: 0;
+    color: #288;
+}
+#content h1 { font-size: 175%; font-weight: bold }
+#content h2 { font-size: 125%; font-weight: bold }
+#content h3 { font-size: 125%; font-weight: normal }
+#content h4 { font-size: 100%; font-weight: bold }
+
