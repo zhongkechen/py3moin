@@ -15,13 +15,16 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from past.builtins import cmp
-from MoinMoin import log
-logging = log.getLogger(__name__)
+from logging import NOTSET
 
-from MoinMoin.logfile import LogFile
+from past.builtins import cmp
+
+from MoinMoin import log
 from MoinMoin import wikiutil, user, config
 from MoinMoin.Page import Page
+from MoinMoin.logfile import LogFile
+
+logging = log.getLogger(__name__)
 
 class EditLogLine(object):
     """
@@ -256,8 +259,8 @@ class EditLog(LogFile):
                 if line.action == 'SAVE/RENAME':
                     items.append(line.extra) # == old page name
             newposition = self.position()
-            logging.log(logging.NOTSET, "editlog.news: new pos: %r new items: %r", newposition, items)
+            logging.log(NOTSET, "editlog.news: new pos: %r new items: %r", newposition, items)
         else:
-            logging.log(logging.NOTSET, "editlog.news: new pos: %r new items: %r (nothing new)", newposition, items)
+            logging.log(NOTSET, "editlog.news: new pos: %r new items: %r (nothing new)", newposition, items)
         return newposition, items
 

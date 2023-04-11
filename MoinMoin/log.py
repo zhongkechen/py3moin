@@ -1,4 +1,3 @@
-
 """
     MoinMoin - init "logging" system
 
@@ -52,6 +51,13 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+import os
+import logging
+import logging.config
+import logging.handlers  # needed for handlers defined there being configurable in logging.conf file
+import warnings
+
+
 # This is the "last resort" fallback logging configuration for the case
 # that load_config() is either not called at all or with a non-working
 # logging configuration.
@@ -90,15 +96,9 @@ datefmt=
 class=logging.Formatter
 """
 
-import os
-import logging
-import logging.config
-import logging.handlers  # needed for handlers defined there being configurable in logging.conf file
 
 configured = False
 fallback_config = False
-
-import warnings
 
 # 'CacheNeedsUpdate' string exception in Page.py is supported for backwards compat reasons:
 warnings.filterwarnings('ignore', r'catching of string exceptions is deprecated', module='MoinMoin.Page')
@@ -111,8 +111,8 @@ def _log_warning(message, category, filename, lineno, file=None, line=None):
     # for warnings, we just want to use the logging system, not stderr or other files
     msg = "%s:%s: %s: %s" % (filename, lineno, category.__name__, message)
     logger = getLogger(__name__)
-    logger.warning(msg) # Note: the warning will look like coming from here,
-                        # but msg contains info about where it really comes from
+    logger.warning(msg)  # Note: the warning will look like coming from here,
+    # but msg contains info about where it really comes from
 
 
 def load_config(conf_fname=None):
@@ -136,7 +136,7 @@ def load_config(conf_fname=None):
             l = getLogger(__name__)
             l.info('using logging configuration read from "%s"' % conf_fname)
             warnings.showwarning = _log_warning
-        except Exception as err: # XXX be more precise
+        except Exception as err:  # XXX be more precise
             err_msg = str(err)
     if not configured:
         # load builtin fallback logging config
@@ -168,8 +168,4 @@ def getLogger(name):
     if not configured:
         load_config()
     logger = logging.getLogger(name)
-    for levelnumber, levelname in list(logging._levelToName.items()):
-        if isinstance(levelnumber, int): # that list has also the reverse mapping...
-            setattr(logger, levelname, levelnumber)
     return logger
-

@@ -1744,7 +1744,7 @@ var gui_editor_link_text = "%(text)s";
             #~         request.write('<link rel="Last" href="%s/%s">\n' % (request.script_root, quoteWikinameURL(all_pages[-1])))
 
             if page_parent_page:
-                output.append('<link rel="Up" href="%s">\n' % request.href(page_parent_page))
+                output.append('<link rel="Up" href="%s">\n' % request.request.href(page_parent_page))
 
         # write buffer because we call AttachFile
         request.write(''.join(output))

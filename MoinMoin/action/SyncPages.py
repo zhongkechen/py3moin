@@ -9,21 +9,18 @@
 """
 
 
-
+import io  # not relevant for speed, so we do not need cStringIO
 import re
 import traceback
-import io # not relevant for speed, so we do not need cStringIO
-
 
 from MoinMoin import wikiutil
-from MoinMoin.packages import unpackLine, packLine
-from MoinMoin.PageEditor import PageEditor, conflict_markers
 from MoinMoin.Page import Page
-from MoinMoin.wikisync import TagStore, UnsupportedWikiException, SyncPage, NotAllowedException
-from MoinMoin.wikisync import MoinLocalWiki, MoinRemoteWiki, UP, DOWN, BOTH, MIMETYPE_MOIN
-from MoinMoin.util.bdiff import decompress, patch, compress, textdiff
+from MoinMoin.PageEditor import PageEditor, conflict_markers
+from MoinMoin.packages import unpackLine, packLine
 from MoinMoin.util import diff3, rpc_aggregator
-
+from MoinMoin.util.bdiff import decompress, patch, compress, textdiff
+from MoinMoin.wikisync import MoinLocalWiki, MoinRemoteWiki, UP, DOWN, BOTH, MIMETYPE_MOIN
+from MoinMoin.wikisync import TagStore, UnsupportedWikiException, SyncPage, NotAllowedException
 
 debug = False
 
@@ -37,7 +34,7 @@ class ActionStatus(Exception):
 
 
 class ActionClass(object):
-    INFO, WARN, ERROR = list(zip(list(range(3)), ("", "<!>", "/!\\"))) # used for logging
+    INFO, WARN, ERROR = list(zip(list(range(3)), ("", "<!>", "/!\\")))  # used for logging
 
     def __init__(self, pagename, request):
         self.request = request

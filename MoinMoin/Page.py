@@ -36,6 +36,7 @@
 import codecs
 import os
 import re
+from logging import NOTSET
 
 from MoinMoin import log
 
@@ -69,7 +70,7 @@ class ItemCache(object):
         # to avoid reading in the whole log on first request
         self.requests = 0
         self.hits = 0
-        self.loglevel = logging.NOTSET
+        self.loglevel = NOTSET
 
     def putItem(self, request, name, key, data):
         """ Remembers some data for item name under a key.

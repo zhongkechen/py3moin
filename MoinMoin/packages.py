@@ -27,6 +27,7 @@ class PackageException(Exception):
     """ Raised if the package is broken. """
     pass
 
+
 class ScriptException(Exception):
     """ Raised when there is a problem in the script. """
 
@@ -37,11 +38,14 @@ class ScriptException(Exception):
         else:
             return str(self.args[0])
 
+
 class RuntimeScriptException(ScriptException):
     """ Raised when the script problem occurs at runtime. """
 
+
 class ScriptExit(Exception):
     """ Raised by the script commands when the script should quit. """
+
 
 def event_logfile(self, pagename, pagefile):
     # add event log entry
@@ -49,6 +53,7 @@ def event_logfile(self, pagename, pagefile):
     mtime_usecs = wikiutil.timestamp2version(os.path.getmtime(pagefile))
     elog = eventlog.EventLog(self.request)
     elog.add(self.request, eventtype, {'pagename': pagename}, 1, mtime_usecs)
+
 
 def edit_logfile_append(self, pagename, pagefile, rev, action, logname='edit-log', comment=u'', author=u"Scripting Subsystem"):
     glog = editlog.EditLog(self.request, uid_override=author)
@@ -62,10 +67,12 @@ def edit_logfile_append(self, pagename, pagefile, rev, action, logname='edit-log
     llog.add(self.request, mtime_usecs, rev, action, pagename, host, extra, comment)
     event_logfile(self, pagename, pagefile)
 
+
 # Parsing and (un)quoting for script files
 def packLine(items, separator="|"):
     """ Packs a list of items into a string that is separated by `separator`. """
     return '|'.join([item.replace('\\', '\\\\').replace(separator, '\\' + separator) for item in items])
+
 
 def unpackLine(string, separator="|"):
     """ Unpacks a string that was packed by packLine. """
@@ -91,12 +98,14 @@ def unpackLine(string, separator="|"):
         result.append(token)
     return result
 
+
 def str2boolean(string):
     """
     Converts the parameter to a boolean value by recognising different
     truth literals.
     """
     return (string.lower() in ('yes', 'true', '1'))
+
 
 class ScriptEngine(object):
     """
@@ -460,6 +469,7 @@ class ScriptEngine(object):
 
         return success
 
+
 class Package(object):
     """ A package consists of a bunch of files which can be installed. """
     def __init__(self, request):
@@ -493,6 +503,7 @@ class Package(object):
     def isPackage(self):
         """ Returns true if this package is recognised. """
         raise NotImplementedError
+
 
 class ZipPackage(Package, ScriptEngine):
     """ A package that reads its files from a .zip file. """
@@ -528,6 +539,7 @@ class ZipPackage(Package, ScriptEngine):
     def isPackage(self):
         """ Returns true if this package is recognised. """
         return self._isZipfile and MOIN_PACKAGE_FILE in self.zipfile.namelist()
+
 
 def main():
     args = sys.argv
@@ -572,6 +584,7 @@ Example:
             print("Installation failed.")
         if package.msg:
             print(package.msg)
+
 
 if __name__ == '__main__':
     main()

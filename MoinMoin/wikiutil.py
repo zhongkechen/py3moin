@@ -8,24 +8,23 @@
                 2007 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
-import html
-
-
-
-
 import codecs
-import hmac, hashlib
+import hashlib
+import hmac
+import html
 import os
 import re
 import time
-import urllib.request, urllib.parse, urllib.error
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from MoinMoin import log
 
 logging = log.getLogger(__name__)
 
 from MoinMoin import config
-from inspect import getargspec, isfunction, isclass, ismethod
+from inspect import isfunction, isclass, ismethod, getfullargspec
 
 import werkzeug
 import werkzeug.urls
@@ -1935,11 +1934,16 @@ def invoke_extension_function(request, function, args, fixed_args=[]):
         positional = []
 
     if isfunction(function) or ismethod(function):
-        argnames, varargs, varkw, defaultlist = getargspec(function)
+        full_args = getfullargspec(function)
     elif isclass(function):
-        argnames, varargs, varkw, defaultlist = getargspec(function.__init__)
+        full_args = getfullargspec(function.__init__)
     else:
         raise TypeError('function must be a function, method or class')
+
+    argnames = full_args.args
+    varargs = full_args.varargs
+    varkw = full_args.varkw
+    defaultlist = full_args.defaults
 
     # self is implicit!
     if ismethod(function) or isclass(function):

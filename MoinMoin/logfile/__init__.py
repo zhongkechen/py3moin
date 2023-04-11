@@ -7,12 +7,16 @@
     @copyright: 2005-2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+import codecs
+import errno
+import os
+from logging import NOTSET
 
+from MoinMoin import config, wikiutil
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
-import os, codecs, errno
-from MoinMoin import config, wikiutil
 
 class LogError(Exception):
     """ Base class for log errors """
@@ -40,7 +44,7 @@ class LineBuffer(object):
         @param forward : read from offset on or from offset-size to offset
         @type forward: boolean
         """
-        self.loglevel = logging.NOTSET
+        self.loglevel = NOTSET
         if forward:
             begin = offset
             logging.log(self.loglevel, "LineBuffer.init: forward seek %d read %d" % (begin, size))
@@ -92,7 +96,7 @@ class LogFile(object):
         @param filename: name of the log file
         @param buffer_size: approx. size of one buffer in bytes
         """
-        self.loglevel = logging.NOTSET
+        self.loglevel = NOTSET
         self.__filename = filename
         self.__buffer = None # currently used buffer, points to one of the following:
         self.__buffer1 = None

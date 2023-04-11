@@ -10,8 +10,10 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+import logging as logging
+
 from MoinMoin import log
-logging = log.getLogger(__name__)
+logger = log.getLogger(__name__)
 
 
 def log_attempt(system, success, context=None, username=None, pagename=None):
@@ -34,4 +36,4 @@ def log_attempt(system, success, context=None, username=None, pagename=None):
     msg = """: %s: status %s: username "%s": ip %s: page %s"""
     status = ("failure", "success")[success]
     ip = context and context.request.remote_addr or 'unknown'
-    logging.log(level, msg, system, status, username, ip, pagename)
+    logger.log(level, msg, system, status, username, ip, pagename)

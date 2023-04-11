@@ -17,7 +17,8 @@ flup = "^1.0"
 pygments = "^2.14"
 secure-cookie = "^0.2.0"
 
-
+[tool.poetry.scripts]
+moin = "MoinMoin.script.moin:run"
 
 [build-system]
 requires = ["poetry-core"]

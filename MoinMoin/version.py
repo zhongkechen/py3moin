@@ -14,10 +14,11 @@ try:
 except:
     patchlevel = 'release'
 
-project = "MoinMoin"
-release = '1.9.11'
-release_short = '1911'  # used for url_prefix_static
+project = "Py3Moin"
+release = '3.0.0a1'
+release_short = '300'  # used for url_prefix_static
 revision = patchlevel
+
 
 def update():
     """ update the version information in package init """
@@ -34,6 +35,7 @@ def update():
         else:
             f.write(line)
     f.close()
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == "update":

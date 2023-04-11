@@ -18,9 +18,9 @@ import sys
 #sys.path.insert(0, 'PREFIX/lib/python2.7/site-packages')
 
 # a2) Path of the directory where wikiconfig.py / farmconfig.py is located.
-moinpath = os.path.abspath(os.path.normpath(os.path.dirname(sys.argv[0])))
-sys.path.insert(0, moinpath)
-os.chdir(moinpath)
+# moinpath = os.path.abspath(os.path.normpath(os.path.dirname(sys.argv[0])))
+# sys.path.insert(0, moinpath)
+# os.chdir(moinpath)
 
 # b) Configuration of moin's logging
 #    If you have set up MOINLOGGINGCONF environment variable, you don't need this!
