@@ -6,10 +6,11 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from MoinMoin import config, wikiutil
-from MoinMoin.action.AttachFile import _get_files
-from MoinMoin.Page import Page
 import re
+
+from MoinMoin import wikiutil
+from MoinMoin.action.AttachFile import _get_files
+
 
 ##############################################################################
 ### Macro dialog

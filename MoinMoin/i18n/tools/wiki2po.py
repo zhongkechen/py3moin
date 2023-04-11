@@ -3,8 +3,8 @@
     get latest translation page content from the wiki and write it to *.po
 """
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 master_url = "https://master19.moinmo.in/?action=xmlrpc2"
 
 DOMAIN = "MoinMoin"

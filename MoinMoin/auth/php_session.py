@@ -12,8 +12,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 import urllib.request, urllib.parse, urllib.error
 from MoinMoin import user
 from MoinMoin.auth import _PHPsessionParser, BaseAuth

@@ -7,11 +7,12 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from MoinMoin import wikiutil, config
-from MoinMoin.action import ActionBase, AttachFile
-from MoinMoin.PageEditor import PageEditor
+from MoinMoin import wikiutil
 from MoinMoin.Page import Page
+from MoinMoin.PageEditor import PageEditor
+from MoinMoin.action import ActionBase
 from MoinMoin.security.textcha import TextCha
+
 
 class Load(ActionBase):
     """ Load page action

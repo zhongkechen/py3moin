@@ -24,9 +24,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from future import standard_library
 
-standard_library.install_aliases()
+
+
 import os, gettext, glob
 from io import BytesIO, StringIO
 

@@ -8,8 +8,8 @@ GPL software, 2003-08-10 Thomas Waldmann
 """
 
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 def run():
     import xmlrpc.client
     srcwiki = xmlrpc.client.ServerProxy("http://master.moinmo.in/?action=xmlrpc2")

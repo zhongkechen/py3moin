@@ -9,11 +9,8 @@
     REQUIRES docutils 0.3.10 or later (must be later than December 30th, 2005)
 """
 
-from future import standard_library
-standard_library.install_aliases()
 import re
 import io
-import builtins
 import sys
 
 # docutils imports are below
@@ -77,7 +74,7 @@ except ImportError:
     html4css1.HTMLTranslator = html4css1.Writer = object
 
 def safe_import(name, globals = None, locals = None, fromlist = None, level = -1):
-    mod = builtins.__import__(name, globals, locals, fromlist, level)
+    mod = __import__(name, globals, locals, fromlist, level)
     if mod:
         mod.open = dummyOpen
         mod.urllib2 = dummyUrllib2

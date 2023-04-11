@@ -46,8 +46,8 @@
 """
 
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 from_encoding = 'iso8859-1'
 #from_encoding = 'utf-8'
 

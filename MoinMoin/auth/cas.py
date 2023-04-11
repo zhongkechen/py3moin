@@ -8,8 +8,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 import urllib.parse
 import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse
 

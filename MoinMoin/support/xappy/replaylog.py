@@ -18,8 +18,8 @@
 r"""replaylog.py: Log all xapian calls to a file, so that they can be replayed.
 
 """
-from future import standard_library
-standard_library.install_aliases()
+
+
 __docformat__ = "restructuredtext en"
 
 import sys

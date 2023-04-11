@@ -12,8 +12,8 @@
                 2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from future import standard_library
-standard_library.install_aliases()
+
+
 _debug = 0
 
 import time

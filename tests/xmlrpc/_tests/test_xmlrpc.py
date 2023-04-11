@@ -7,8 +7,8 @@
 """
 
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 from xmlrpc.client import Fault
 
 from MoinMoin.xmlrpc import XmlRpcBase

@@ -13,8 +13,8 @@
 """
 
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 _debug = 0
 
 from MoinMoin import wikiutil, caching, logfile

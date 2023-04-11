@@ -6,9 +6,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from future import standard_library
 
-standard_library.install_aliases()
+
+
 import os
 import sys
 import re

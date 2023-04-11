@@ -10,8 +10,8 @@
                 2007-2009 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
-from future import standard_library
-standard_library.install_aliases()
+
+
 import io
 import os
 import zipfile

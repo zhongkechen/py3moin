@@ -6,8 +6,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 from past.builtins import cmp
-from future import standard_library
-standard_library.install_aliases()
+
+
 import os
 import socket
 import xmlrpc.client

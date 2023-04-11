@@ -8,9 +8,11 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import re, zipfile
+import re
+import zipfile
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
 rx_stripxml = re.compile("<[^>]*?>", re.DOTALL|re.MULTILINE)

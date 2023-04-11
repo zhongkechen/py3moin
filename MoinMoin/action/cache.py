@@ -27,14 +27,15 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+import hashlib
+import hmac
 from datetime import datetime
-import hmac, hashlib
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
 # keep both imports below as they are, order is important:
-from MoinMoin import wikiutil
 import mimetypes
 
 from MoinMoin import config, caching

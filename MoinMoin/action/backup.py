@@ -16,8 +16,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import os, re, time
+import os
 import tarfile
+import time
 
 from MoinMoin import wikiutil
 

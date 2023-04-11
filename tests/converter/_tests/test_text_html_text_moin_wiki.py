@@ -7,8 +7,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 import pytest
 #pytest.skip("Many broken tests, much broken code, broken, broken, broken.")
 

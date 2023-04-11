@@ -7,8 +7,8 @@ MoinMoin - remote command execution, client part
 """
 
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 import sys
 import xmlrpc.client
 

@@ -6,8 +6,8 @@
                 2007 by Reimar Bauer
     @license: GNU GPL, see COPYING for details.
 """
-from future import standard_library
-standard_library.install_aliases()
+
+
 from future.utils import raise_
 import cgi
 import codecs

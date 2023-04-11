@@ -5,8 +5,8 @@
     onto moinmaster wiki, letting it get processed by gettext parser
 """
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 master_url = "https://master19.moinmo.in/?action=xmlrpc2"
 user = "ThomasWaldmann" # must be a known Wiki account
 

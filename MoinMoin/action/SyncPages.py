@@ -8,8 +8,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 import re
 import traceback
 import io # not relevant for speed, so we do not need cStringIO

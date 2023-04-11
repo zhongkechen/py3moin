@@ -5,8 +5,8 @@
                 2005-2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from future import standard_library
-standard_library.install_aliases()
+
+
 import re, os
 import xml.dom.minidom # HINT: the nodes in parse result tree need .has_key(), "x in ..." does not work
 import urllib.parse

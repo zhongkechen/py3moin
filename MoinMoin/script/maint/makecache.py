@@ -6,10 +6,9 @@ MoinMoin - makecache script
 @license: GNU GPL, see COPYING for details.
 """
 
-from MoinMoin import caching
 from MoinMoin.Page import Page
 from MoinMoin.script import MoinScript
-from MoinMoin.stats import hitcounts
+
 
 class PluginScript(MoinScript):
     """\

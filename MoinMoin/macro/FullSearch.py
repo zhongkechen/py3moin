@@ -27,7 +27,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from past.builtins import basestring
 from MoinMoin import wikiutil, search
 
 Dependencies = ["pages"]
@@ -115,7 +114,7 @@ def execute(macro, needle, titlesearch=False, case=False):
                     highlight_titles = val
                 else:
                     err = _(u"Unknown macro parameter: %s.") % arg[0]
-            elif isinstance(arg, basestring):
+            elif isinstance(arg, (str, bytes)):
                 if not needle_found:
                     needle_found = True
                     needle = arg

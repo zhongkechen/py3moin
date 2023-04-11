@@ -11,8 +11,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 # convenience: fixup python path so script can be started from here:
-from future import standard_library
-standard_library.install_aliases()
+
+
 import sys
 sys.path.insert(0, '../../../..')
 

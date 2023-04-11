@@ -8,7 +8,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from MoinMoin import config
 from MoinMoin.Page import Page
 from MoinMoin.wikisync import TagStore
 

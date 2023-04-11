@@ -36,8 +36,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 SLAPD_EXECUTABLE = 'slapd'  # filename of LDAP server executable - if it is not
                             # in your PATH, you have to give full path/filename.
 

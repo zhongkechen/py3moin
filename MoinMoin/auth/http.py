@@ -44,7 +44,7 @@
 from MoinMoin import log
 logging = log.getLogger(__name__)
 
-from MoinMoin import config, user
+from MoinMoin import user
 from MoinMoin.auth import BaseAuth, GivenAuth
 
 

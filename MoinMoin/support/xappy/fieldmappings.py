@@ -18,8 +18,8 @@
 r"""fieldmappings.py: Mappings from field names to term prefixes, etc.
 
 """
-from future import standard_library
-standard_library.install_aliases()
+
+
 __docformat__ = "restructuredtext en"
 
 import pickle as _cPickle

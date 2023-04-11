@@ -1,7 +1,7 @@
 # taken from Amos' XML-RPC HowTo:
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 import xmlrpc.client, http.client
 from base64 import encodestring
 

@@ -26,13 +26,10 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from past.builtins import cmp
 import re
 
-from MoinMoin.config import multiconfig
-from MoinMoin import wikiutil
-
 import pygments.lexers
+from past.builtins import cmp
 
 available_columns = ['description', 'names', 'patterns', 'mimetypes']
 

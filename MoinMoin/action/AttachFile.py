@@ -27,12 +27,12 @@
 """
 
 
-from future import standard_library
-
-standard_library.install_aliases()
-import os, time, zipfile, errno, datetime
-from io import StringIO
+import datetime
+import os
 import tarfile
+import time
+import zipfile
+from io import StringIO
 
 from werkzeug.http import http_date
 
@@ -46,7 +46,7 @@ import mimetypes
 
 from MoinMoin import config, packages
 from MoinMoin.Page import Page
-from MoinMoin.util import filesys, timefuncs
+from MoinMoin.util import filesys
 from MoinMoin.security.textcha import TextCha
 from MoinMoin.events import FileAttachedEvent, FileRemovedEvent, send_event
 
@@ -1044,7 +1044,7 @@ def _do_get(pagename, request):
         request.status_code = 404
         return  # error msg already sent in _access_file
 
-    timestamp = datetime.datetime.fromtimestamp(os.path.getmtime(fpath))
+    timestamp = datetime.datetime.utcfromtimestamp(os.path.getmtime(fpath))
     if_modified = request.request.if_modified_since
     if if_modified and if_modified >= timestamp:
         request.response.status_code = 304

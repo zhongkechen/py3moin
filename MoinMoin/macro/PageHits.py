@@ -7,7 +7,7 @@
 
 """
 
-from MoinMoin import caching, logfile
+from MoinMoin import caching
 from MoinMoin.Page import Page
 from MoinMoin.logfile import eventlog
 

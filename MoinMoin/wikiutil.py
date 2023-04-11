@@ -10,9 +10,9 @@
 """
 import html
 
-from future import standard_library
 
-standard_library.install_aliases()
+
+
 import codecs
 import hmac, hashlib
 import os

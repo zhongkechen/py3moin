@@ -70,8 +70,8 @@
 
 
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 import os.path, sys, urllib.request, urllib.parse, urllib.error
 
 # Insert THIS moin dir first into sys path, or you would run another

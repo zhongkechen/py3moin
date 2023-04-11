@@ -12,15 +12,15 @@
                 2005-2009 MoinMoin:ReimarBauer,
     @license: GNU GPL, see COPYING for details.
 """
-import os, re
+import os
+import re
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
 from MoinMoin import wikiutil, config
 from MoinMoin.action import AttachFile, do_show
-from MoinMoin.action.AttachFile import _write_stream
-from MoinMoin.security.textcha import TextCha
 
 action_name = __name__.split('.')[-1]
 

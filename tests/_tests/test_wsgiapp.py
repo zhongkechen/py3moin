@@ -5,8 +5,8 @@
     @copyright: 2008 MoinMoin:FlorianKrupicka
     @license: GNU GPL, see COPYING for details.
 """
-from future import standard_library
-standard_library.install_aliases()
+
+
 
 DOC_TYPE = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">'
 

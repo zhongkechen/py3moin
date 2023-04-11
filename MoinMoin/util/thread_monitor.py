@@ -14,8 +14,8 @@
 """
 
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 __all__ = "activate_hook trigger_dump dump_regularly".split()
 
 

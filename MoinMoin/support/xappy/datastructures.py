@@ -19,8 +19,8 @@ r"""datastructures.py: Datastructures for search engine core.
 
 """
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 __docformat__ = "restructuredtext en"
 
 from . import errors

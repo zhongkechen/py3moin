@@ -49,8 +49,8 @@
 """
 
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 import os, sys, shutil, urllib.request, urllib.parse, urllib.error
 
 sys.path.insert(0, '../../../..')

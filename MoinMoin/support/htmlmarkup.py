@@ -13,8 +13,8 @@
 # individuals. For exact contribution history, see the revision
 # history and logs, available at http://projects.edgewall.com/trac/.
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 import html.entities
 from html.parser import HTMLParser
 import re

@@ -7,8 +7,8 @@ MoinMoin - MailImport script
 """
 
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 import sys
 import xmlrpc.client
 

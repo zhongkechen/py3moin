@@ -8,9 +8,10 @@ MoinMoin - find inactive users (and disable / remove them)
 
 from past.builtins import execfile
 
-from MoinMoin.script import MoinScript, log
-from MoinMoin.user import getUserList, User
 from MoinMoin.logfile import editlog
+from MoinMoin.script import MoinScript
+from MoinMoin.user import getUserList, User
+
 
 class PluginScript(MoinScript):
     """\

@@ -9,11 +9,12 @@
 """
 
 
-import sys, os, re
+import os
+import re
+import sys
 
-from MoinMoin.Page import Page
 from MoinMoin import user
-from MoinMoin import wikiutil
+from MoinMoin.Page import Page
 
 
 def show_form(pagename, request):

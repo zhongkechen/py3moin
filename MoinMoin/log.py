@@ -58,8 +58,8 @@
 # See http://www.python.org/doc/lib/logging-config-fileformat.html
 # We just use stderr output by default, if you want anything else,
 # you will have to configure logging.
-from future import standard_library
-standard_library.install_aliases()
+
+
 logging_config = """\
 [DEFAULT]
 # Default loglevel, to adjust verbosity: DEBUG, INFO, WARNING, ERROR, CRITICAL

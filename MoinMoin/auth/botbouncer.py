@@ -5,8 +5,8 @@
     @copyright: 2007 MoinMoin:JohannesBerg
     @license: GNU GPL, see COPYING for details.
 """
-from future import standard_library
-standard_library.install_aliases()
+
+
 from MoinMoin import user
 from MoinMoin.auth import BaseAuth, CancelLogin, ContinueLogin, MultistageRedirectLogin
 from urllib.request import urlopen

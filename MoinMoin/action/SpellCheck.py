@@ -21,8 +21,8 @@
 """
 
 from past.builtins import cmp
-from future import standard_library
-standard_library.install_aliases()
+
+
 import os, re, codecs
 from MoinMoin import config, wikiutil
 from MoinMoin.Page import Page

@@ -30,8 +30,8 @@
     http://uche.ogbuji.net/tech/akara/nodes/2003-01-01/domlettes
 """
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 import os.path
 import pickle
 import re

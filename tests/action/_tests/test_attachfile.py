@@ -6,8 +6,8 @@
                 2007-2008 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
-from future import standard_library
-standard_library.install_aliases()
+
+
 import os, io
 from MoinMoin.action import AttachFile
 from tests._tests import become_trusted, create_page, nuke_page

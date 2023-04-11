@@ -10,8 +10,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 import os, re
 
 from xml.dom import minidom, Node, getDOMImplementation

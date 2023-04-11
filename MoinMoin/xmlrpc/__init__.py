@@ -22,8 +22,8 @@
                 2007-2009 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details
 """
-from future import standard_library
-standard_library.install_aliases()
+
+
 from MoinMoin.util import pysupport
 
 modules = pysupport.getPackageModules(__file__)

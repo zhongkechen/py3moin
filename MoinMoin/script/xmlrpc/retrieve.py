@@ -7,8 +7,8 @@ MoinMoin - page contents retriever
 """
 
 
-from future import standard_library
-standard_library.install_aliases()
+
+
 import xmlrpc.client
 
 from MoinMoin.script import MoinScript

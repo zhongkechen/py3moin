@@ -5,24 +5,18 @@
     @license: GNU GPL, see COPYING for details.
 """
 import sys
-
-from future import standard_library
-
-from passlib.utils import to_unicode
-
-standard_library.install_aliases()
 from io import StringIO
 
+from passlib.utils import to_unicode
 from werkzeug import Request as RequestBase
 from werkzeug import Response as WerkzeugResponseBase
-from werkzeug.wrappers import ResponseStream
 from werkzeug.datastructures import EnvironHeaders
-from werkzeug.urls import url_encode, url_join, url_quote
 from werkzeug.test import create_environ
+from werkzeug.urls import url_encode, url_join, url_quote
 from werkzeug.utils import cached_property
+from werkzeug.wrappers import ResponseStream
 
 from MoinMoin import config
-
 from MoinMoin import log
 
 logging = log.getLogger(__name__)
