@@ -7,7 +7,6 @@
 """
 from future import standard_library
 standard_library.install_aliases()
-from past.utils import old_div
 import re, os
 import xml.dom.minidom # HINT: the nodes in parse result tree need .has_key(), "x in ..." does not work
 import urllib.parse
@@ -915,7 +914,7 @@ class convert_tree(visitor):
         match = re.match(r"margin-left:\s*(\d+)px", node_style)
         if match:
             left_margin = int(match.group(1))
-            indent_depth = int(old_div(left_margin, 40))
+            indent_depth = int((left_margin // 40))
             if indent_depth > 0:
                 self.text.append(' . ')
 

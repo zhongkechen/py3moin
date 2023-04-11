@@ -6,7 +6,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from past.utils import old_div
 import os, re
 import hashlib
 from MoinMoin import config, wikiutil
@@ -738,7 +737,7 @@ class Parser(object):
                     # add center alignment if we don't have some alignment already
                     attrs['align'] = '"center"'
                 if 'colspan' not in attrs:
-                    attrs['colspan'] = '"%d"' % (old_div(word.count("|"),2))
+                    attrs['colspan'] = '"%d"' % ((word.count("|") // 2))
 
             # return the complete cell markup
             result.append(self.formatter.table_cell(1, attrs) + attrerr)

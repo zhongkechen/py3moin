@@ -71,7 +71,7 @@ class GetFoldersAndFilesCommandMixin (object):
 			elif os.path.isfile(someObjectPath):
 				size = os.path.getsize(someObjectPath)
 				if size > 0:
-					size = round(old_div(size,1024))
+					size = round((size // 1024))
 					if size < 1:
 						size = 1
 				files += """<File name="%s" size="%d" />""" % (

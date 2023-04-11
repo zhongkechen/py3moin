@@ -7,7 +7,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 from past.builtins import cmp
-from past.utils import old_div
 import time
 from MoinMoin import user, util, wikiutil, events
 from MoinMoin.theme import load_theme_fallback
@@ -261,8 +260,8 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
                 '%s [%s%s:%s]' % (
                     time.strftime(self.cfg.datetime_fmt, util.timefuncs.tmtuple(t)),
                     "+-"[offset < 0],
-                    "%02d" % (old_div(abs(offset), 3600)),
-                    "%02d" % (old_div(abs(offset) % 3600, 60)),
+                    "%02d" % ((abs(offset) // 3600)),
+                    "%02d" % ((abs(offset) % 3600 // 60)),
                 ),
             ))
 

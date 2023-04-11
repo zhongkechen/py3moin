@@ -12,8 +12,6 @@
 import os
 import time
 
-from past.utils import old_div
-
 from MoinMoin import log
 
 logging = log.getLogger(__name__)
@@ -363,7 +361,7 @@ class BaseSearch(object):
                     if (not wikiname in thiswiki or
                        page.exists() and userMayRead(page.page_name) or
                        page.page_name.startswith(fs_rootpage)) and
-                       (not self.mtime or self.mtime <= old_div(page.mtime_usecs(),1000000))]
+                       (not self.mtime or self.mtime <= (page.mtime_usecs() // 1000000))]
         return filtered
 
     def _get_search_results(self, hits, start, estimated_hits):

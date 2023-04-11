@@ -11,7 +11,6 @@
 """
 from future import standard_library
 standard_library.install_aliases()
-from past.utils import old_div
 import io, time
 
 from MoinMoin import wikiutil
@@ -122,7 +121,7 @@ class FoundPage(object):
             # More sophisticated things to be added, like increase
             # weight of near matches.
         if self.page.parse_processing_instructions().get('deprecated', False):
-            weight = int(old_div(weight, 4)) # rank it down
+            weight = int((weight // 4)) # rank it down
         return weight
 
     def add_matches(self, matches):
@@ -592,8 +591,8 @@ class SearchResults(object):
         """
         # Start by giving equal context on both sides of match
         contextlen = max(context - len(match), 0)
-        cstart = match.start - old_div(contextlen, 2)
-        cend = match.end + old_div(contextlen, 2)
+        cstart = match.start - (contextlen // 2)
+        cend = match.end + (contextlen // 2)
 
         # If context start before start, give more context on end
         if cstart < start:

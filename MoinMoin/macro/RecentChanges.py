@@ -8,7 +8,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 from past.builtins import cmp
-from past.utils import old_div
 import time
 
 from MoinMoin import util, wikiutil
@@ -100,7 +99,7 @@ def format_page_edits(macro, lines, bookmark_usecs):
     # print time of change
     d['time_html'] = None
     if request.cfg.changed_time_fmt:
-        tdiff = old_div(int(tnow - wikiutil.version2timestamp(int(line.ed_time_usecs))), 60) # has to be long for py 2.2.x
+        tdiff = (int(tnow - wikiutil.version2timestamp(int(line.ed_time_usecs))) // 60) # has to be long for py 2.2.x
         if tdiff < 100:
             d['time_html'] = _("%(mins)dm ago") % {
                 'mins': tdiff}

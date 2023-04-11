@@ -7,7 +7,6 @@
                 2007 Nina Kuisma <ninnnu@gmail.com>
     @license: GNU GPL, see COPYING for details.
 """
-from past.utils import old_div
 from MoinMoin import user, i18n
 
 
@@ -71,14 +70,14 @@ def used_languages(request):
                 else:
                     lang = i18n.wikiLanguages()[lang]['x-language-in-english']
                     languages.addRow((lang, "%(percent).2f%% (%(count)d)" % {
-                        'percent': old_div(100.0 * cnt, total),
+                        'percent': (100.0 * cnt // total),
                         'count': cnt}))
                 cnt_printed += cnt
             except UnicodeError:
                 pass
         if total > cnt_printed:
             languages.addRow((_('Others'), "%(percent).2f%% (%(count)d)" % {
-                'percent': old_div(100.0 * (total - cnt_printed), total),
+                'percent': (100.0 * (total - cnt_printed) // total),
                 'count': total - cnt_printed}))
 
     else: # If we don't have any users, we can safely assume that the only real user is the visitor (who is normally ignored, though) who is using "Browser setting"

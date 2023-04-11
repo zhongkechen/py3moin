@@ -30,7 +30,6 @@
 from future import standard_library
 
 standard_library.install_aliases()
-from past.utils import old_div
 import os, time, zipfile, errno, datetime
 from io import StringIO
 import tarfile
@@ -1172,12 +1171,12 @@ def _do_unzip(pagename, request, overwrite=False):
             msg = _("Attachment '%(filename)s' not unzipped because some files in the zip "
                     "are either not in the same directory or exceeded the single file size limit (%(maxsize_file)d kB)."
                     ) % {'filename': filename,
-                         'maxsize_file': old_div(request.cfg.unzip_single_file_size, 1000), }
+                         'maxsize_file': (request.cfg.unzip_single_file_size // 1000), }
         elif total_size > request.cfg.unzip_attachments_space:
             msg = _("Attachment '%(filename)s' not unzipped because it would have exceeded "
                     "the per page attachment storage size limit (%(size)d kB).") % {
                       'filename': filename,
-                      'size': old_div(request.cfg.unzip_attachments_space, 1000), }
+                      'size': (request.cfg.unzip_attachments_space // 1000), }
         elif total_count > request.cfg.unzip_attachments_count:
             msg = _("Attachment '%(filename)s' not unzipped because it would have exceeded "
                     "the per page attachment count limit (%(count)d).") % {

@@ -8,7 +8,6 @@
 """
 from future import standard_library
 standard_library.install_aliases()
-from past.utils import old_div
 from future.utils import raise_
 import cgi
 import codecs
@@ -1471,7 +1470,7 @@ def getUnicodeIndexGroup(name):
     """
     c = name[0]
     if u'\uAC00' <= c <= u'\uD7AF': # Hangul Syllables
-        return chr(0xac00 + (old_div(int(ord(c) - 0xac00), 588)) * 588)
+        return chr(0xac00 + ((int(ord(c) - 0xac00) // 588)) * 588)
     else:
         return c.upper() # we put lower and upper case words into the same index group
 
