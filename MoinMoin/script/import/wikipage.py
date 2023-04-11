@@ -7,8 +7,6 @@ MoinMoin - import wiki pages from local files into the wiki.
 
 @license: GNU GPL, see COPYING for details.
 """
-from builtins import str
-from builtins import object
 import calendar
 import time
 

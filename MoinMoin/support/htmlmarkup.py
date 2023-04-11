@@ -15,14 +15,9 @@
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
-from builtins import chr
-from past.builtins import basestring
-from builtins import object
 import html.entities
 from html.parser import HTMLParser
 import re
-from io import StringIO
 
 __all__ = ['escape', 'unescape', 'html']
 
@@ -293,7 +288,7 @@ class Fragment(object):
 
     def append(self, node):
         """Append an element or string as child node."""
-        if isinstance(node, (Element, Markup, basestring, int, float, int)):
+        if isinstance(node, (Element, Markup, str, bytes, float, int)):
             # For objects of a known/primitive type, we avoid the check for
             # whether it is iterable for better performance
             self.children.append(node)

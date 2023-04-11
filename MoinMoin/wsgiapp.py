@@ -8,7 +8,7 @@
 """
 import os
 
-from werkzeug import Response
+from werkzeug.datastructures import HeaderSet
 
 from MoinMoin import log
 
@@ -16,9 +16,8 @@ logging = log.getLogger(__name__)
 
 from MoinMoin.web.contexts import AllContext, Context, XMLRPCContext
 from MoinMoin.web.exceptions import HTTPException
-from MoinMoin.web.request import Request, MoinMoinFinish, HeaderSet, ResponseBase
-from MoinMoin.web.utils import check_forbidden, check_surge_protect, fatal_response, \
-    redirect_last_visited
+from MoinMoin.web.request import Request, MoinMoinFinish
+from MoinMoin.web.utils import check_forbidden, check_surge_protect, fatal_response, redirect_last_visited
 from MoinMoin.Page import Page
 from MoinMoin import auth, config, i18n, user, wikiutil, xmlrpc, error
 from MoinMoin.action import get_names, get_available_actions

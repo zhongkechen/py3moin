@@ -2,14 +2,10 @@
 """
     MoinMoin - MoinMoin Wiki Markup Parser
 
-    @copyright: 2000, 2001, 2002 by Jürgen Hermann <jh@web.de>
+    @copyright: 2000, 2001, 2002 by Jï¿½rgen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import division
 
-from builtins import zip
-from builtins import map
-from builtins import object
 from past.utils import old_div
 import os, re
 import hashlib

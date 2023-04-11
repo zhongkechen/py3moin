@@ -9,7 +9,6 @@
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import object
 import pytest
 #pytest.skip("Many broken tests, much broken code, broken, broken, broken.")
 

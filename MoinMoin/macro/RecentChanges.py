@@ -7,7 +7,6 @@
     @copyright: 2000-2004 Juergen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import division
 from past.builtins import cmp
 from past.utils import old_div
 import time

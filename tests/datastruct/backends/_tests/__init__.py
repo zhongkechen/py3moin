@@ -10,8 +10,6 @@
 
 """
 
-from builtins import object
-
 import pytest
 from pytest import raises
 

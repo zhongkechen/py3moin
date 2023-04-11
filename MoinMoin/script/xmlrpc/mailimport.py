@@ -5,7 +5,7 @@ MoinMoin - MailImport script
 @copyright: 2006 MoinMoin:AlexanderSchremmer
 @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 
 from future import standard_library
 standard_library.install_aliases()

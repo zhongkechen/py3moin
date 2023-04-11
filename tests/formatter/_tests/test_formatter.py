@@ -5,10 +5,8 @@
     @copyright: 2005 by MoinMoin:AlexanderSchremmer
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
 
-from builtins import range
-from builtins import object
+
 import pytest
 
 from MoinMoin.Page import Page

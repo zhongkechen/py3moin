@@ -7,16 +7,17 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import range
-import os, shutil
+import os
+import shutil
 
-from MoinMoin.parser.text import Parser
-from MoinMoin.formatter.text_html import Formatter
+from MoinMoin import user
 from MoinMoin.Page import Page
 from MoinMoin.PageEditor import PageEditor
-from MoinMoin.util import random_string
-from MoinMoin import caching, user
 from MoinMoin.action import AttachFile
+from MoinMoin.formatter.text_html import Formatter
+from MoinMoin.parser.text import Parser
+from MoinMoin.util import random_string
+
 
 # Promoting the test user -------------------------------------------
 # Usually the tests run as anonymous user, but for some stuff, you

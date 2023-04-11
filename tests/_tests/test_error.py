@@ -7,10 +7,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
-from builtins import object
-import pytest
-
 from MoinMoin import error
 
 

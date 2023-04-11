@@ -4,7 +4,6 @@
     @copyright: 2005 MoinMoin:AlexanderSchremmer (Thanks to Spreadshirt)
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
 
 #Known minor bugs/questions/ideas:
 #How does object demarshalling work?

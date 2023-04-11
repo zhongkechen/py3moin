@@ -9,19 +9,18 @@
                 2006 MoinMoin:FranzPletz
     @license: GNU GPL, see COPYING for details
 """
-from __future__ import division
+import os
+import time
 
-from builtins import str
 from past.utils import old_div
-from builtins import object
-import sys, os, time, errno, codecs
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
-from MoinMoin import wikiutil, config, caching
+from MoinMoin import wikiutil, caching
 from MoinMoin.Page import Page
-from MoinMoin.search.results import getSearchResults, Match, TextMatch, TitleMatch, getSearchResults
+from MoinMoin.search.results import getSearchResults
 
 ##############################################################################
 # Search Engine Abstraction

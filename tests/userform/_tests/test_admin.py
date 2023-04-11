@@ -7,8 +7,6 @@
 """
 
 
-from builtins import object
-
 import pytest
 
 from MoinMoin.userform.admin import do_user_browser

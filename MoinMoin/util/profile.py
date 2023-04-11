@@ -36,9 +36,10 @@ Based on code by Oliver Graf
 @copyright: 2004 Nir Soffer
 @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
 
-import os, time, gc
+import gc
+import os
+import time
 
 
 class Profiler(object):

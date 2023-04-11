@@ -5,7 +5,7 @@ MoinMoin - do global changes to all pages in a wiki.
 @copyright: 2004-2006 MoinMoin:ThomasWaldmann
 @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 
 debug = False
 

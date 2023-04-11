@@ -8,7 +8,6 @@
 """
 from future import standard_library
 standard_library.install_aliases()
-from builtins import object
 import os, io
 from MoinMoin.action import AttachFile
 from tests._tests import become_trusted, create_page, nuke_page

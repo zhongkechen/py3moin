@@ -9,7 +9,7 @@ Usage:
 @copyright: 2005 by Thomas Waldmann
 @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 
 import os, sys, shutil, errno
 import tarfile

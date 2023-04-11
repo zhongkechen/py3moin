@@ -10,8 +10,6 @@
 """
 
 
-from builtins import str
-from builtins import object
 from MoinMoin import user, wikiutil
 from MoinMoin.util.dataset import TupleDataset, Column
 from MoinMoin.Page import Page

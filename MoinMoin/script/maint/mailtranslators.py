@@ -5,9 +5,6 @@ MoinMoin - mailtranslators script
 @copyright: 2004-2007 MoinMoin:ThomasWaldmann
 @license: GPL, see COPYING for details
 """
-from __future__ import print_function
-
-from builtins import str
 import sys
 
 from MoinMoin import i18n

@@ -7,8 +7,6 @@ MoinMoin.datastruct.backends.composite_groups test
 @license: GPL, see COPYING for details
 """
 
-from builtins import object
-
 import pytest
 from pytest import raises
 

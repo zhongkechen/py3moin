@@ -7,7 +7,7 @@ MoinMoin - Package Generator
             2009 MoinMoin:ReimarBauer
 @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 
 import os
 import zipfile

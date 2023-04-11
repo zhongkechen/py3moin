@@ -10,10 +10,6 @@
     @license: GNU GPL, see COPYING for details
 """
 
-from builtins import str
-from builtins import object
-import re
-
 from MoinMoin import log
 logging = log.getLogger(__name__)
 

@@ -5,7 +5,7 @@ MoinMoin - creates user homepage for existing accounts
 @copyright: 2009 MoinMoin:ReimarBauer
 @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 
 from MoinMoin import user
 from MoinMoin.Page import Page

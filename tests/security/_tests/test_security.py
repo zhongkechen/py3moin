@@ -9,10 +9,6 @@
                 2007 by MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
-
-from builtins import next
-from builtins import object
 import pytest
 
 from MoinMoin import security

@@ -6,7 +6,7 @@
     @copyright: 2007 by Thomas Waldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import absolute_import
+
 
 from ._conv160 import DataConverter
 

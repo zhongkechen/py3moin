@@ -6,7 +6,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import object
 from  MoinMoin.formatter.groups import Formatter
 from MoinMoin.Page import Page
 from tests._tests import become_trusted, create_page, nuke_page

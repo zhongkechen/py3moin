@@ -16,8 +16,6 @@
 """
 
 from past.builtins import cmp
-from builtins import str
-from builtins import object
 from MoinMoin import log
 logging = log.getLogger(__name__)
 

@@ -5,7 +5,7 @@ MoinMoin - check / process user accounts
 @copyright: 2003-2006 MoinMoin:ThomasWaldmann
 @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 
 # ----------------------------------------------------------------------------
 # if a user subscribes to magicpages, it means that he wants to keep

@@ -67,12 +67,11 @@
     @copyright: 2004 Thomas Waldmann
     @license: GPL, see COPYING for details
 """
-from __future__ import print_function
+
 
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
 import os.path, sys, urllib.request, urllib.parse, urllib.error
 
 # Insert THIS moin dir first into sys path, or you would run another

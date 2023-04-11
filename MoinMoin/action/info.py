@@ -8,7 +8,7 @@
                 2006-2008 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import division
+
 from past.utils import old_div
 import hashlib
 

@@ -20,22 +20,15 @@ r"""replaylog.py: Log all xapian calls to a file, so that they can be replayed.
 """
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
-from past.builtins import basestring
-from builtins import object
 __docformat__ = "restructuredtext en"
 
-import datetime
 import sys
 import _thread
 import threading
-import time
 import traceback
 import types
 import weakref
 import xapian
-
-from pprint import pprint
 
 # The logger in use.
 _replay_log = None
@@ -210,7 +203,7 @@ class ReplayLog(object):
         if xapargname is not None:
             return xapargname
 
-        if isinstance(arg, basestring):
+        if isinstance(arg, (str, bytes)):
             if isinstance(arg, str):
                 arg = arg.encode('utf-8')
             return 'str(%d,%s)' % (len(arg), arg)

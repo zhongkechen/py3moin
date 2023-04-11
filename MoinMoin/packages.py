@@ -6,7 +6,6 @@
                 2007-2010 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
 
 import os
 import re

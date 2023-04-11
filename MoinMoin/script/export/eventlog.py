@@ -6,7 +6,6 @@ MoinMoin - Dump event-log to CSV
 @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
 import sys
 import csv
 

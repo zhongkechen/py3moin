@@ -6,8 +6,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
-from builtins import object
 class Marshal(object):
     """ Serialize Python data structures to XML.
 

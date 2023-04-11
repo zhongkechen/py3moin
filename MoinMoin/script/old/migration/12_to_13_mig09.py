@@ -45,10 +45,11 @@ Steps for a successful migration:
 @copyright: 2004 Thomas Waldmann
 @license: GPL, see COPYING for details
 """
-from __future__ import print_function
 
-from builtins import range
-import os, sys, codecs
+import codecs
+import os
+import sys
+
 join = os.path.join
 
 # Insert THIS moin dir first into sys path, or you might run another

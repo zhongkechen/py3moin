@@ -10,14 +10,16 @@
 """
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
-import io, re, time
-from MoinMoin import wikixml, config, wikiutil
+import io
+import re
+import time
+from MoinMoin import wikixml, wikiutil
 from MoinMoin.logfile import editlog
 from MoinMoin.util import timefuncs
 from MoinMoin.Page import Page
 from MoinMoin.wikixml.util import RssGenerator
 from MoinMoin.action import AttachFile
+
 
 def full_url(request, page, querystr=None, anchor=None):
     url = page.url(request, anchor=anchor, querystr=querystr)

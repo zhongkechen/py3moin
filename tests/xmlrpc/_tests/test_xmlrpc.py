@@ -5,13 +5,12 @@
     @copyright: 2007 by Karol Nowak <grywacz@gmail.com>
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 
 from future import standard_library
 standard_library.install_aliases()
 from xmlrpc.client import Fault
 
-from MoinMoin.user import User
 from MoinMoin.xmlrpc import XmlRpcBase
 
 

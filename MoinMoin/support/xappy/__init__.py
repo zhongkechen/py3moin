@@ -22,7 +22,7 @@ an accompanying file "introduction.html" (or "introduction.rst") which gives
 details of how to use the xappy package.
 
 """
-from __future__ import absolute_import
+
 __docformat__ = "restructuredtext en"
 
 __version__ = '0.5'

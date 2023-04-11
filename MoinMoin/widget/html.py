@@ -6,8 +6,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
-from builtins import object
 from MoinMoin import wikiutil
 
 # sort attributes or not? (set to 1 by unit tests)

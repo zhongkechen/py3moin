@@ -16,9 +16,6 @@
     @copyright: 2006 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
-
-from builtins import str
 import os
 
 from MoinMoin import wikiutil

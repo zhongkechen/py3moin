@@ -12,9 +12,7 @@
                 2007-2009 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import absolute_import
 
-from builtins import str
 import re
 
 from MoinMoin import i18n

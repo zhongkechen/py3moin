@@ -7,9 +7,6 @@
                 2007 Nina Kuisma <ninnnu@gmail.com>
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import division
-
-
 from past.utils import old_div
 from MoinMoin import user, i18n
 
@@ -69,7 +66,7 @@ def used_languages(request):
             try:
                 if lang == u'browser':
                     languages.addRow((browserlang, "%(percent).2f%% (%(count)d)" % {
-                        'percent': old_div(100.0 * cnt, total),
+                        'percent': 100.0 * cnt / total,
                         'count': cnt}))
                 else:
                     lang = i18n.wikiLanguages()[lang]['x-language-in-english']

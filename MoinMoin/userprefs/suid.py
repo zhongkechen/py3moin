@@ -9,7 +9,6 @@
 """
 
 from past.builtins import cmp
-from builtins import str
 from MoinMoin import user, util, wikiutil
 from MoinMoin.widget import html
 from MoinMoin.userprefs import UserPrefBase

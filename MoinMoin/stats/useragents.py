@@ -11,12 +11,10 @@
                 2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import division
+
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
-from past.utils import old_div
 _debug = 0
 
 from MoinMoin import wikiutil, caching, logfile
@@ -88,6 +86,7 @@ def get_data(request):
     data.reverse()
     return data
 
+
 def text(pagename, request):
     from MoinMoin.util.dataset import TupleDataset, Column
     from MoinMoin.widget.browser import DataBrowserWidget
@@ -112,12 +111,12 @@ def text(pagename, request):
         for cnt, ua in data:
             try:
                 ua = wikiutil.escape(str(ua))
-                agents.addRow((ua, "%.2f" % (old_div(100.0 * cnt, total))))
+                agents.addRow((ua, "%.2f" % (100.0 * cnt / total)))
                 cnt_printed += cnt
             except UnicodeError:
                 pass
         if total > cnt_printed:
-            agents.addRow((_('Others'), "%.2f" % (old_div(100 * (total - cnt_printed), total))))
+            agents.addRow((_('Others'), "%.2f" % (100 * (total - cnt_printed) / total)))
 
     table = DataBrowserWidget(request)
     table.setData(agents)

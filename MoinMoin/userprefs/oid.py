@@ -5,7 +5,6 @@
     @copyright: 2007     MoinMoin:JohannesBerg
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import str
 import hashlib
 
 from MoinMoin import wikiutil, user

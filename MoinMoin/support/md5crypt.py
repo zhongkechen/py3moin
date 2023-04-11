@@ -37,10 +37,8 @@ apache_md5_crypt() provides a function compatible with Apache's
 .htpasswd files. This was contributed by Bryan Hart <bryan@eai.com>.
 
 """
-from __future__ import print_function
 
-from builtins import chr
-from builtins import range
+
 MAGIC = '$1$'                   # Magic string
 ITOA64 = b"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 

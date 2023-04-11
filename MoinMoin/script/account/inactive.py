@@ -6,12 +6,7 @@ MoinMoin - find inactive users (and disable / remove them)
 @license: GNU GPL, see COPYING for details.
 """
 
-
-from __future__ import print_function
-
 from past.builtins import execfile
-from builtins import input
-import sys, os
 
 from MoinMoin.script import MoinScript, log
 from MoinMoin.user import getUserList, User

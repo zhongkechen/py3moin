@@ -5,7 +5,7 @@
     @copyright: 2007 MoinMoin:JohannesBerg
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 
 from future import standard_library
 standard_library.install_aliases()

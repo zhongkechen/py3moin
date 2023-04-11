@@ -8,8 +8,6 @@
                 2007 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import division
-
 import html
 
 from future import standard_library

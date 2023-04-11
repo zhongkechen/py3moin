@@ -5,7 +5,6 @@
     @copyright: 2002 Florian Festi
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
 
 default_markers = ('<<<<<<<<<<<<<<<<<<<<<<<<<\n',
                    '=========================\n',

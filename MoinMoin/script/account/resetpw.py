@@ -8,9 +8,8 @@ MoinMoin - change or reset the password of a user account
 """
 
 
-from __future__ import print_function
 
-from builtins import str
+
 import sys
 
 from MoinMoin.script import MoinScript, log

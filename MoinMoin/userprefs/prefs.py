@@ -6,11 +6,7 @@
                 2003-2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import division
-
 from past.builtins import cmp
-from builtins import str
-from builtins import range
 from past.utils import old_div
 import time
 from MoinMoin import user, util, wikiutil, events

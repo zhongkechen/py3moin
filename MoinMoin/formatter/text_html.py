@@ -5,8 +5,6 @@
     @copyright: 2000-2004 by Juergen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import str
-import os.path, re
 
 from MoinMoin import log
 logging = log.getLogger(__name__)

@@ -16,7 +16,7 @@ from io import StringIO
 from werkzeug import Request as RequestBase
 from werkzeug import Response as WerkzeugResponseBase
 from werkzeug.wrappers import ResponseStream
-from werkzeug.datastructures import EnvironHeaders, Headers, HeaderSet
+from werkzeug.datastructures import EnvironHeaders
 from werkzeug.urls import url_encode, url_join, url_quote
 from werkzeug.test import create_environ
 from werkzeug.utils import cached_property

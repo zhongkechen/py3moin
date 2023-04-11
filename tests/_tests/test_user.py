@@ -8,7 +8,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import object
 import os
 import pytest
 

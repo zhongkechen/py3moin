@@ -18,7 +18,6 @@
 # cStringIO cannot be used because it doesn't handle Unicode.
 from future import standard_library
 standard_library.install_aliases()
-from builtins import object
 import io
 
 from MoinMoin import caching, config, wikiutil, Page

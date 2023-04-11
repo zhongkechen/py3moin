@@ -6,8 +6,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import str
-from builtins import range
 line_anchors = True
 
 from xml.dom import minidom

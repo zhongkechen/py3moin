@@ -8,11 +8,6 @@
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import object
-import re
-from io import StringIO
-
-import pytest
 
 from MoinMoin.Page import Page
 from MoinMoin.parser.text_csv import Parser as CSV_Parser

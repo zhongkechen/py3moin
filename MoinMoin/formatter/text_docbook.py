@@ -2,7 +2,7 @@
 """
     MoinMoin - DocBook Formatter
 
-    @copyright: 2005,2008 by Mikko Virkkilä <mvirkkil@cc.hut.fi>
+    @copyright: 2005,2008 by Mikko Virkkilï¿½ <mvirkkil@cc.hut.fi>
     @copyright: 2005 by MoinMoin:AlexanderSchremmer (small modifications)
     @copyright: 2005 by MoinMoin:Petr Pytelka <pyta@lightcomp.com> (small modifications)
     @copyright: 2009 by MoinMoin:ThomasWaldmann (make it work again, use stdlib xml instead 4suite-xml)
@@ -12,10 +12,6 @@
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
-from builtins import chr
-from builtins import range
-from builtins import object
 import os, re
 
 from xml.dom import minidom, Node, getDOMImplementation

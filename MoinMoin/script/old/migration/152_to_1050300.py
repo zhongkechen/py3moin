@@ -27,7 +27,7 @@
     @copyright: 2006 Thomas Waldmann
     @license: GPL, see COPYING for details
 """
-from __future__ import print_function
+
 import sys, os
 
 # Insert THIS moin dir first into sys path, or you would run another

@@ -2,7 +2,6 @@
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
 import xmlrpc.client, http.client
 from base64 import encodestring
 

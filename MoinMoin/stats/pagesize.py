@@ -10,7 +10,6 @@
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import range
 _debug = 0
 
 from MoinMoin import wikiutil

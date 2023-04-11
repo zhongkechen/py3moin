@@ -4,9 +4,6 @@ Execute a shell command with timeout.
 @copyright: 2016 Thomas Waldmann <tw@waldmann-edv.de>
 @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
-from __future__ import absolute_import
-
 import os
 import signal
 import subprocess

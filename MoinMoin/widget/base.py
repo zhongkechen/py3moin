@@ -6,7 +6,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import object
 class Widget(object):
 
     def __init__(self, request, **kw):

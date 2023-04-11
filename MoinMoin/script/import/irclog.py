@@ -6,10 +6,9 @@ MoinMoin - Push files into the wiki.
             2006 MoinMoin:ThomasWaldmann
 @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 
 # this function generates a pagename from the file name
-from builtins import object
 def filename_function(filename):
     filename = filename.lstrip('#')
     splitted = filename.split('.')

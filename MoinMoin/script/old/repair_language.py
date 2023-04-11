@@ -45,9 +45,8 @@ Why run this script?
 @copyright: 2004 Nir Soffer <nirs AT freeshell DOT org>
 @license: GPL, see COPYING for details
 """
-from __future__ import print_function
 
-from builtins import range
+
 import codecs
 import os, sys
 

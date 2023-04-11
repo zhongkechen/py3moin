@@ -5,13 +5,9 @@
                 2005-2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import division
-
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
 from past.utils import old_div
-from builtins import object
 import re, os
 import xml.dom.minidom # HINT: the nodes in parse result tree need .has_key(), "x in ..." does not work
 import urllib.parse

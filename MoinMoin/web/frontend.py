@@ -12,6 +12,7 @@ from MoinMoin.web.serving import make_application
 from MoinMoin import log
 logging = log.getLogger(__name__)
 
+
 class FrontEnd(object):
     def __init__(self):
         self.parser = optparse.OptionParser()

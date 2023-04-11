@@ -8,12 +8,10 @@
     @copyright: 2003-2004 by Juergen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import range
-from builtins import object
 import re
 from io import StringIO
 

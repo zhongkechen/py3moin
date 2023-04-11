@@ -9,14 +9,15 @@
 """
 
 from future import standard_library
-from werkzeug import Response
 
 standard_library.install_aliases()
-from past.builtins import basestring
-import time, inspect, io, sys, warnings
+
+import io
+import sys
+import time
+import warnings
 
 from werkzeug.datastructures import Headers
-from werkzeug.http import http_date
 from werkzeug.test import create_environ
 from werkzeug.utils import redirect
 from werkzeug.exceptions import abort, Unauthorized, NotFound
@@ -34,6 +35,7 @@ from MoinMoin import log
 logging = log.getLogger(__name__)
 NoDefault = object()
 
+
 class EnvironProxy(property):
     """ Proxy attribute lookups to keys in the environ. """
     def __init__(self, name, default=NoDefault):
@@ -46,7 +48,7 @@ class EnvironProxy(property):
         @param name: key (or factory for convenience)
         @param default: literal object or callable
         """
-        if not isinstance(name, basestring):
+        if not isinstance(name, (str, bytes)):
             default = name
             name = default.__name__
         self.name = 'moin.' + name

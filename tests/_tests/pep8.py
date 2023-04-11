@@ -81,12 +81,6 @@ The docstring of each check function shall be the relevant part of
 text from PEP 8. It is printed if the user enables --show-pep8.
 
 """
-from __future__ import print_function
-from __future__ import division
-
-from builtins import range
-from builtins import object
-from past.utils import old_div
 import os
 import sys
 import re
@@ -485,7 +479,7 @@ def expand_indent(line):
     result = 0
     for char in line:
         if char == '\t':
-            result = old_div(result, 8) * 8 + 8
+            result = result // 8 * 8 + 8
         elif char == ' ':
             result += 1
         else:
@@ -840,7 +834,7 @@ def print_benchmark(elapsed):
     for key in keys:
         if key in options.counters:
             print('%-7d %s per second (%d total)' % (
-                old_div(options.counters[key], elapsed), key,
+                options.counters[key] // elapsed, key,
                 options.counters[key]))
 
 

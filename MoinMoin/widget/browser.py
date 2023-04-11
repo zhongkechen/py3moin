@@ -7,10 +7,6 @@
                 2010 MoinMoin:EugeneSyromyatnikov
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import next
-from builtins import str
-from builtins import range
-from past.builtins import basestring
 from MoinMoin.widget import base
 from MoinMoin import wikiutil
 
@@ -117,7 +113,7 @@ class DataBrowserWidget(base.Widget):
             selected = ' selected'
         else:
             selected = ''
-        assert(isinstance(item, basestring))
+        assert(isinstance(item, (str, bytes)))
         if ntitem is None:
             ntitem = item
         return '<option value="%s"%s>%s</option>' % (

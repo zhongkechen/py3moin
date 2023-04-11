@@ -7,9 +7,7 @@
     @copyright: 2008-2008 MoinMoin:FlorianKrupicka
     @license: GNU GPL, see COPYING for details.
 """
-from past.builtins import basestring
 import os
-from MoinMoin import config
 
 from MoinMoin import version, log
 
@@ -20,7 +18,7 @@ import werkzeug._internal
 
 werkzeug._internal._logger = log.getLogger('werkzeug')
 
-from werkzeug.serving import run_simple, WSGIRequestHandler  # , BaseRequestHandler
+from werkzeug.serving import run_simple, WSGIRequestHandler
 
 
 class RequestHandler(WSGIRequestHandler):
@@ -107,12 +105,12 @@ def switch_user(uid, gid=None):
         return
 
     import pwd, grp
-    if isinstance(uid, basestring):
+    if isinstance(uid, (str, bytes)):
         try:
             uid = pwd.getpwnam(uid)[2]
         except KeyError:
             raise RuntimeError("Unknown user: '%s', check user setting" % uid)
-    if gid is not None and isinstance(gid, basestring):
+    if gid is not None and isinstance(gid, (str, bytes)):
         try:
             gid = grp.getgrnam(gid)[2]
         except KeyError:

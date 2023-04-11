@@ -18,8 +18,6 @@
 r"""highlight.py: Highlight and summarise text.
 
 """
-from builtins import range
-from builtins import object
 __docformat__ = "restructuredtext en"
 
 import re

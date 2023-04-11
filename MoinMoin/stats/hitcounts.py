@@ -12,12 +12,8 @@
                 2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import division
-
 from future import standard_library
 standard_library.install_aliases()
-from builtins import range
-from past.utils import old_div
 _debug = 0
 
 import time
@@ -29,6 +25,7 @@ from MoinMoin.logfile import eventlog
 # this is a CONSTANT used for on-disk caching, it must NOT be configurable and
 # not depend on request.user!
 DATE_FMT = '%04d-%02d-%02d' # % (y, m, d)
+
 
 def linkto(pagename, request, params=''):
     _ = request.getText
@@ -185,7 +182,7 @@ def text(pagename, request, params=''):
         se += e
         if cnt >= step:
             cnt -= step
-            hits.addRow((d, "%.1f" % (old_div(sv,sd)), "%.1f" % (old_div(se,sd))))
+            hits.addRow((d, "%.1f" % (sv/sd), "%.1f" % (se/sd)))
             sv = 0.0
             se = 0.0
             sd = 0.0

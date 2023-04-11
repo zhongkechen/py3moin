@@ -4,7 +4,6 @@
     prepend some processing instructions to a .po file to be able to put it
     onto moinmaster wiki, letting it get processed by gettext parser
 """
-from __future__ import print_function
 
 from future import standard_library
 standard_library.install_aliases()

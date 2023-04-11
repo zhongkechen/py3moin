@@ -7,7 +7,7 @@
                2009 MoinMoin:ThomasWaldmann
    @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 
 import sys, os, re
 

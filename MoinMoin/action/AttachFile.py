@@ -25,7 +25,7 @@
                 2007-2008 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import division
+
 
 from future import standard_library
 

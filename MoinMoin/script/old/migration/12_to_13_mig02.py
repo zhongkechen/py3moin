@@ -29,11 +29,10 @@
     @copyright: 2004 Thomas Waldmann
     @license: GPL, see COPYING for details
 """
-from __future__ import print_function
+
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import chr
 from_encoding = 'utf-8'
 to_encoding = 'utf-8'
 

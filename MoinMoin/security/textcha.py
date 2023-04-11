@@ -18,11 +18,10 @@
     @copyright: 2007 by MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import object
-import hmac, hashlib
-import re
+import hashlib
+import hmac
 import random
-
+import re
 from time import time
 
 from MoinMoin import log

@@ -23,10 +23,6 @@ http://www.mozilla.org/MPL/MPL-1.1.html
 This is the "File Uploader" for Python
 
 """
-from __future__ import print_function
-import os
-
-from fckutil import *
 from fckcommands import * 	# default command's implementation
 from fckconnector import FCKeditorConnectorBase # import base connector
 import config as Config

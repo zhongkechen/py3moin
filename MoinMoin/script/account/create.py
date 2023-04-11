@@ -5,7 +5,7 @@ MoinMoin - create a user account
 @copyright: 2006 MoinMoin:ThomasWaldmann
 @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 
 from MoinMoin.script import MoinScript
 

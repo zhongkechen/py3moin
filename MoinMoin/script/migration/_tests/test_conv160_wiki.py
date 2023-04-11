@@ -18,7 +18,6 @@
     @copyright: 2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from builtins import object
 import pytest
 #pytest.skip("broken")
 

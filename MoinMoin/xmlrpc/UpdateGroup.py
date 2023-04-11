@@ -8,8 +8,7 @@
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
-import sys, xmlrpc.client
+import xmlrpc.client
 
 from MoinMoin import log
 logging = log.getLogger(__name__)

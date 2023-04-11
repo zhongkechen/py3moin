@@ -5,9 +5,9 @@
     @copyright: 2005,2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
-from builtins import str
-import os, sys, shutil
+import os
+import shutil
+import sys
 
 opj = os.path.join # yes, I am lazy
 join = os.path.join

@@ -8,9 +8,9 @@
 
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
-
-import zlib, difflib, struct
+import difflib
+import struct
+import zlib
 
 BDIFF_PATT = ">lll"
 BDIFF_PATT_SIZE = struct.calcsize(BDIFF_PATT)

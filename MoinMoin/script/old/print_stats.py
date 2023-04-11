@@ -18,7 +18,7 @@
     @copyright: 2005 by Thomas Waldmann (MoinMoin:ThomasWaldmann)
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 def run():
     import sys
     from hotshot import stats

@@ -8,7 +8,6 @@
 from future import standard_library
 
 standard_library.install_aliases()
-from builtins import str
 import re, time, datetime
 
 from MoinMoin import log

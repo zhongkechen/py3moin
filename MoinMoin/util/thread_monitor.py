@@ -12,7 +12,6 @@
     @copyright: 2006 Alexander Schremmer <alex AT alexanderweb DOT de>
     @license: GNU GPL Version 2
 """
-from __future__ import print_function
 
 
 from future import standard_library

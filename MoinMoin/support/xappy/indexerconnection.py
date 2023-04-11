@@ -18,11 +18,9 @@
 r"""indexerconnection.py: A connection to the search engine for indexing.
 
 """
-from __future__ import absolute_import
+
 from future import standard_library
 standard_library.install_aliases()
-from builtins import next
-from builtins import object
 __docformat__ = "restructuredtext en"
 
 from . import _checkxapian

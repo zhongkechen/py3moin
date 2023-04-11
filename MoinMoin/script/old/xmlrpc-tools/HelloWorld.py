@@ -6,7 +6,7 @@ It calls the HelloWorld.py xmlrpc plugin.
 
 GPL software, 2003-08-10 Thomas Waldmann
 """
-from __future__ import print_function
+
 
 from future import standard_library
 standard_library.install_aliases()

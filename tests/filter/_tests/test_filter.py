@@ -6,9 +6,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import object
-import pytest
-from MoinMoin import filter
 
 class TestFilters(object):
 

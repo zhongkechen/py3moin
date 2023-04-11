@@ -6,8 +6,6 @@ MoinMoin - base classes for datastructs.
 @license: GPL, see COPYING for details
 """
 
-from builtins import object
-
 
 class GroupDoesNotExistError(Exception):
     """

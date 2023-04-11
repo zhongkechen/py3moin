@@ -19,8 +19,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import range
-from builtins import object
 import re
 
 from MoinMoin import wikiutil, user

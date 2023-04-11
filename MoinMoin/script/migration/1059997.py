@@ -14,7 +14,7 @@
     @copyright: 2008 by Thomas Waldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import absolute_import
+
 
 from ._conv160a import DataConverter
 

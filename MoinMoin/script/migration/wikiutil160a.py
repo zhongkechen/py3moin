@@ -2,20 +2,13 @@
 """
     MoinMoin - Wiki Utility Functions
 
-    @copyright: 2000 - 2004 by Jürgen Hermann <jh@web.de>
+    @copyright: 2000 - 2004 by Jï¿½rgen Hermann <jh@web.de>
                 2007 by Reimar Bauer
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import division
-
 from future import standard_library
 standard_library.install_aliases()
-from builtins import filter
-from builtins import chr
-from builtins import str
-from builtins import range
 from past.utils import old_div
-from builtins import object
 from future.utils import raise_
 import cgi
 import codecs
@@ -1275,7 +1268,7 @@ class ParameterParser(object):
             {"name": "John Smith", "age": None, "male": True}
 
         @copyright: 2004 by Florian Festi,
-                    2006 by Mikko Virkkilä
+                    2006 by Mikko Virkkilï¿½
         @license: GNU GPL, see COPYING for details.
     """
 

@@ -18,7 +18,7 @@
 r"""marshall.py: Marshal values into strings
 
 """
-from __future__ import absolute_import
+
 __docformat__ = "restructuredtext en"
 
 import math

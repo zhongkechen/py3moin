@@ -5,7 +5,6 @@
     @copyright: 2004 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details
 """
-from __future__ import print_function
 
 uppercase = []
 lowercase = []

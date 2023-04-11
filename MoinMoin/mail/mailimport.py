@@ -8,7 +8,6 @@
                 2006 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
 
 import email
 import re

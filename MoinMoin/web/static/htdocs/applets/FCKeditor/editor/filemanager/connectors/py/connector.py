@@ -25,10 +25,6 @@ Connector for Python (CGI and WSGI).
 See config.py for configuration settings
 
 """
-from __future__ import print_function
-import os
-
-from fckutil import *
 from fckcommands import * 	# default command's implementation
 from fckoutput import * 	# base http, xml and html output mixins
 from fckconnector import FCKeditorConnectorBase # import base connector

@@ -8,13 +8,11 @@
                 2007-2010 by MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
-from builtins import object
 import io
 
 import pytest

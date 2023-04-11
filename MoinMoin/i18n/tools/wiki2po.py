@@ -2,7 +2,6 @@
 """
     get latest translation page content from the wiki and write it to *.po
 """
-from __future__ import print_function
 
 from future import standard_library
 standard_library.install_aliases()

@@ -47,11 +47,10 @@
     @copyright: 2004 Thomas Waldmann
     @license: GPL, see COPYING for details
 """
-from __future__ import print_function
+
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
 import os, sys, shutil, urllib.request, urllib.parse, urllib.error
 
 sys.path.insert(0, '../../../..')

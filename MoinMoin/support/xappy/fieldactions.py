@@ -18,10 +18,7 @@
 r"""fieldactions.py: Definitions and implementations of field actions.
 
 """
-from __future__ import absolute_import
-from builtins import str
-from past.builtins import basestring
-from builtins import object
+
 __docformat__ = "restructuredtext en"
 
 from . import _checkxapian
@@ -382,7 +379,7 @@ class FieldActions(object):
             field_mappings.add_prefix(self._fieldname)
         if 'slot' in info[3]:
             purposes = info[3]['slot']
-            if isinstance(purposes, basestring):
+            if isinstance(purposes, (str, bytes)):
                 field_mappings.add_slot(self._fieldname, purposes)
             else:
                 slotnum = None

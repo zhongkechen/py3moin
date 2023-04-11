@@ -5,7 +5,7 @@ MoinMoin - display unused or trash page directories in data/pages
 @copyright: 2005-2006 MoinMoin:ThomasWaldmann
 @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
+
 
 import os
 

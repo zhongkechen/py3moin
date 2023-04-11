@@ -6,7 +6,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from builtins import object
 import pytest
 from tests._tests import wikiconfig
 

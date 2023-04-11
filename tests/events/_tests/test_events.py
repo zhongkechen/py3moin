@@ -5,9 +5,7 @@
     @copyright: 2007 by Karol Nowak <grywacz@gmail.com>
     @license: GNU GPL, see COPYING for details.
 """
-from __future__ import print_function
 
-from builtins import object
 import pytest
 
 import MoinMoin.events as events

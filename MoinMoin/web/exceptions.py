@@ -12,6 +12,7 @@ from werkzeug import exceptions
 
 HTTPException = exceptions.HTTPException
 
+
 class SurgeProtection(exceptions.ServiceUnavailable):
     """ A surge protection error in MoinMoin is based on the HTTP status
     `Service Unavailable`. This HTTP exception gives a short description
