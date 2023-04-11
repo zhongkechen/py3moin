@@ -11,8 +11,6 @@
 import os
 import sys
 
-from future.utils import raise_
-
 __all__ = ['WSGIServer']
 
 
@@ -59,7 +57,7 @@ class WSGIServer(object):
                 try:
                     if headers_sent:
                         # Re-raise original exception if headers sent
-                        raise_(exc_info[0], exc_info[1], exc_info[2])
+                        raise exc_info[0](exc_info[1]).with_traceback(exc_info[2])
                 finally:
                     exc_info = None     # avoid dangling circular ref
             elif headers_set:
