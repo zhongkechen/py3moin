@@ -387,10 +387,10 @@ def _access_file(pagename, request):
     _ = request.getText
 
     error = None
-    if not request.values.get('target'):
+    if not request.request.values.get('target'):
         error = _("Filename of attachment not specified!")
     else:
-        filename = wikiutil.taintfilename(request.values['target'])
+        filename = wikiutil.taintfilename(request.request.values['target'])
         fpath = getFilename(request, pagename, filename)
 
         if os.path.isfile(fpath):
@@ -699,7 +699,7 @@ def execute(pagename, request):
     """ Main dispatcher for the 'AttachFile' action. """
     _ = request.getText
 
-    do = request.values.get('do', 'upload_form')
+    do = request.request.values.get('do', 'upload_form')
     handler = globals().get('_do_%s' % do)
     if handler:
         msg = handler(pagename, request)
@@ -1046,9 +1046,9 @@ def _do_get(pagename, request):
         return  # error msg already sent in _access_file
 
     timestamp = datetime.datetime.fromtimestamp(os.path.getmtime(fpath))
-    if_modified = request.if_modified_since
+    if_modified = request.request.if_modified_since
     if if_modified and if_modified >= timestamp:
-        request.status_code = 304
+        request.response.status_code = 304
     else:
         mt = wikiutil.MimeType(filename=filename)
         content_type = mt.content_type()
@@ -1065,13 +1065,13 @@ def _do_get(pagename, request):
         content_dispo = dangerous and 'attachment' or 'inline'
 
         now = time.time()
-        request.headers['Date'] = http_date(now)
-        request.headers['Content-Type'] = content_type
-        request.headers['Last-Modified'] = http_date(timestamp)
-        request.headers['Expires'] = http_date(now - 365 * 24 * 3600)
-        request.headers['Content-Length'] = os.path.getsize(fpath)
+        request.response.headers['Date'] = http_date(now)
+        request.response.headers['Content-Type'] = content_type
+        request.response.headers['Last-Modified'] = http_date(timestamp)
+        request.response.headers['Expires'] = http_date(now - 365 * 24 * 3600)
+        request.response.headers['Content-Length'] = os.path.getsize(fpath)
         content_dispo_string = '%s; filename="%s"' % (content_dispo, filename_enc)
-        request.headers['Content-Disposition'] = content_dispo_string
+        request.response.headers['Content-Disposition'] = content_dispo_string
 
         # send data
         request.send_file(open(fpath, 'rb'))

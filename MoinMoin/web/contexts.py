@@ -305,8 +305,8 @@ class HTTPContext(BaseContext):
         def simple_wrapper(fileobj, bufsize):
             return iter(lambda: fileobj.read(bufsize), '')
         file_wrapper = self.environ.get('wsgi.file_wrapper', simple_wrapper)
-        self.request.direct_passthrough = True
-        self.response = file_wrapper(fileobj, bufsize)
+        self.response.direct_passthrough = True
+        self.response.response = file_wrapper(fileobj, bufsize)
         raise MoinMoinFinish('sent file')
 
     # fully deprecated functions, with warnings
