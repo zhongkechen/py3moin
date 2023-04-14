@@ -210,7 +210,7 @@ class Macro:
         _ = self._
         request = self.request
         fmt = self.formatter
-        allpages = int(request.values.get('allpages', 0)) != 0
+        allpages = int(request.request.values.get('allpages', 0)) != 0
         # Get page list readable by current user, filter by isSystemPage if needed
         if allpages:
             pages = request.rootpage.getPageList()
@@ -299,7 +299,7 @@ class Macro:
         """
         _ = self._
         html = [
-            u'<form method="get" action="%s"><div>' % self.request.href(self.formatter.page.page_name),
+            u'<form method="get" action="%s"><div>' % self.request.request.href(self.formatter.page.page_name),
             u'<div>',
             u'<input type="hidden" name="action" value="goto">',
             u'<input type="text" name="target" size="30">',

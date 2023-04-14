@@ -1,4 +1,3 @@
-
 """
     MoinMoin - RecentChanges Macro
 
@@ -7,7 +6,6 @@
     @copyright: 2000-2004 Juergen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
 """
-from past.builtins import cmp
 import time
 
 from MoinMoin import util, wikiutil
@@ -16,14 +14,15 @@ from MoinMoin.logfile import editlog
 
 _DAYS_SELECTION = [1, 2, 3, 7, 14, 30, 60, 90]
 _MAX_DAYS = 7
-_MAX_PAGENAME_LENGTH = 15 # 35
+_MAX_PAGENAME_LENGTH = 15  # 35
 _MAX_COMMENT_LENGTH = 20
 
 #############################################################################
 ### RecentChanges Macro
 #############################################################################
 
-Dependencies = ["time"] # ["user", "pages", "pageparams", "bookmark"]
+Dependencies = ["time"]  # ["user", "pages", "pageparams", "bookmark"]
+
 
 def format_comment(request, line):
     comment = line.comment
@@ -48,10 +47,11 @@ def format_comment(request, line):
 
     return wikiutil.make_breakable(comment, _MAX_COMMENT_LENGTH)
 
+
 def format_page_edits(macro, lines, bookmark_usecs):
     request = macro.request
     _ = request.getText
-    d = {} # dict for passing stuff to theme
+    d = {}  # dict for passing stuff to theme
     line = lines[0]
     pagename = line.pagename
     rev = int(line.rev)
@@ -84,7 +84,8 @@ def format_page_edits(macro, lines, bookmark_usecs):
         else:
             img = 'updated'
         img = request.theme.make_icon(img)
-        html_link = page.link_to_raw(request, img, querystr={'action': 'diff', 'date': '%d' % bookmark_usecs}, rel='nofollow')
+        html_link = page.link_to_raw(request, img, querystr={'action': 'diff', 'date': '%d' % bookmark_usecs},
+                                     rel='nofollow')
     else:
         # show "DIFF" icon else
         img = request.theme.make_icon('diffrc')
@@ -99,7 +100,7 @@ def format_page_edits(macro, lines, bookmark_usecs):
     # print time of change
     d['time_html'] = None
     if request.cfg.changed_time_fmt:
-        tdiff = (int(tnow - wikiutil.version2timestamp(int(line.ed_time_usecs))) // 60) # has to be long for py 2.2.x
+        tdiff = (int(tnow - wikiutil.version2timestamp(int(line.ed_time_usecs))) // 60)  # has to be long for py 2.2.x
         if tdiff < 100:
             d['time_html'] = _("%(mins)dm ago") % {
                 'mins': tdiff}
@@ -115,13 +116,12 @@ def format_page_edits(macro, lines, bookmark_usecs):
                 name = lines[idx].getEditor(request)
                 if not name in counters:
                     counters[name] = []
-                counters[name].append(idx+1)
+                counters[name].append(idx + 1)
             poslist = [(v, k) for k, v in list(counters.items())]
             poslist.sort()
             d['editors'] = []
             for positions, name in poslist:
-                d['editors'].append("%s&nbsp;[%s]" % (
-                    name, util.rangelist(positions)))
+                d['editors'].append("%s&nbsp;[%s]" % (name, util.rangelist(positions)))
         else:
             d['editors'] = [line.getEditor(request)]
 
@@ -129,7 +129,7 @@ def format_page_edits(macro, lines, bookmark_usecs):
     for idx in range(len(lines)):
         comment = format_comment(request, lines[idx])
         if comment:
-            comments.append((idx+1, wikiutil.escape(comment)))
+            comments.append((idx + 1, wikiutil.escape(comment)))
 
     d['changecount'] = len(lines)
     d['comments'] = comments
@@ -261,11 +261,13 @@ def macro_RecentChanges(macro, abandoned=False):
             currentBookmark = wikiutil.version2timestamp(bookmark_usecs)
             currentBookmark = user.getFormattedDateTime(currentBookmark)
             currentBookmark = _('(currently set to %s)') % currentBookmark
-            deleteBookmark = page.link_to(request, _("Delete bookmark"), querystr={'action': 'bookmark', 'time': 'del'}, rel='nofollow')
+            deleteBookmark = page.link_to(request, _("Delete bookmark"), querystr={'action': 'bookmark', 'time': 'del'},
+                                          rel='nofollow')
             d['rc_curr_bookmark'] = currentBookmark + ' ' + deleteBookmark
 
         version = wikiutil.timestamp2version(tnow)
-        d['rc_update_bookmark'] = page.link_to(request, _("Set bookmark"), querystr={'action': 'bookmark', 'time': '%d' % version}, rel='nofollow')
+        d['rc_update_bookmark'] = page.link_to(request, _("Set bookmark"),
+                                               querystr={'action': 'bookmark', 'time': '%d' % version}, rel='nofollow')
 
     # set max size in days
     max_days = min(int(request.request.values.get('max_days', 0)), _DAYS_SELECTION[-1])
@@ -307,7 +309,9 @@ def macro_RecentChanges(macro, abandoned=False):
 
             if request.user.valid:
                 bmtime = pages[0][0].ed_time_usecs
-                d['bookmark_link_html'] = page.link_to(request, _("Set bookmark"), querystr={'action': 'bookmark', 'time': '%d' % bmtime}, rel='nofollow')
+                d['bookmark_link_html'] = page.link_to(request, _("Set bookmark"),
+                                                       querystr={'action': 'bookmark', 'time': '%d' % bmtime},
+                                                       rel='nofollow')
             else:
                 d['bookmark_link_html'] = None
             d['date'] = request.user.getFormattedDate(wikiutil.version2timestamp(pages[0][0].ed_time_usecs))
@@ -347,7 +351,9 @@ def macro_RecentChanges(macro, abandoned=False):
 
             if request.user.valid:
                 bmtime = pages[0][0].ed_time_usecs
-                d['bookmark_link_html'] = page.link_to(request, _("Set bookmark"), querystr={'action': 'bookmark', 'time': '%d' % bmtime}, rel='nofollow')
+                d['bookmark_link_html'] = page.link_to(request, _("Set bookmark"),
+                                                       querystr={'action': 'bookmark', 'time': '%d' % bmtime},
+                                                       rel='nofollow')
             else:
                 d['bookmark_link_html'] = None
             d['date'] = request.user.getFormattedDate(wikiutil.version2timestamp(pages[0][0].ed_time_usecs))
@@ -356,10 +362,7 @@ def macro_RecentChanges(macro, abandoned=False):
             for p in pages:
                 output.append(format_page_edits(macro, p, bookmark_usecs))
 
-
     d['rc_msg'] = msg
     output.append(request.theme.recentchanges_footer(d))
 
     return ''.join(output)
-
-
