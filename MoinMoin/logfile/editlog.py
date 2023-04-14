@@ -26,6 +26,7 @@ from MoinMoin.logfile import LogFile
 
 logging = log.getLogger(__name__)
 
+
 class EditLogLine:
     """
     Has the following attributes
@@ -43,11 +44,11 @@ class EditLogLine:
     def __init__(self, usercache):
         self._usercache = usercache
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         try:
-            return cmp(self.ed_time_usecs, other.ed_time_usecs)
+            return self.ed_time_usecs < other.ed_time_usecs
         except AttributeError:
-            return cmp(self.ed_time_usecs, other)
+            return self.ed_time_usecs < other
 
     def is_from_current_user(self, request):
         user = request.user

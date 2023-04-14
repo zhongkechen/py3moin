@@ -139,8 +139,6 @@ def format_page_edits(macro, lines, bookmark_usecs):
 
     return request.theme.recentchanges_entry(d)
 
-def cmp_lines(first, second):
-    return cmp(first[0], second[0])
 
 def print_abandoned(macro):
     request = macro.request
@@ -270,7 +268,7 @@ def macro_RecentChanges(macro, abandoned=False):
         d['rc_update_bookmark'] = page.link_to(request, _("Set bookmark"), querystr={'action': 'bookmark', 'time': '%d' % version}, rel='nofollow')
 
     # set max size in days
-    max_days = min(int(request.values.get('max_days', 0)), _DAYS_SELECTION[-1])
+    max_days = min(int(request.request.values.get('max_days', 0)), _DAYS_SELECTION[-1])
     # default to _MAX_DAYS for useres without bookmark
     if not max_days and not bookmark_usecs:
         max_days = _MAX_DAYS
@@ -300,14 +298,12 @@ def macro_RecentChanges(macro, abandoned=False):
         day = line.time_tuple[0:3]
         hilite = line.ed_time_usecs > (bookmark_usecs or line.ed_time_usecs)
 
-        if ((this_day != day or (not hilite and not max_days))) and len(pages) > 0:
+        if (this_day != day or (not hilite and not max_days)) and len(pages) > 0:
             # new day or bookmark reached: print out stuff
             this_day = day
             for p in pages:
                 ignore_pages[p] = None
-            pages = list(pages.values())
-            pages.sort(cmp_lines)
-            pages.reverse()
+            pages = sorted(pages.values(), key=lambda i: i[0], reverse=True)
 
             if request.user.valid:
                 bmtime = pages[0][0].ed_time_usecs
@@ -347,9 +343,7 @@ def macro_RecentChanges(macro, abandoned=False):
             # but above does not trigger if we have the first day in wiki history
             for p in pages:
                 ignore_pages[p] = None
-            pages = list(pages.values())
-            pages.sort(cmp_lines)
-            pages.reverse()
+            pages = sorted(pages.values(), lambda i: i[0], reverse=True)
 
             if request.user.valid:
                 bmtime = pages[0][0].ed_time_usecs
