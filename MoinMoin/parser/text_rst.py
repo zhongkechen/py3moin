@@ -33,7 +33,7 @@ class dummyIO(io.StringIO):
                  handle_io_errors=1, source_path=None):
         io.StringIO.__init__(self)
 
-class dummyUrllib2(object):
+class dummyUrllib2:
     def urlopen(a):
         return io.StringIO()
     urlopen = staticmethod(urlopen)
@@ -53,7 +53,7 @@ try:
 except ImportError:
     # we need to workaround this totally broken plugin interface that does
     # not allow us to raise exceptions
-    class ErrorParser(object):
+    class ErrorParser:
         caching = 0
         Dependencies = Dependencies # copy dependencies from module-scope
 
@@ -170,7 +170,7 @@ class MoinWriter(html4css1.Writer):
 # mark quickhelp as translatable
 _ = lambda x: x
 
-class Parser(object):
+class Parser:
     caching = 1
     Dependencies = Dependencies # copy dependencies from module-scope
     extensions = ['.rst', '.rest', ]
@@ -535,7 +535,7 @@ class MoinTranslator(html4css1.HTMLTranslator):
             setattr(self, 'depart_%s' % (adm), depart_func)
 
 
-class MoinDirectives(object):
+class MoinDirectives:
     """
         Class to handle all custom directive handling. This code is called as
         part of the parsing stage.

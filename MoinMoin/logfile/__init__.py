@@ -25,7 +25,7 @@ class LogMissing(LogError):
     """ Raised when the log is missing """
 
 
-class LineBuffer(object):
+class LineBuffer:
     """
     Reads lines from a file
         self.len      number of lines in self.lines
@@ -84,7 +84,7 @@ class LineBuffer(object):
         self.lines = [str(line.rstrip(b'\n'), config.charset) for line in lines]
 
 
-class LogFile(object):
+class LogFile:
     """
     .filter: function that gets the values from .parser.
              must return True to keep it or False to remove it

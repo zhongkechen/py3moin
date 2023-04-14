@@ -43,7 +43,7 @@ from MoinMoin import caching
 
 logging_tearline = '- XMLRPC %s ' + '-' * 40
 
-class XmlRpcBase(object):
+class XmlRpcBase:
     """
     XMLRPC base class with common functionality of wiki xmlrpc v1 and v2
     """

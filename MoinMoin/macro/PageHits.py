@@ -12,7 +12,7 @@ from MoinMoin.Page import Page
 from MoinMoin.logfile import eventlog
 
 
-class PageHits(object):
+class PageHits:
 
     def __init__(self, macro):
         self.macro = macro

@@ -1,4 +1,3 @@
-
 """
 MoinMoin - check / process user accounts
 
@@ -6,6 +5,10 @@ MoinMoin - check / process user accounts
 @license: GNU GPL, see COPYING for details.
 """
 
+import sys
+
+from MoinMoin import user, wikiutil
+from MoinMoin.script import MoinScript
 
 # ----------------------------------------------------------------------------
 # if a user subscribes to magicpages, it means that he wants to keep
@@ -17,10 +20,6 @@ magicpages = [
 
 # ----------------------------------------------------------------------------
 
-import os, sys
-
-from MoinMoin.script import MoinScript
-from MoinMoin import user, wikiutil
 
 class PluginScript(MoinScript):
     """\
@@ -75,31 +74,31 @@ General syntax: moin [options] account check [check-options]
     def __init__(self, argv, def_values):
         MoinScript.__init__(self, argv, def_values)
         self._addFlag("usersunique",
-            "Makes user names unique (by appending the ID to"
-            " name and email, disabling subscribed pages and"
-            " disabling all, but the latest saved user account);"
-            " default is to SHOW what will be happening, you"
-            " need to give the --save option to really do it."
-        )
+                      "Makes user names unique (by appending the ID to"
+                      " name and email, disabling subscribed pages and"
+                      " disabling all, but the latest saved user account);"
+                      " default is to SHOW what will be happening, you"
+                      " need to give the --save option to really do it."
+                      )
         self._addFlag("emailsunique",
-            "Makes user emails unique;"
-            " default is to show, use --save to save it."
-        )
+                      "Makes user emails unique;"
+                      " default is to show, use --save to save it."
+                      )
         self._addFlag("wikinames",
-            "Convert user account names to wikinames (camel-case)."
-        )
+                      "Convert user account names to wikinames (camel-case)."
+                      )
         self._addFlag("save",
-            "If specified as LAST option, will allow the other"
-            " options to save user accounts back to disk."
-            " If not specified, no settings will be changed permanently."
-        )
+                      "If specified as LAST option, will allow the other"
+                      " options to save user accounts back to disk."
+                      " If not specified, no settings will be changed permanently."
+                      )
         self._addFlag("removepasswords",
-            "Remove pre-1.1 cleartext passwords from accounts."
-        )
+                      "Remove pre-1.1 cleartext passwords from accounts."
+                      )
 
     def _addFlag(self, name, help):
         self.parser.add_option("--" + name,
-            action="store_true", dest=name, default=0, help=help)
+                               action="store_true", dest=name, default=0, help=help)
 
     def collect_data(self):
         import re
@@ -135,13 +134,13 @@ General syntax: moin [options] account check [check-options]
         keepthis = self.hasmagicpage(uid)
         if keepthis:
             print("- keeping (magicpage)!")
-            u.save() # update timestamp, so this will be latest next run
-        elif not u.disabled: # only disable once
+            u.save()  # update timestamp, so this will be latest next run
+        elif not u.disabled:  # only disable once
             u.disabled = 1
             u.name = "%s-%s" % (u.name, uid)
             if u.email:
                 u.email = "%s-%s" % (u.email, uid)
-            u.subscribed_pages = "" # avoid using email
+            u.subscribed_pages = ""  # avoid using email
             if self.options.save:
                 u.save()
                 print("- disabled.")
@@ -149,7 +148,7 @@ General syntax: moin [options] account check [check-options]
                 print("- would be disabled.")
 
     def getsortvalue(self, uid, user):
-        return float(user.last_saved) # when user did last SAVE of his account data
+        return float(user.last_saved)  # when user did last SAVE of his account data
 
     def process(self, uidlist):
         sortlist = []
@@ -157,14 +156,15 @@ General syntax: moin [options] account check [check-options]
             u = self.users[uid]
             sortlist.append((self.getsortvalue(uid, u), uid))
         sortlist.sort()
-        #print sortlist
+        # print sortlist
         # disable all, but the last/latest one
         for dummy, uid in sortlist[:-1]:
             self.disableUser(uid)
         # show what will be kept
         uid = sortlist[-1][1]
         u = self.users[uid]
-        print(" %-20s %-30r %-35r - keeping%s!" % (uid, u.name, u.email, self.hasmagicpage(uid) and " (magicpage)" or ""))
+        print(
+            " %-20s %-30r %-35r - keeping%s!" % (uid, u.name, u.email, self.hasmagicpage(uid) and " (magicpage)" or ""))
 
     def make_users_unique(self):
         for name, uids in list(self.names.items()):
@@ -209,9 +209,9 @@ General syntax: moin [options] account check [check-options]
 
         # check for correct option combination
         flags_given = (self.options.usersunique
-                    or self.options.emailsunique
-                    or self.options.wikinames
-                    or self.options.removepasswords)
+                       or self.options.emailsunique
+                       or self.options.wikinames
+                       or self.options.removepasswords)
 
         # no option given ==> show usage
         if not flags_given:
@@ -220,10 +220,10 @@ General syntax: moin [options] account check [check-options]
 
         self.init_request()
 
-        self.users = {} # uid : UserObject
-        self.names = {} # name : [uid, uid, uid]
-        self.emails = {} # email : [uid, uid, uid]
-        self.uids_noemail = {} # uid : name
+        self.users = {}  # uid : UserObject
+        self.names = {}  # name : [uid, uid, uid]
+        self.emails = {}  # email : [uid, uid, uid]
+        self.uids_noemail = {}  # uid : name
 
         self.collect_data()
         if self.options.usersunique:
@@ -234,4 +234,3 @@ General syntax: moin [options] account check [check-options]
             self.make_WikiNames()
         if self.options.removepasswords:
             self.remove_passwords()
-

@@ -932,7 +932,7 @@ class Formatter(FormatterBase):
                 self.cur = self.curtable.addCell()
         return ""
 
-class Table(object):
+class Table:
     '''The Table class is used as a helper for collecting information about
     what kind of table we are building. When all relelvant data is gathered
     it calculates the different spans of the cells and columns.

@@ -72,7 +72,7 @@ def init(request):
 
 
 def run(context):
-    """ Run a context trough the application. """
+    """ Run a context through the application. """
     context.clock.start('run')
     request = context.request
 
@@ -258,7 +258,7 @@ def setup_i18n_postauth(context):
     return lang
 
 
-class Application(object):
+class Application:
     def __init__(self, app_config=None):
 
         class AppRequest(Request):

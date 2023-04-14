@@ -146,7 +146,7 @@ def bot_translations(request):
     return translations
 
 
-class Translation(object):
+class Translation:
     """ This class represents a translation. Usually this is a translation
         from English original texts to a single language, like e.g. "de" (german).
 

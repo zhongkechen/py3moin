@@ -46,7 +46,7 @@ def convertToXmlAttribute(value):
 		value = ""
 	return escape(value)
 
-class BaseHttpMixin(object):
+class BaseHttpMixin:
 	def setHttpHeaders(self, content_type='text/xml'):
 		"Purpose: to prepare the headers for the xml to return"
 		# Prevent the browser from caching the result.
@@ -64,7 +64,7 @@ class BaseHttpMixin(object):
 		self.setHeader( 'Content-Type', content_type + '; charset=utf-8' )
 		return
 
-class BaseXmlMixin(object):
+class BaseXmlMixin:
 	def createXmlHeader(self, command, resourceType, currentFolder, url):
 		"Purpose: returns the xml header"
 		self.setHttpHeaders()
@@ -100,7 +100,7 @@ class BaseXmlMixin(object):
 		else:
 			return """<Error number="%s" text="%s" />""" % (number, convertToXmlAttribute(text))
 
-class BaseHtmlMixin(object):
+class BaseHtmlMixin:
 	def sendUploadResults( self, errorNo = 0, fileUrl = '', fileName = '', customMsg = '' ):
 		self.setHttpHeaders("text/html")
 		"This is the function that sends the results of the uploading process"

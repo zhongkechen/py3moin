@@ -27,7 +27,7 @@ class Error(error.Error):
 # This could be delivered in a separate plugin, but
 # it is more convenient to have everything in one module.
 
-class WikiSlideParser(object):
+class WikiSlideParser:
     """ Parse slides using wiki format
 
     Typical usage::
@@ -141,7 +141,7 @@ class SlidePage(Page):
         return Parser()
 
 
-class SlideshowAction(object):
+class SlideshowAction:
 
     name = 'SlideShow'
     maxSlideLinks = 15

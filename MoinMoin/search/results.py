@@ -21,7 +21,7 @@ from MoinMoin.Page import Page
 ############################################################################
 
 
-class Match(object):
+class Match:
     """ Base class for all Matches (found pieces of pages).
 
     This class represents an empty True value as returned from negated searches.
@@ -94,7 +94,7 @@ class AttachmentMatch(Match):
     pass
 
 
-class FoundPage(object):
+class FoundPage:
     """ Represents a page in a search result """
 
     def __init__(self, page_name, matches=None, page=None, rev=0):
@@ -230,7 +230,7 @@ class FoundRemote(FoundPage):
 ############################################################################
 
 
-class SearchResults(object):
+class SearchResults:
     """ Manage search results, supply different views
 
     Search results can hold valid search results and format them for

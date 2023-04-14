@@ -20,7 +20,7 @@ Dependencies = ['user'] # {{{#!wiki comment ... }}} has different output dependi
 
 _ = lambda x: x
 
-class Parser(object):
+class Parser:
     """
         Parse wiki format markup (and call the formatter to generate output).
 

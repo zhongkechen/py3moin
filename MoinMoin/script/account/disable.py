@@ -1,4 +1,3 @@
-
 """
 MoinMoin - disable a user account
 
@@ -6,8 +5,8 @@ MoinMoin - disable a user account
 @license: GNU GPL, see COPYING for details.
 """
 
-
 from MoinMoin.script import MoinScript
+
 
 class PluginScript(MoinScript):
     """\
@@ -69,12 +68,12 @@ General syntax: moin [options] account disable [disable-options]
             return
 
         print(" %-20s %-25s %-35s" % (u.id, u.name, u.email), end=' ')
-        if not u.disabled: # only disable once
+        if not u.disabled:  # only disable once
             u.disabled = 1
             u.name = "%s-%s" % (u.name, u.id)
             if u.email:
                 u.email = "%s-%s" % (u.email, u.id)
-            u.subscribed_pages = "" # avoid using email
+            u.subscribed_pages = ""  # avoid using email
             u.save()
             print("- disabled.")
         else:

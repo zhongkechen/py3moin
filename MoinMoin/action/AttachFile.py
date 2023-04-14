@@ -782,7 +782,7 @@ def _do_upload(pagename, request):
     upload_form(pagename, request, msg)
 
 
-class ContainerItem(object):
+class ContainerItem:
     """ A storage container (multiple objects in 1 tarfile) """
 
     def __init__(self, request, pagename, containername):

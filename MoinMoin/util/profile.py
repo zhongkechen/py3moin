@@ -42,7 +42,7 @@ import os
 import time
 
 
-class Profiler(object):
+class Profiler:
     """ Profile memory usage
 
     Profiler count requests and sample memory usage.

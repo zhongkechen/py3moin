@@ -16,7 +16,7 @@ from io import StringIO
 from MoinMoin.logfile import LogFile
 
 
-class TestLogFile(object):
+class TestLogFile:
     """ testing logfile reading/writing """
     # mtime rev action pagename host hostname user_id extra comment
     LOG = [

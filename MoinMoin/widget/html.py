@@ -16,7 +16,7 @@ _SORT_ATTRS = 0
 ### Base Classes
 #############################################################################
 
-class Text(object):
+class Text:
     """ A text node which will be escaped.
     """
     def __init__(self, text):
@@ -26,7 +26,7 @@ class Text(object):
         return wikiutil.escape(self.text)
 
 
-class Raw(object):
+class Raw:
     """ Raw HTML code.
     """
     def __init__(self, markup):
@@ -36,7 +36,7 @@ class Raw(object):
         return self.markup
 
 
-class Element(object):
+class Element:
     """ Abstract base class for HTML elements.
     """
 

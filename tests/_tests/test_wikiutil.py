@@ -14,7 +14,7 @@ from MoinMoin import config, wikiutil
 from werkzeug.datastructures import MultiDict
 
 
-class TestQueryStringSupport(object):
+class TestQueryStringSupport:
     tests = [
         ('', {}, {}),
         ('key1=value1', {'key1': b'value1'}, {'key1': u'value1'}),
@@ -33,7 +33,7 @@ class TestQueryStringSupport(object):
             assert wikiutil.parseQueryString(wikiutil.makeQueryString(in_str)) == MultiDict(in_unicode)
 
 
-class TestTickets(object):
+class TestTickets:
     def testTickets(self, req):
         from MoinMoin.Page import Page
         # page name with double quotes
@@ -54,7 +54,7 @@ class TestTickets(object):
         assert ticket2 != ticket3
 
 
-class TestCleanInput(object):
+class TestCleanInput:
     def testCleanInput(self):
         tests = [(u"", u""), # empty
                  (u"aaa\r\n\tbbb", u"aaa   bbb"), # ws chars -> blanks
@@ -65,7 +65,7 @@ class TestCleanInput(object):
             assert wikiutil.clean_input(instr) == outstr
 
 
-class TestInterWiki(object):
+class TestInterWiki:
     def testSplitWiki(self):
         tests = [('SomePage', ('Self', 'SomePage')),
                  ('OtherWiki:OtherPage', ('OtherWiki', 'OtherPage')),
@@ -86,7 +86,7 @@ class TestInterWiki(object):
             assert wikiutil.join_wiki(baseurl, pagename) == url
 
 
-class TestSystemPage(object):
+class TestSystemPage:
     systemPages = (
         'RecentChanges',
         'TitleIndex',
@@ -103,7 +103,7 @@ class TestSystemPage(object):
             assert not  wikiutil.isSystemPage(req, name)
 
 
-class TestTemplatePage(object):
+class TestTemplatePage:
     good = (
         'aTemplate',
         'MyTemplate',
@@ -124,7 +124,7 @@ class TestTemplatePage(object):
             assert not wikiutil.isTemplatePage(req, name)
 
 
-class TestParmeterParser(object):
+class TestParmeterParser:
 
     def testParameterParser(self):
         tests = [
@@ -204,7 +204,7 @@ class TestParmeterParser(object):
         pytest.raises(ValueError, argParser.parse_parameters, args)
 
 
-class TestParamParsing(object):
+class TestParamParsing:
     def testMacroArgs(self):
         abcd = [u'a', u'b', u'c', u'd']
         abcd_dict = {u'a': u'1', u'b': u'2', u'c': u'3', u'd': u'4'}
@@ -513,7 +513,7 @@ class TestParamParsing(object):
         for test in tests:
             yield [_check] + list(test)
 
-class TestArgGetters(object):
+class TestArgGetters:
     def testGetBoolean(self, req):
         tests = [
             # default testing for None value
@@ -700,7 +700,7 @@ class TestArgGetters(object):
         pytest.raises(TypeError, wikiutil.get_unicode, req, {})
 
 
-class TestExtensionInvoking(object):
+class TestExtensionInvoking:
     def _test_invoke_bool(self, b=bool):
         assert b is False
 
@@ -815,7 +815,7 @@ class TestExtensionInvoking(object):
         ief = wikiutil.invoke_extension_function
 
         # new style class
-        class TEST1(object):
+        class TEST1:
             def __init__(self, a=int):
                 self.constructed = True
                 assert a == 7
@@ -835,7 +835,7 @@ class TestExtensionInvoking(object):
         pytest.raises(ValueError, ief, req, TEST2, u'b')
 
         # old style class
-        class TEST3(object):
+        class TEST3:
             def __init__(self, a=int):
                 self.constructed = True
                 assert a == 7
@@ -900,7 +900,7 @@ class TestExtensionInvoking(object):
         assert ief(req, has_complex, u'b=2.007', [2.007])
 
 
-class TestAnchorNames(object):
+class TestAnchorNames:
     def test_anchor_name_encoding(self):
         tests = [
             # text                    expected output
@@ -920,7 +920,7 @@ class TestAnchorNames(object):
         encoded = wikiutil.anchor_name_from_text(text)
         assert expected == encoded
 
-class TestPageLinkMarkup(object):
+class TestPageLinkMarkup:
     def test_pagelinkmarkup(self):
         tests = [
             # pagename (no link text), expected markup
@@ -940,7 +940,7 @@ class TestPageLinkMarkup(object):
     def _check(self, params, expected):
         assert expected == wikiutil.pagelinkmarkup(*params)
 
-class TestRelativeTools(object):
+class TestRelativeTools:
     tests = [
         # test                      expected output
         # CHILD_PREFIX
@@ -969,7 +969,7 @@ class TestRelativeTools(object):
         assert relative_page == wikiutil.RelPageName(current_page, absolute_page)
 
 
-class TestNormalizePagename(object):
+class TestNormalizePagename:
 
     def testPageInvalidChars(self, req):
         """ request: normalize pagename: remove invalid unicode chars
@@ -1026,7 +1026,7 @@ class TestNormalizePagename(object):
             result = wikiutil.normalize_pagename(test, req.cfg)
             assert result == expected
 
-class TestGroupPages(object):
+class TestGroupPages:
 
     def testNormalizeGroupName(self, req):
         """ request: normalize pagename: restrict groups to alpha numeric Unicode
@@ -1045,7 +1045,7 @@ class TestGroupPages(object):
                 result = wikiutil.normalize_pagename(test, req.cfg)
                 assert result == expected
 
-class TestVersion(object):
+class TestVersion:
     def test_Version(self):
         Version = wikiutil.Version
         # test properties

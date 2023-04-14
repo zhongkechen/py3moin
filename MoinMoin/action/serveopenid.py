@@ -23,7 +23,7 @@ from MoinMoin.widget import html
 def execute(pagename, request):
     return MoinOpenIDServer(pagename, request).handle()
 
-class MoinOpenIDServer(object):
+class MoinOpenIDServer:
     def __init__(self, pagename, request):
         self.request = request
         self._ = request.getText

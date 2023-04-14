@@ -26,7 +26,7 @@ from MoinMoin.logfile import LogFile
 
 logging = log.getLogger(__name__)
 
-class EditLogLine(object):
+class EditLogLine:
     """
     Has the following attributes
 

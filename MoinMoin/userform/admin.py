@@ -31,7 +31,7 @@ def do_user_browser(request):
         Column('action', label=_('Action')),
     ]
 
-    class UserAccount(object):
+    class UserAccount:
         # namedtuple is >= 2.6 :-(
         def __init__(self, **kw):
             for k, v in list(kw.items()):

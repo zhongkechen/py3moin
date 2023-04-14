@@ -15,7 +15,7 @@ import MoinMoin.parser
 from MoinMoin.Page import Page
 
 
-class TestParserOutput(object):
+class TestParserOutput:
     """ Parser has to generate unicode output. """
     def test_ParserOutput(self, req):
         """ This method aims generally at MoinMoin.parser.text_xslt -

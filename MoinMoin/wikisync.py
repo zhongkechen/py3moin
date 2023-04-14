@@ -45,7 +45,7 @@ class NotAllowedException(Exception):
     pass
 
 
-class SyncPage(object):
+class SyncPage:
     """ This class represents a page in one or two wiki(s). """
     def __init__(self, name, local_rev=None, remote_rev=None, local_name=None, remote_name=None,
                  local_deleted=False, remote_deleted=False):
@@ -137,7 +137,7 @@ class SyncPage(object):
         return self.local_rev and self.remote_rev
 
 
-class RemoteWiki(object):
+class RemoteWiki:
     """ This class should be the base for all implementations of remote wiki
         classes. """
 
@@ -371,7 +371,7 @@ class MoinLocalWiki(RemoteWiki):
 # ------------------ Tags ------------------
 
 
-class Tag(object):
+class Tag:
     """ This class is used to store information about merging state. """
 
     def __init__(self, remote_wiki, remote_rev, current_rev, direction, normalised_name):
@@ -400,7 +400,7 @@ class Tag(object):
         return cmp(self.current_rev, other.current_rev)
 
 
-class AbstractTagStore(object):
+class AbstractTagStore:
     """ This class is an abstract base class that shows how to implement classes
         that manage the storage of tags. """
 

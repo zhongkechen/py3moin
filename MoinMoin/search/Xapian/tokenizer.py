@@ -14,7 +14,7 @@ from MoinMoin.parser.text_moin_wiki import Parser as WikiParser
 from MoinMoin import config
 
 
-class WikiAnalyzer(object):
+class WikiAnalyzer:
     """ A text analyzer for wiki syntax
 
     The purpose of this class is to analyze texts/pages in wiki syntax

@@ -25,7 +25,7 @@ import sys, xml
 rss_supported = True
 
 
-class ThemeBase(object):
+class ThemeBase:
     """ Base class for themes
 
     This class supply all the standard template that sub classes can

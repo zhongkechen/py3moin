@@ -10,7 +10,7 @@
 
 DOC_TYPE = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">'
 
-class TestApplication(object):
+class TestApplication:
     # self.client is made by conftest
 
     # These should exist

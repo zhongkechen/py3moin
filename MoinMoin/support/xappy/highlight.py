@@ -23,7 +23,7 @@ __docformat__ = "restructuredtext en"
 import re
 import xapian
 
-class Highlighter(object):
+class Highlighter:
     """Class for highlighting text and creating contextual summaries.
 
     >>> hl = Highlighter("en")

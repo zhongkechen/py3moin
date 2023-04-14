@@ -116,7 +116,7 @@ def _act_index_freetext(fieldname, doc, value, context, weight=1,
     termgen.increase_termpos(10)
     context.current_position = termgen.get_termpos()
 
-class SortableMarshaller(object):
+class SortableMarshaller:
     """Implementation of marshalling for sortable values.
 
     """
@@ -185,7 +185,7 @@ def _act_sort_and_collapse(fieldname, doc, value, context, type=None):
     value = fn(fieldname, value)
     doc.add_value(fieldname, value, 'collsort')
 
-class ActionContext(object):
+class ActionContext:
     """The context in which an action is performed.
 
     This is just used to pass term generators, word positions, and the like
@@ -197,7 +197,7 @@ class ActionContext(object):
         self.current_position = 0
         self.index = index
 
-class FieldActions(object):
+class FieldActions:
     """An object describing the actions to be performed on a field.
 
     The supported actions are:

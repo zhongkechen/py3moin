@@ -13,7 +13,7 @@ from MoinMoin import log
 logging = log.getLogger(__name__)
 
 
-class FrontEnd(object):
+class FrontEnd:
     def __init__(self):
         self.parser = optparse.OptionParser()
         self.add_options()

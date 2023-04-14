@@ -170,7 +170,7 @@ def get_multistage_continuation_url(request, auth_name, extra_fields={}):
         logging.debug("request.abs_href: " + request.abs_href(**fields))
         return request.abs_href(**fields)
 
-class LoginReturn(object):
+class LoginReturn:
     """ LoginReturn - base class for auth method login() return value"""
     def __init__(self, user_obj, continue_flag, message=None, multistage=None,
                  redirect_to=None):
@@ -201,7 +201,7 @@ class MultistageRedirectLogin(LoginReturn):
         LoginReturn.__init__(self, None, False, redirect_to=url)
 
 
-class BaseAuth(object):
+class BaseAuth:
     name = None
     login_inputs = []
     logout_possible = False

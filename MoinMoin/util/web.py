@@ -63,7 +63,7 @@ def makeMultiSelection(name, values, selectedvals=None, size=5, enabled=True):
 
     return result
 
-class Color(object):
+class Color:
     """ RGB-Triple that automatically converts from and to
         "#RRGGBB" encoding, and also takes Netscape color names.
 

@@ -6,7 +6,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-class EditedSystemPages(object):
+class EditedSystemPages:
 
     def __init__(self, macro):
         self.macro = macro

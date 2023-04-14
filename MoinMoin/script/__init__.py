@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Extension Script Package
 
@@ -7,17 +6,17 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
-
-
-import os, sys, time
+import os
+import sys
+import time
 from io import StringIO
 
 flag_quiet = 0
 
+
 # ScriptRequest -----------------------------------------------------------
 
-class ScriptRequest(object):
+class ScriptRequest:
     """this is for scripts (MoinMoin/script/*) running from the commandline (CLI)
        or from the xmlrpc server (triggered by a remote xmlrpc client).
 
@@ -27,6 +26,7 @@ class ScriptRequest(object):
        xmlrpc "channel", but scriptrequest.write needs to write to some buffer we
        transmit later as an xmlrpc function return value.
     """
+
     def __init__(self, instream, outstream, errstream):
         self.instream = instream
         self.outstream = outstream
@@ -46,10 +46,11 @@ class ScriptRequest(object):
         self.errstream.write(data)
 
 
-class ScriptRequestCLI(ScriptRequest):
+class ScriptRequestCLI:
     """ When a script runs directly on the shell, we just use the CLI request
         object (see MoinMoin.request.request_cli) to do I/O (which will use stdin/out/err).
     """
+
     def __init__(self, request):
         self.request = request
 
@@ -60,16 +61,16 @@ class ScriptRequestCLI(ScriptRequest):
         return self.request.write(data)
 
     def write_err(self, data):
-        return self.request.write(data) # XXX use correct request method - log, error, whatever.
+        return self.request.write(data)  # XXX use correct request method - log, error, whatever.
+
 
 class ScriptRequestStrings(ScriptRequest):
     """ When a script gets run by our xmlrpc server, we have the input as a
         string and we also need to catch the output / error output as strings.
     """
+
     def __init__(self, instr):
-        self.instream = StringIO(instr)
-        self.outstream = StringIO()
-        self.errstream = StringIO()
+        super().__init__(StringIO(instr), StringIO(), StringIO())
 
     def fetch_output(self):
         outstr = self.outstream.get_value()
@@ -95,9 +96,9 @@ def log(msgtext):
 
 # Commandline Support --------------------------------------------------------
 
-class Script(object):
+class Script:
     def __init__(self, cmd, usage, argv=None, def_values=None):
-        #print "argv:", argv, "def_values:", repr(def_values)
+        # print "argv:", argv, "def_values:", repr(def_values)
         if argv is None:
             self.argv = sys.argv[1:]
         else:
@@ -151,14 +152,17 @@ class Script(object):
     def logRuntime(self):
         """ Print the total command run time. """
         if self.options.show_timing:
-            log("Needed %.3f secs." % (time.process_time() - _start_time, ))
+            log("Needed %.3f secs." % (time.process_time() - _start_time,))
+
+    def mainloop(self):
+        raise NotImplemented
 
 
 class MoinScript(Script):
     """ Moin main script class """
 
     def __init__(self, argv=None, def_values=None):
-        Script.__init__(self, "moin", "[general options] command subcommand [specific options]", argv, def_values)
+        super().__init__("moin", "[general options] command subcommand [specific options]", argv, def_values)
         # those are options potentially useful for all sub-commands:
         self.parser.add_option(
             "--config-dir", metavar="DIR", dest="config_dir",
@@ -173,6 +177,7 @@ class MoinScript(Script):
             "--page", dest="page", default='',
             help="wiki page name [default: all pages]"
         )
+        self.request = None
 
     def _update_option_help(self, opt_string, help_msg):
         """ Update the help string of an option. """
@@ -249,13 +254,15 @@ Specific options:
         if cmd_module == '...':
             # our docs usually tell to use moin ... cmd_module cmd_name
             # if somebody enters the ... verbatim, tell him how to do it right:
-            fatal("Wrong invokation. Please do not enter ... verbatim, but give --config-dir and --wiki-url options (see help for more details).")
+            fatal(
+                "Wrong invokation. Please do not enter ... verbatim, but give --config-dir and --wiki-url options (see help for more details).")
 
         from MoinMoin import wikiutil
         try:
             plugin_class = wikiutil.importBuiltinPlugin('script.%s' % cmd_module, cmd_name, 'PluginScript')
         except wikiutil.PluginMissingError:
             fatal("Command plugin %r, command %r was not found." % (cmd_module, cmd_name))
+            return
 
         # We have to use the args list here instead of optparse, as optparse only
         # deals with things coming before command subcommand.
@@ -266,5 +273,4 @@ Specific options:
             print("=======================")
             plugin_class(args[2:], self.options).parser.print_help()
         else:
-            plugin_class(args[2:], self.options).run() # all starts again there
-
+            plugin_class(args[2:], self.options).run()  # all starts again there

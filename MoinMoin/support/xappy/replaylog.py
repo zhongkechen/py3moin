@@ -36,7 +36,7 @@ _replay_log = None
 # True if a replay log has ever been in use since import time.
 _had_replay_log = False
 
-class NotifyingDeleteObject(object):
+class NotifyingDeleteObject:
     """An wrapping for an object which calls a callback when its deleted.
 
     Note that the callback will be called from a __del__ method, so shouldn't
@@ -51,7 +51,7 @@ class NotifyingDeleteObject(object):
     def __del__(self):
         self.callback(self.obj)
 
-class ReplayLog(object):
+class ReplayLog:
     """Log of xapian calls, to be replayed.
 
     """
@@ -323,7 +323,7 @@ class ReplayLog(object):
         """
         self._log('DEL:#%d\n' % num)
 
-class LoggedProxy(object):
+class LoggedProxy:
     """A proxy for a xapian object, which logs all calls made on the object.
 
     """
@@ -355,7 +355,7 @@ class LoggedProxy(object):
         obj = object.__getattribute__(self, '_LoggedProxy__obj')
         return obj.__str__()
 
-class LoggedProxyMethod(object):
+class LoggedProxyMethod:
     """A proxy for a xapian method, which logs all calls made on the method.
 
     """

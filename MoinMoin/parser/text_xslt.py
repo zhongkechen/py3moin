@@ -24,7 +24,7 @@ from MoinMoin import caching, config, wikiutil, Page
 
 Dependencies = []
 
-class Parser(object):
+class Parser:
     """ Send XML file formatted via XSLT. """
     caching = 1
     Dependencies = Dependencies

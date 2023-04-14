@@ -14,7 +14,7 @@ try:
 except ImportError:
     pytest.skip('xapian is not installed', allow_module_level=True)
 
-class TestWikiAnalyzer(object):
+class TestWikiAnalyzer:
 
     word = u'HelpOnMoinTesting'
     words = {word.lower(): u'',

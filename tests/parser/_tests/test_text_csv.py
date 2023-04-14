@@ -15,7 +15,7 @@ from MoinMoin.formatter.text_html import Formatter as HtmlFormatter
 
 PAGENAME = u'ThisPageDoesNotExistsAndWillNeverBeReally'
 
-class ParserTestCase(object):
+class ParserTestCase:
     """ Helper class that provide a parsing method """
 
     def parse(self, req, body):

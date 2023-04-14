@@ -1,4 +1,3 @@
-
 """
 MoinMoin - create a user account
 
@@ -6,8 +5,8 @@ MoinMoin - create a user account
 @license: GNU GPL, see COPYING for details.
 """
 
-
 from MoinMoin.script import MoinScript
+
 
 class PluginScript(MoinScript):
     """\

@@ -71,7 +71,7 @@ def markup_converter(request, pagename, text, renames):
     return text
 
 
-class EventLog(object):
+class EventLog:
     def __init__(self, request, fname):
         self.request = request
         self.fname = fname
@@ -125,7 +125,7 @@ class EventLog(object):
         self.write(destfname)
 
 
-class EditLog(object):
+class EditLog:
     def __init__(self, request, fname):
         self.request = request
         self.fname = fname
@@ -208,7 +208,7 @@ class EditLog(object):
         self.write(destfname, deleted)
 
 
-class PageRev(object):
+class PageRev:
     """ a single revision of a page """
     def __init__(self, request, pagename, rev_dir, rev):
         self.request = request
@@ -241,7 +241,7 @@ class PageRev(object):
         self.write(data, rev_dir, convert, new_rev)
 
 
-class Attachment(object):
+class Attachment:
     """ a single attachment """
     def __init__(self, request, attach_dir, attfile):
         self.request = request
@@ -255,7 +255,7 @@ class Attachment(object):
         copy_file(self.path, dest)
 
 
-class Page(object):
+class Page:
     """ represents a page with all related data """
     def __init__(self, request, pages_dir, qpagename):
         self.request = request
@@ -367,7 +367,7 @@ class Page(object):
         self.write(pages_dir)
 
 
-class User(object):
+class User:
     """ represents a user with all related data """
     def __init__(self, request, users_dir, uid):
         self.request = request
@@ -439,7 +439,7 @@ class User(object):
         self.write(users_dir)
 
 
-class DataConverter(object):
+class DataConverter:
     def __init__(self, request, src_data_dir, dest_data_dir):
         self.request = request
         self.sdata = src_data_dir

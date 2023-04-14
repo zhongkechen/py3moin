@@ -11,7 +11,7 @@ from MoinMoin.util.dataset import TupleDataset, Column
 from MoinMoin.widget.browser import DataBrowserWidget
 
 
-class Test_DataBrowserWidget_sort_table(object):
+class Test_DataBrowserWidget_sort_table:
     @pytest.fixture(autouse=True)
     def setup_class(self, req):
         # check if state of example changes during tests

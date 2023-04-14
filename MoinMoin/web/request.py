@@ -26,7 +26,7 @@ class MoinMoinFinish(Exception):
     """ Raised to jump directly to end of run() function, where finish is called """
 
 
-class ModifiedResponseStreamMixin(object):
+class ModifiedResponseStreamMixin:
     """
     to avoid .stream attributes name collision when we mix together Request
     and Response, we use "out_stream" instead of "stream" in the original
@@ -52,7 +52,7 @@ def to_native(x, charset=sys.getdefaultencoding(), errors="strict"):
     return x.decode(charset, errors)
 
 
-class Href(object):
+class Href:
     """Implements a callable that constructs URLs with the given base. The
     function can be called with any number of positional and keyword
     arguments which than are used to assemble the URL.  Works with URLs

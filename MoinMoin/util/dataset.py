@@ -9,7 +9,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-class Column(object):
+class Column:
     """ Meta-data for a column.
     """
 
@@ -34,7 +34,7 @@ class Column(object):
             setattr(self, slot, kw.get(slot, defval))
 
 
-class Dataset(object):
+class Dataset:
     """ Base dataset.
 
     Holds a 2-dimensional data set (m rows of n columns) and associated

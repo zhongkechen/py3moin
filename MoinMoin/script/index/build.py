@@ -12,6 +12,7 @@ import shutil
 
 from MoinMoin.script import MoinScript
 
+
 class IndexScript(MoinScript):
     """\
 Purpose:
@@ -75,6 +76,7 @@ General syntax: moin [options] index build [build-options]
             "--count", metavar="COUNT", dest="count",
             help="for queued indexing only: how many queue entries to process in this indexing run"
         )
+        self.files = None
 
     def mainloop(self):
         self.init_request()
@@ -84,6 +86,10 @@ General syntax: moin [options] index build [build-options]
         else:
             self.files = None
         self.command()
+
+    def command(self):
+        raise NotImplemented
+
 
 class PluginScript(IndexScript):
     """ Xapian index build script class """
@@ -99,9 +105,9 @@ class PluginScript(IndexScript):
             # update/add in-place
             idx_mode, idx_name = mode, 'index'
         elif mode in ['usenewindex', ]:
-            pass # nothing todo
+            pass  # nothing todo
         else:
-            pass # XXX give error msg about invalid mode
+            pass  # XXX give error msg about invalid mode
 
         if mode in ['makequeue', ]:
             idx = XapianIndex(self.request, name=idx_name)

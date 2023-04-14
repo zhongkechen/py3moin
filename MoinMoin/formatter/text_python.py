@@ -12,7 +12,7 @@ import time
 from MoinMoin import wikiutil
 
 
-class Formatter(object):
+class Formatter:
     """
         Inserts '<<<>>>' into the page and adds python code to
         self.code_fragments for dynamic parts of the page

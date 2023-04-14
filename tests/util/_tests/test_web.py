@@ -11,7 +11,7 @@ from MoinMoin.util import web
 from MoinMoin.widget import html
 
 
-class TestMakeQueryString(object):
+class TestMakeQueryString:
     """util.web: making query string"""
 
     def testMakeQueryStringFromArgument(self):
@@ -46,7 +46,7 @@ class TestMakeQueryString(object):
             assert wikiutil.makeQueryString(arg, b='kw') == expected
 
 
-class TestMakeSelection(object):
+class TestMakeSelection:
     """util.web: creating html select"""
 
     values = ('one', 'two', 'simple', ('complex', 'A tuple & <escaped text>'))

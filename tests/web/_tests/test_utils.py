@@ -9,7 +9,7 @@ import pytest
 
 from MoinMoin.web import utils
 
-class TestUniqueIDGenerator(object):
+class TestUniqueIDGenerator:
 
     def setup_method(self, method):
         self.uid_gen = utils.UniqueIDGenerator('TestPage')

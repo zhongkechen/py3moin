@@ -35,7 +35,7 @@ SHA1_LEN = 40  # length of hexdigest
 TIMESTAMP_LEN = 10  # length of timestamp
 
 
-class TextCha(object):
+class TextCha:
     """ Text CAPTCHA support """
 
     def __init__(self, request, question=None):

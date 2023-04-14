@@ -14,7 +14,7 @@
 import xmlrpc.client
 INVALID = object()
 
-class RPCYielder(object):
+class RPCYielder:
     """ If you want to have a batchable function, you need
     to inherit from this class and define a method "run" that
     takes exactly one argument.

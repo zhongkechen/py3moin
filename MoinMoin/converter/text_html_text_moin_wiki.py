@@ -400,7 +400,7 @@ dtd = r'''
 ]>
 '''
 
-class visitor(object):
+class visitor:
     def do(self, tree):
         self.visit_node_list(tree.childNodes)
 

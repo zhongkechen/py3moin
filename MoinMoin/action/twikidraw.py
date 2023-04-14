@@ -99,7 +99,7 @@ def attachment_drawing(self, url, text, **kw):
         return self.url(1, drawing_url) + self.image(**kw) + self.url(0)
 
 
-class TwikiDraw(object):
+class TwikiDraw:
     """ twikidraw action """
     def __init__(self, request, pagename, target):
         self.request = request

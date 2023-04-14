@@ -14,7 +14,7 @@ from MoinMoin import config, macro
 
 Dependencies = []
 
-class Parser(object):
+class Parser:
     """
         Object that turns Wiki markup into HTML.
 

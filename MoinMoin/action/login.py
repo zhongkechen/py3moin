@@ -19,7 +19,7 @@ def execute(pagename, context):
     return LoginHandler(pagename, context).handle()
 
 
-class LoginHandler(object):
+class LoginHandler:
     def __init__(self, pagename, context):
         self.context = context
         self._ = context.getText

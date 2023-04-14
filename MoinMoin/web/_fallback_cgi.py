@@ -14,7 +14,7 @@ import sys
 __all__ = ['WSGIServer']
 
 
-class WSGIServer(object):
+class WSGIServer:
 
     def __init__(self, application):
         self.application = application

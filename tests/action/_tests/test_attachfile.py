@@ -12,7 +12,7 @@ import os, io
 from MoinMoin.action import AttachFile
 from tests._tests import become_trusted, create_page, nuke_page
 
-class TestAttachFile(object):
+class TestAttachFile:
     """ testing action AttachFile"""
     pagename = u"AutoCreatedSillyPageToTestAttachments"
 

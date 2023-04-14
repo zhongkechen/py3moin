@@ -14,7 +14,7 @@ def filename_function(filename):
     splitted = filename.split('.')
     return '/'.join(splitted[0:2])
 
-class IAmRoot(object):
+class IAmRoot:
     def __getattr__(self, name):
         return lambda *args, **kwargs: True
 

@@ -35,7 +35,7 @@ from fckutil import *
 from fckoutput import *
 import config as Config
 
-class GetFoldersCommandMixin (object):
+class GetFoldersCommandMixin :
 	def getFolders(self, resourceType, currentFolder):
 		"""
 		Purpose: command to recieve a list of folders
@@ -52,7 +52,7 @@ class GetFoldersCommandMixin (object):
 		s += """</Folders>""" # Close the folders node
 		return s
 
-class GetFoldersAndFilesCommandMixin (object):
+class GetFoldersAndFilesCommandMixin :
 	def getFoldersAndFiles(self, resourceType, currentFolder):
 		"""
 		Purpose: command to recieve a list of folders and files
@@ -83,7 +83,7 @@ class GetFoldersAndFilesCommandMixin (object):
 		files += """</Files>"""
 		return folders + files
 
-class CreateFolderCommandMixin (object):
+class CreateFolderCommandMixin :
 	def createFolder(self, resourceType, currentFolder):
 		"""
 		Purpose: command to create a new folder
@@ -126,7 +126,7 @@ class CreateFolderCommandMixin (object):
 			os.makedirs(folderPath,mode=0o755)
 			os.umask( oldumask )
 
-class UploadFileCommandMixin (object):
+class UploadFileCommandMixin :
 	def uploadFile(self, resourceType, currentFolder):
 		"""
 		Purpose: command to upload files to server (same as FileUpload)

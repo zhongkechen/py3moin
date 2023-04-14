@@ -76,7 +76,7 @@ def show_editors(request, pagename, timestamp):
     table.setData(dataset)
     return table.render(method="GET")
 
-class tmp(object):
+class tmp:
     pass
 
 def show_pages(request, pagename, editor, timestamp):

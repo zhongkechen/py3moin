@@ -38,7 +38,7 @@ from MoinMoin.wikiutil import escape
 
 Dependencies = ['time']
 
-class Parser(object):
+class Parser:
     extensions = ['.csv']
     Dependencies = []
 

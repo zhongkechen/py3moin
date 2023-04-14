@@ -40,7 +40,7 @@ class RequestHandler(WSGIRequestHandler):
         logging.info("%s %s", self.address_string(), (format % args))
 
 
-class ProxyTrust(object):
+class ProxyTrust:
     """
     Middleware that rewrites the remote address according to trusted
     proxies in the forward chain.

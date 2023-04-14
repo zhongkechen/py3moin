@@ -11,7 +11,7 @@ import pytest
 
 from tests._tests import become_trusted, create_page, make_macro, nuke_page
 
-class TestMacro(object):
+class TestMacro:
     pagename = u'AutoCreatedMoinMoinTemporaryTestPageForTestMacro'
 
     @pytest.fixture(autouse=True)

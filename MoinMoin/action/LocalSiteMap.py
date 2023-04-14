@@ -47,7 +47,7 @@ def execute(pagename, request):
     request.theme.send_footer(pagename)
     request.theme.send_closing_html()
 
-class LocalSiteMap(object):
+class LocalSiteMap:
     def __init__(self, name):
         self.name = name
         self.result = []
@@ -81,7 +81,7 @@ class LocalSiteMap(object):
         self.result.append(text)
 
 
-class PageTreeBuilder(object):
+class PageTreeBuilder:
     def __init__(self, request):
         self.request = request
         self.children = {}
@@ -137,7 +137,7 @@ class PageTreeBuilder(object):
         if len(all_kids):
             self.recurse_build(all_kids, depth+1)
 
-class Tree(object):
+class Tree:
     def __init__(self, node):
         self.node = node
         self.children = []

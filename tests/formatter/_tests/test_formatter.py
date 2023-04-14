@@ -13,7 +13,7 @@ from MoinMoin.Page import Page
 from MoinMoin import wikiutil
 
 
-class TestFormatter(object):
+class TestFormatter:
     def testSyntaxReferenceDomXml(self, req):
         pytest.skip("domxml <p> generation is broken")
         f_name = 'dom_xml'
@@ -70,7 +70,7 @@ class TestFormatter(object):
         return req.redirectedOutput(page.send_page, content_only=1)
 
 
-class TestIdIdempotency(object):
+class TestIdIdempotency:
     def test_sanitize_to_id_idempotent(self, req):
         def _verify(formatter, id):
             origid = formatter.sanitize_to_id(id)

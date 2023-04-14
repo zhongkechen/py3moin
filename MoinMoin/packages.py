@@ -104,10 +104,10 @@ def str2boolean(string):
     Converts the parameter to a boolean value by recognising different
     truth literals.
     """
-    return (string.lower() in ('yes', 'true', '1'))
+    return string.lower() in ('yes', 'true', '1')
 
 
-class ScriptEngine(object):
+class ScriptEngine:
     """
     The script engine supplies the needed commands to execute the installation
     script.
@@ -470,7 +470,7 @@ class ScriptEngine(object):
         return success
 
 
-class Package(object):
+class Package:
     """ A package consists of a bunch of files which can be installed. """
     def __init__(self, request):
         self.request = request

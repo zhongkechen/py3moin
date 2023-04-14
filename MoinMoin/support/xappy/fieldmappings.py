@@ -24,7 +24,7 @@ __docformat__ = "restructuredtext en"
 
 import pickle as _cPickle
 
-class FieldMappings(object):
+class FieldMappings:
     """Mappings from field names to term prefixes, slot values, etc.
 
     The following mappings are maintained:

@@ -8,7 +8,7 @@
 
 from MoinMoin.util import diff_text
 
-class TestDiffText(object):
+class TestDiffText:
 
     def testDiff(self):
         """ util.diff_text.diff: test correct diff calculation """

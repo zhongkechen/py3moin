@@ -18,7 +18,7 @@ from MoinMoin import wikiutil
 modules = pysupport.getPackageModules(__file__)
 
 
-class FormatterBase(object):
+class FormatterBase:
     """ This defines the output interface used all over the rest of the code.
 
         Note that no other means should be used to generate _content_ output,

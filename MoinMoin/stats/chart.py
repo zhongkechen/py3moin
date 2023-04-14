@@ -19,7 +19,7 @@ import gdchart
 from MoinMoin.util.web import Color
 
 
-class ChartData(object):
+class ChartData:
     """ Data set for one line in a chart, including
         properties like the color of that line.
     """
@@ -34,7 +34,7 @@ class ChartData(object):
         self.color = color
 
 
-class Chart(object):
+class Chart:
     """ Wrapper for "gdchart".
 
         All GDC* constants are available as class attributes.

@@ -33,7 +33,7 @@ class MoinSession(Session):
     is_new = property(_get_is_new)
 
 
-class SessionService(object):
+class SessionService:
     """
     A session service returns a session object given a request object and
     provides services like persisting sessions and cleaning up occasionally.

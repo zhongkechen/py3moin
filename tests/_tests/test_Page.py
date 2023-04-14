@@ -11,7 +11,7 @@
 from MoinMoin.Page import Page
 
 
-class TestPage(object):
+class TestPage:
     def testMeta(self, req):
         page = Page(req, u'FrontPage')
         meta = page.meta
@@ -66,7 +66,7 @@ class TestPage(object):
         assert result.strip().startswith('<!DOCTYPE HTML PUBLIC')
 
 
-class TestRootPage(object):
+class TestRootPage:
     def testPageList(self, req):
         rootpage = req.rootpage
         pagelist = rootpage.getPageList()

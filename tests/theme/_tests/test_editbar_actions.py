@@ -11,7 +11,7 @@ import pytest
 from MoinMoin.theme import ThemeBase
 from MoinMoin.Page import Page
 
-class TestEditBarActions(object):
+class TestEditBarActions:
 
     @pytest.fixture(autouse=True)
     def setup_method(self, req):

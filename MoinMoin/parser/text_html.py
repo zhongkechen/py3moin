@@ -12,7 +12,7 @@ from MoinMoin.support.htmlmarkup import Markup
 
 Dependencies = []
 
-class Parser(object):
+class Parser:
     """
         Sends HTML code after filtering it.
     """

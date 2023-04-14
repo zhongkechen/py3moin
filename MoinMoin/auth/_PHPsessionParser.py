@@ -17,7 +17,7 @@ from MoinMoin import wikiutil
 s_prefix = "sess_"
 s_path = "/tmp"
 
-class UnknownObject(object):
+class UnknownObject:
     """ Used in the return value if the input data could not be parsed. """
     def __init__(self, pos):
         self.pos = pos

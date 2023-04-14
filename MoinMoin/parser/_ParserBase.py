@@ -34,7 +34,7 @@ from MoinMoin import config, wikiutil
 from MoinMoin.parser import parse_start_step
 
 
-class FormatTextBase(object):
+class FormatTextBase:
     pass
 
 class FormatBeginLine(FormatTextBase):
@@ -80,7 +80,7 @@ class FormatTextID(FormatTextBase):
         return self.fmt.get(sword, self._def_fmt).formatString(formatter, word)
 
 
-class FormattingRuleSingle(object):
+class FormattingRuleSingle:
 
     def __init__(self, name, str_re, icase=False):
         self.name = name
@@ -93,7 +93,7 @@ class FormattingRuleSingle(object):
         return hit
 
 
-class FormattingRulePair(object):
+class FormattingRulePair:
 
     def __init__(self, name, str_begin, str_end, icase=False):
         self.name = name
@@ -118,7 +118,7 @@ class FormattingRulePair(object):
         return hit + r
 
 
-class ParserBase(object):
+class ParserBase:
     """ DEPRECATED highlighting parser - please use/extend pygments library """
     logging.warning('Using ParserBase is deprecated - please use/extend pygments syntax highlighting library.')
 

@@ -10,7 +10,7 @@
 from MoinMoin.widget import html
 
 
-class Login(object):
+class Login:
     """ User login. """
 
     def __init__(self, request):

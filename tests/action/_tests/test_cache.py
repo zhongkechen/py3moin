@@ -15,7 +15,7 @@ from MoinMoin.action import AttachFile, cache
 
 from tests._tests import become_trusted, create_page, nuke_page
 
-class TestSendCached(object):
+class TestSendCached:
     """ testing action cache """
     pagename = u"AutoCreatedSillyPageToTestAttachments"
 

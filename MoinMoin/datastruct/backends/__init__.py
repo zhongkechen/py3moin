@@ -19,7 +19,7 @@ class DictDoesNotExistError(Exception):
     """
 
 
-class BaseGroup(object):
+class BaseGroup:
     """
     Group is something which stores members. Groups are immutable. A
     member is some arbitrary entity name (Unicode object).
@@ -44,7 +44,7 @@ class BaseGroup(object):
         raise NotImplementedError()
 
 
-class BaseGroupsBackend(object):
+class BaseGroupsBackend:
     """
     Backend provides access to the group definitions for the other
     MoinMoin code.
@@ -254,7 +254,7 @@ class GreedyGroup(BaseGroup):
                                                              self.member_groups)
 
 
-class BaseDict(object):
+class BaseDict:
 
     def __init__(self, request, name, backend):
         """
@@ -301,7 +301,7 @@ class BaseDict(object):
         return "<%r name=%r items=%r>" % (self.__class__, self.name, list(self._dict.items()))
 
 
-class BaseDictsBackend(object):
+class BaseDictsBackend:
 
     def __init__(self, request):
         self.request = request

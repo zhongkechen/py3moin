@@ -51,7 +51,7 @@ def is_cache_exception(e):
     return not (len(args) != 1 or args[0] != 'CacheNeedsUpdate')
 
 
-class ItemCache(object):
+class ItemCache:
     """ Cache some page item related data, as meta data or pagelist
 
         We only cache this to RAM in request.cfg (this is the only kind of
@@ -132,7 +132,7 @@ class ItemCache(object):
         # avoids threading race conditions
 
 
-class Page(object):
+class Page:
     """ Page - Manage an (immutable) page associated with a WikiName.
         To change a page's content, use the PageEditor class.
     """
@@ -1651,7 +1651,7 @@ class Page(object):
 
         request.clock.start('parsePageLinks')
 
-        class Null(object):
+        class Null:
             def write(self, data):
                 pass
 

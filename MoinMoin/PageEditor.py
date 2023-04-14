@@ -1186,7 +1186,7 @@ Please review the page and save then. Do not save this page as it is!""")
         return msg
 
 
-class PageLock(object):
+class PageLock:
     """ PageLock - Lock pages """
     # TODO: race conditions throughout, need to lock file during queries & update
     def __init__(self, pageobj):

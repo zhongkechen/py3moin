@@ -14,7 +14,7 @@ import pytest
 from MoinMoin import user, caching
 
 
-class TestEncodePassword(object):
+class TestEncodePassword:
     """user: encode passwords tests"""
 
     def testAscii(self, req):
@@ -43,7 +43,7 @@ class TestEncodePassword(object):
             assert result == expected
 
 
-class TestLoginWithPassword(object):
+class TestLoginWithPassword:
     """user: login tests"""
 
     @pytest.fixture(autouse=True)
@@ -297,7 +297,7 @@ class TestLoginWithPassword(object):
             pytest.skip("Can't create test user")
 
 
-class TestGroupName(object):
+class TestGroupName:
 
     def testGroupNames(self, req):
         """ user: isValidName: reject group names """
@@ -305,7 +305,7 @@ class TestGroupName(object):
         assert not user.isValidName(req, test)
 
 
-class TestIsValidName(object):
+class TestIsValidName:
 
     def testNonAlnumCharacters(self, req):
         """ user: isValidName: reject unicode non alpha numeric characters

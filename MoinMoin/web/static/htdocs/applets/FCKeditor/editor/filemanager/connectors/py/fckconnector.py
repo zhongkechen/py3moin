@@ -48,7 +48,7 @@ class FCKeditorConnectorBase( object ):
 		self.headers.append ((key, value))
 		return
 
-class FCKeditorRequest(object):
+class FCKeditorRequest:
 	"A wrapper around the request object"
 	def __init__(self, environ):
 		if environ: # WSGI

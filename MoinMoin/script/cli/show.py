@@ -1,4 +1,3 @@
-
 """
 MoinMoin - cli show script
 
@@ -8,6 +7,7 @@ MoinMoin - cli show script
 
 from MoinMoin.script import MoinScript
 from MoinMoin.wsgiapp import run
+
 
 class PluginScript(MoinScript):
     """\

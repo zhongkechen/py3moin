@@ -28,7 +28,7 @@ from .replaylog import log
 import xapian
 import pickle
 
-class Field(object):
+class Field:
     # Use __slots__ because we're going to have very many Field objects in
     # typical usage.
     __slots__ = 'name', 'value'
@@ -40,7 +40,7 @@ class Field(object):
     def __repr__(self):
         return 'Field(%r, %r)' % (self.name, self.value)
 
-class UnprocessedDocument(object):
+class UnprocessedDocument:
     """A unprocessed document to be passed to the indexer.
 
     This represents an item to be processed and stored in the search engine.
@@ -72,7 +72,7 @@ class UnprocessedDocument(object):
     def __repr__(self):
         return 'UnprocessedDocument(%r, %r)' % (self.id, self.fields)
 
-class ProcessedDocument(object):
+class ProcessedDocument:
     """A processed document, as stored in the index.
 
     This represents an item which is ready to be stored in the search engine,

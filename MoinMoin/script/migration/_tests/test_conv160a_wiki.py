@@ -25,7 +25,7 @@ i18n_wikiLanguages = i18n.wikiLanguages
 from MoinMoin.script.migration._conv160a_wiki import convert_wiki
 i18n.wikiLanguages = i18n_wikiLanguages
 
-class TestWikiConversion(object):
+class TestWikiConversion:
     """ test the wiki markup conversion 1.6.0a -> 1.6.0 """
     def test_absolute(self, req):
         request = req

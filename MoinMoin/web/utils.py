@@ -178,7 +178,7 @@ def redirect_last_visited(request):
     return abort(redirect(url))
 
 
-class UniqueIDGenerator(object):
+class UniqueIDGenerator:
     def __init__(self, pagename=None):
         self.unique_stack = []
         self.include_stack = []

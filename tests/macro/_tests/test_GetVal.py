@@ -9,7 +9,7 @@ import pytest
 
 from tests._tests import become_trusted, create_page, make_macro, nuke_page
 
-class TestGetVal(object):
+class TestGetVal:
     """GetVal: testing getVal macro """
     pagename = u'MyDict'
 

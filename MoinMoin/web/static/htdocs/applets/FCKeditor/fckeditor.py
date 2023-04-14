@@ -40,7 +40,7 @@ def escape(text, replace=string.replace):
     return text
 
 # The FCKeditor class
-class FCKeditor(object):
+class FCKeditor:
     def __init__(self, instanceName):
         self.InstanceName = instanceName
         self.BasePath = '/fckeditor/'

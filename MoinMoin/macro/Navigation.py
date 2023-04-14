@@ -60,7 +60,7 @@ def _getLinks(request, pagename, filter_regex=None):
     return pos, size, (first, prev, next, last)
 
 
-class Navigation(object):
+class Navigation:
     """ Dispatcher class implementing the navigation schemes.
     """
 

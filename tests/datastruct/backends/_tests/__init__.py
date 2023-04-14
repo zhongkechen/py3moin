@@ -19,7 +19,7 @@ from MoinMoin.datastruct import GroupDoesNotExistError, ConfigGroups
 
 
 @pytest.mark.wiki_config(groups=lambda s, r: ConfigGroups(r, GroupsBackendTest.test_groups))
-class GroupsBackendTest(object):
+class GroupsBackendTest:
 
     test_groups = {u'EditorGroup': [u'AdminGroup', u'John', u'JoeDoe', u'Editor1', u'John'],
                    u'AdminGroup': [u'Admin1', u'Admin2', u'John'],

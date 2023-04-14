@@ -10,7 +10,7 @@ import pytest
 from MoinMoin import caching
 from tests._tests import become_trusted, create_page, make_macro, nuke_page
 
-class TestStatsCharts(object):
+class TestStatsCharts:
     """StartsChart: testing StatsChart macro """
     pagename = u'AutoCreatedMoinMoinTemporaryTestPageStatsChart'
 

@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Context objects which are passed thru instead of the classic
                request objects. Currently contains legacy wrapper code for
@@ -7,10 +6,6 @@
     @copyright: 2008-2008 MoinMoin:FlorianKrupicka
     @license: GNU GPL, see COPYING for details.
 """
-
-
-
-
 
 import io
 import sys
@@ -32,12 +27,14 @@ from MoinMoin.web.utils import UniqueIDGenerator
 from MoinMoin.web.exceptions import Forbidden, SurgeProtection
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 NoDefault = object()
 
 
 class EnvironProxy(property):
     """ Proxy attribute lookups to keys in the environ. """
+
     def __init__(self, name, default=NoDefault):
         """
         An entry will be proxied to the supplied name in the .environ
@@ -79,12 +76,13 @@ class EnvironProxy(property):
                                   self.name)
 
 
-class Context(object):
+class Context:
     """ Standard implementation for the context interface.
 
     This one wraps up a Moin-Request object and the associated
     environ and also keeps track of it's changes.
     """
+
     def __init__(self, request):
         assert isinstance(request, Request)
 
@@ -146,12 +144,15 @@ class BaseContext(Context):
             return cfg
         except error.NoConfigMatchedError:
             raise NotFound('<p>No wiki configuration matching the URL found!</p>')
+
     cfg = EnvironProxy(cfg)
 
     def getText(self):
         lang = self.lang
+
         def _(text, i18n=i18n, request=self, lang=lang, **kw):
             return i18n.getText(text, request, lang, **kw)
+
         return _
 
     getText = property(getText)
@@ -164,11 +165,13 @@ class BaseContext(Context):
         if user_agent and cfg.cache.ua_spiders:
             return cfg.cache.ua_spiders.search(user_agent) is not None
         return False
+
     isSpiderAgent = EnvironProxy(isSpiderAgent)
 
     def rootpage(self):
         from MoinMoin.Page import RootPage
         return RootPage(self)
+
     rootpage = EnvironProxy(rootpage)
 
     def rev(self):
@@ -176,11 +179,13 @@ class BaseContext(Context):
             return int(self.values['rev'])
         except:
             return None
+
     rev = EnvironProxy(rev)
 
     def _theme(self):
         self.initTheme()
         return self.theme
+
     theme = EnvironProxy('theme', _theme)
 
     # finally some methods to act on those attributes
@@ -261,15 +266,17 @@ class HTTPContext(BaseContext):
         # werkzeug >= 0.6 does iri-to-uri transform if it gets unicode, but our
         # url is already url-quoted, so we better give it str to have same behaviour
         # with werkzeug 0.5.x and 0.6.x:
-        url = str(url) # if url is unicode, it should contain ascii chars only
+        url = str(url)  # if url is unicode, it should contain ascii chars only
         abort(redirect(url, code=code))
 
     def http_user_agent(self):
         return self.environ.get('HTTP_USER_AGENT', '')
+
     http_user_agent = EnvironProxy(http_user_agent)
 
     def http_referer(self):
         return self.environ.get('HTTP_REFERER', '')
+
     http_referer = EnvironProxy(http_referer)
 
     # the output related methods
@@ -304,8 +311,10 @@ class HTTPContext(BaseContext):
         @param bufsize: size of chunks to read/write
         @param do_flush: call flush after writing?
         """
+
         def simple_wrapper(fileobj, bufsize):
             return iter(lambda: fileobj.read(bufsize), '')
+
         file_wrapper = self.environ.get('wsgi.file_wrapper', simple_wrapper)
         self.response.direct_passthrough = True
         self.response.response = file_wrapper(fileobj, bufsize)
@@ -347,7 +356,7 @@ class HTTPContext(BaseContext):
         return result
 
 
-class AuxilaryMixin(object):
+class AuxilaryMixin:
     """
     Mixin for diverse attributes and methods that aren't clearly assignable
     to a particular phase of the request.
@@ -370,18 +379,21 @@ class AuxilaryMixin(object):
         if hasattr(self, 'page') and hasattr(self.page, 'page_name'):
             pagename = self.page.page_name
         return UniqueIDGenerator(pagename=pagename)
+
     uid_generator = EnvironProxy(uid_generator)
 
     def dicts(self):
         """ Lazy initialize the dicts on the first access """
         dicts = self.cfg.dicts(self)
         return dicts
+
     dicts = EnvironProxy(dicts)
 
     def groups(self):
         """ Lazy initialize the groups on the first access """
         groups = self.cfg.groups(self)
         return groups
+
     groups = EnvironProxy(groups)
 
     def reset(self):
@@ -405,11 +417,14 @@ class AuxilaryMixin(object):
         """
         self.pragma[key.lower()] = value
 
+
 class XMLRPCContext(HTTPContext, AuxilaryMixin):
     """ Context to act during a XMLRPC request. """
 
+
 class AllContext(HTTPContext, AuxilaryMixin):
     """ Catchall context to be able to quickly test old Moin code. """
+
 
 class ScriptContext(AllContext):
     """ Context to act in scripting environments (e.g. former request_cli).
@@ -417,10 +432,11 @@ class ScriptContext(AllContext):
     For input, sys.stdin is used as 'wsgi.input', output is written directly
     to sys.stdout though.
     """
+
     def __init__(self, url=None, pagename=''):
         if url is None:
-            url = 'http://localhost:0/' # just some somehow valid dummy URL
-        environ = create_environ(base_url=url) # XXX not sure about base_url, but makes "make underlay" work
+            url = 'http://localhost:0/'  # just some somehow valid dummy URL
+        environ = create_environ(base_url=url)  # XXX not sure about base_url, but makes "make underlay" work
         environ['HTTP_USER_AGENT'] = 'CLI/Script'
         environ['wsgi.input'] = sys.stdin
         request = Request(environ)

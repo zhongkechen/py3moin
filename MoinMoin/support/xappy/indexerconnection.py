@@ -34,7 +34,7 @@ from . import fieldmappings
 from . import memutils
 from .replaylog import log
 
-class IndexerConnection(object):
+class IndexerConnection:
     """A connection to the search engine for indexing.
 
     """
@@ -711,7 +711,7 @@ class IndexerConnection(object):
             raise errors.IndexerError("Facets unsupported with this release of xapian")
         return FacetQueryTypeIter(self._facet_query_table, association)
 
-class PrefixedTermIter(object):
+class PrefixedTermIter:
     """Iterate through all the terms with a given prefix.
 
     """
@@ -754,7 +754,7 @@ class PrefixedTermIter(object):
         return term[self._prefixlen:]
 
 
-class SynonymIter(object):
+class SynonymIter:
     """Iterate through a list of synonyms.
 
     """
@@ -792,7 +792,7 @@ class SynonymIter(object):
         synval = tuple(self._index.synonyms(synkey))
         return ((terms, fieldname), synval)
 
-class FacetQueryTypeIter(object):
+class FacetQueryTypeIter:
     """Iterate through all the query types and their associated facets.
 
     """

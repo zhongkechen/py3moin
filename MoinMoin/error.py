@@ -1,4 +1,3 @@
-
 """ MoinMoin errors
 
     Supply Error class and sub classes used to raise various errors
@@ -9,7 +8,6 @@
 
 import sys
 
-from MoinMoin import config
 
 class Error(Exception):
     """ Base class for moin moin errors
@@ -39,7 +37,7 @@ class Error(Exception):
     def __str__(self):
         """ Return encoded message """
         if isinstance(self.message, bytes):
-            return self.message.decode(config.charset)
+            return self.message.decode("utf8")
         else:
             return str(self.message)
 
@@ -86,24 +84,27 @@ class CompositeError(Error):
                 break
         return all
 
+
 class FatalError(CompositeError):
     """ Base class for fatal error we can't handle
 
     Do not use this class but its more specific sub classes.
     """
 
+
 class ConfigurationError(FatalError):
     """ Raise when fatal misconfiguration is found """
 
+
 class InternalError(FatalError):
     """ Raise when internal fatal error is found """
+
 
 class NoConfigMatchedError(Exception):
     """ we didn't find a configuration for this URL """
     pass
 
+
 class ConvertError(FatalError):
     """ Raise when html to storage format (e.g. 'wiki') conversion fails """
     name = "MoinMoin Convert Error"
-
-

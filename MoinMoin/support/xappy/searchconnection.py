@@ -161,7 +161,7 @@ class SearchResult(ProcessedDocument):
                 (self.rank, self.id, self.data))
 
 
-class SearchResultIter(object):
+class SearchResultIter:
     """An iterator over a set of results from a search.
 
     """
@@ -231,7 +231,7 @@ def _get_significant_digits(value, lower, upper):
     # Return the value, rounded to the nearest multiple of pos_pow_10
     return ((value + pos_pow_10 // 2) // pos_pow_10) * pos_pow_10
 
-class SearchResults(object):
+class SearchResults:
     """A set of results of a search.
 
     """
@@ -715,7 +715,7 @@ class SearchResults(object):
         return results
 
 
-class SearchConnection(object):
+class SearchConnection:
     """A connection to the search engine for searching.
 
     The connection will access a view of the database.

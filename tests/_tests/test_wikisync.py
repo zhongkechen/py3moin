@@ -12,7 +12,7 @@ from MoinMoin.PageEditor import PageEditor
 from MoinMoin.wikisync import TagStore, BOTH
 
 
-class TestUnsafeSync(object):
+class TestUnsafeSync:
     """ Tests various things related to syncing. Note that it is not possible
         to create pages without cluttering page revision currently, so we have to use
         the testwiki. """

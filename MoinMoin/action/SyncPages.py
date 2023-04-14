@@ -33,7 +33,7 @@ class ActionStatus(Exception):
     pass
 
 
-class ActionClass(object):
+class ActionClass:
     INFO, WARN, ERROR = list(zip(list(range(3)), ("", "<!>", "/!\\")))  # used for logging
 
     def __init__(self, pagename, request):

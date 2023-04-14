@@ -10,7 +10,7 @@ from MoinMoin.macro import Action
 from tests._tests import become_trusted, create_page, make_macro, nuke_page
 
 
-class TestAction(object):
+class TestAction:
     """ testing macro Action calling action raw """
     pagename = u'AutoCreatedMoinMoinTemporaryTestPageForAction'
 

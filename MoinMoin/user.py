@@ -442,7 +442,7 @@ def decodeDict(line):
     return items
 
 
-class User(object):
+class User:
     """ A MoinMoin User """
 
     def __init__(self, request, id=None, name="", password=None, auth_username="", **kw):

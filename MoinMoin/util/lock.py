@@ -14,7 +14,7 @@ logging = log.getLogger(__name__)
 
 from MoinMoin.util import filesys
 
-class Timer(object):
+class Timer:
     """ Simple count down timer
 
     Useful for code that needs to complete a task within some timeout.
@@ -61,7 +61,7 @@ class Timer(object):
         return time.time() - self._start
 
 
-class ExclusiveLock(object):
+class ExclusiveLock:
     """ Exclusive lock
 
     Uses a directory as portable lock method. On all platforms,

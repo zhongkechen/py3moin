@@ -52,7 +52,7 @@ AddRevision|foofile|FooPage
         return True
 
 
-class TestUnsafePackage(object):
+class TestUnsafePackage:
     """ Tests various things in the packages package. Note that this package does
         not care to clean up and needs to run in a test wiki because of that. """
 
@@ -74,14 +74,14 @@ class TestUnsafePackage(object):
         assert testseite2.isUnderlayPage()
 
 
-class TestQuoting(object):
+class TestQuoting:
 
     def testQuoting(self):
         for line in ([':foo', 'is\\', 'ja|', u't|�', u'baAz�'], [], ['', '']):
             assert line == unpackLine(packLine(line))
 
 
-class TestRealCreation(object):
+class TestRealCreation:
 
     def testSearch(self, req):
         package = PackagePages(req.rootpage.page_name, req)
@@ -111,7 +111,7 @@ class TestRealCreation(object):
         assert not zipfile.is_zipfile(temp.name)
 
 
-class TestRealPackageInstallation(object):
+class TestRealPackageInstallation:
 
 
     def create_package(self, req, script, page=None):

@@ -31,7 +31,7 @@ except ImportError:
     pass
 
 
-class BaseExpression(object):
+class BaseExpression:
     """ Base class for all search terms """
 
     # costs is estimated time to calculate this term.

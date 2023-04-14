@@ -10,7 +10,7 @@
 from MoinMoin import error
 
 
-class TestEncoding(object):
+class TestEncoding:
     """ MoinMoin errors do work with unicode transparently """
 
     def testCreateWithUnicode(self):
@@ -27,7 +27,7 @@ class TestEncoding(object):
 
     def testCreateWithObject(self):
         """ error: create with any object """
-        class Foo(object):
+        class Foo:
             def __str__(self):
                 return u'טעות'
             def __str__(self):

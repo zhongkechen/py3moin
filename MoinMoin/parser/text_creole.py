@@ -36,7 +36,7 @@ Dependencies = []
 
 _ = lambda x: x
 
-class Parser(object):
+class Parser:
     """
     Glue the DocParser and DocEmitter with the
     MoinMoin current API.
@@ -96,7 +96,7 @@ class MoinRules(CreoleRules):
                                             self.interwiki, self.page]),
                                   re.X | re.U)
 
-class Emitter(object):
+class Emitter:
     """
     Generate the output for the document
     tree consisting of DocNodes.

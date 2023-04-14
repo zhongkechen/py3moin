@@ -78,7 +78,7 @@ def attachment_drawing(self, url, text, **kw):
         return self.url(1, drawing_url) + self.image(**kw) + self.url(0)
 
 
-class AnyWikiDraw(object):
+class AnyWikiDraw:
     """ anywikidraw action """
     def __init__(self, request, pagename, target):
         self.request = request

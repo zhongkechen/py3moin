@@ -15,7 +15,7 @@ from MoinMoin.util import web
 
 Dependencies = []
 
-class Parser(object):
+class Parser:
     """
         Object that turns Wiki markup into HTML.
 

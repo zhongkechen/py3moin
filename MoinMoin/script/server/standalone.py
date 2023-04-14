@@ -13,6 +13,7 @@ from MoinMoin.script import MoinScript
 from MoinMoin.util.daemon import Daemon
 from MoinMoin.web.serving import run_server
 
+
 class PluginScript(MoinScript):
     """\
 Purpose:
@@ -142,7 +143,7 @@ General syntax: moin [options] server standalone [standalone-options]
                 run_server(**kwargs)
 
 
-class DefaultConfig(object):
+class DefaultConfig:
     # where the static data is served from - you can either use:
     # docs = True  # serve the builtin static data from MoinMoin/web/static/htdocs/
     # docs = '/where/ever/you/like/to/keep/htdocs'  # serve it from the given path

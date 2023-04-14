@@ -17,7 +17,7 @@ import pytest
 from MoinMoin.util.lock import ExclusiveLock
 
 
-class TestExclusiveLock(object):
+class TestExclusiveLock:
 
     def setup_method(self, method):
         self.test_dir = tempfile.mkdtemp('', 'lock_')

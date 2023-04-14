@@ -951,7 +951,7 @@ for _key, _value in list(MIMETYPES_sanitize_mapping.items()):
     MIMETYPES_spoil_mapping[_value] = _key
 
 
-class MimeType(object):
+class MimeType:
     """ represents a mimetype like text/plain """
 
     def __init__(self, mimestr=None, filename=None):
@@ -1302,7 +1302,7 @@ class BracketMissingCloseError(BracketError):
         BracketError.__init__(self, "Missing closing bracket %s" % bracket)
 
 
-class ParserPrefix(object):
+class ParserPrefix:
     """
     Trivial container-class holding a single character for
     the possible prefixes for parse_quoted_separated_ext
@@ -1756,7 +1756,7 @@ def get_choice(request, arg, name=None, choices=[None], default_none=False):
     return arg
 
 
-class IEFArgument(object):
+class IEFArgument:
     """
     Base class for new argument parsers for
     invoke_extension_function.
@@ -1828,7 +1828,7 @@ class UnitArgument(IEFArgument):
         return self._default
 
 
-class required_arg(object):
+class required_arg:
     """
     Wrap a type in this class and give it as default argument
     for a function passed to invoke_extension_function() in
@@ -2101,7 +2101,7 @@ def parseAttributes(request, attrstring, endtoken=None, extension=None):
     return attrs, msg or ''
 
 
-class ParameterParser(object):
+class ParameterParser:
     """ MoinMoin macro parameter parser
 
         Parses a given parameter string, separates the individual parameters

@@ -1,4 +1,3 @@
-
 """
 MoinMoin - change or reset the password of a user account
 
@@ -6,9 +5,6 @@ MoinMoin - change or reset the password of a user account
             2008 MoinMoin:JohannesBerg
 @license: GNU GPL, see COPYING for details.
 """
-
-
-
 
 import sys
 

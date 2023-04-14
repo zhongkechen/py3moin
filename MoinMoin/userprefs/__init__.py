@@ -15,7 +15,7 @@ from MoinMoin.widget import html
 modules = pysupport.getPackageModules(__file__)
 
 
-class UserPrefBase(object):
+class UserPrefBase:
     '''
         Base class for Settings objects
 

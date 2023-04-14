@@ -15,7 +15,7 @@ from MoinMoin.user import User
 from MoinMoin.Page import Page
 from tests._tests import nuke_user, become_superuser, wikiconfig
 
-class TestAdmin(object):
+class TestAdmin:
 
     class Config(wikiconfig.Config):
 

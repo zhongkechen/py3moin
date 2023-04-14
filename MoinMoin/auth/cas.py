@@ -20,7 +20,7 @@ from MoinMoin.auth import BaseAuth
 from MoinMoin import user, wikiutil
 
 
-class PyCAS(object):
+class PyCAS:
     """A class for working with a CAS server."""
 
     def __init__(self, server_url, renew=False, login_path='/login', logout_path='/logout',

@@ -12,7 +12,7 @@ from MoinMoin.logfile import eventlog
 
 from tests._tests import become_trusted, create_page, make_macro, nuke_eventlog, nuke_page
 
-class TestHits(object):
+class TestHits:
     """Hits: testing Hits macro """
     pagename = u'AutoCreatedMoinMoinTemporaryTestPageForPageHits'
 

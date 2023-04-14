@@ -10,7 +10,7 @@ import pytest
 from MoinMoin.macro import FootNote
 from tests._tests import become_trusted, create_page, make_macro, nuke_page
 
-class TestFootNote(object):
+class TestFootNote:
     """ testing macro Action calling action raw """
     pagename = u'AutoCreatedMoinMoinTemporaryTestPageForFootNote'
 

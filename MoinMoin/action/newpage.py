@@ -14,7 +14,7 @@ import time
 from MoinMoin.Page import Page
 from MoinMoin.util.abuse import log_attempt
 
-class NewPage(object):
+class NewPage:
     """ Open editor for a new page, using template """
 
     def __init__(self, request, referrer):

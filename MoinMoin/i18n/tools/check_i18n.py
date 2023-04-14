@@ -37,7 +37,7 @@ blacklist_langs = []
 import sys, os, compiler
 from compiler.ast import Name, Const, CallFunc, Getattr
 
-class TextFinder(object):
+class TextFinder:
     """ Walk through AST tree and collect text from gettext calls
 
     Find all calls to gettext function in the source tree and collect
@@ -179,7 +179,7 @@ def visit(path, visitor):
 # MoinMoin specific stuff follows
 
 
-class Report(object):
+class Report:
     """Language status report"""
     def __init__(self, lang, sourceDict):
         self.__lang = lang

@@ -12,7 +12,7 @@ from MoinMoin.action import AttachFile
 
 from tests._tests import become_trusted, create_page, make_macro, nuke_page
 
-class TestEmbedObject(object):
+class TestEmbedObject:
     """ testing macro Action calling action raw """
     pagename = u'AutoCreatedMoinMoinTemporaryTestPageForEmbedObject'
 

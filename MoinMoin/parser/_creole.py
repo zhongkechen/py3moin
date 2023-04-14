@@ -28,7 +28,7 @@ import sys
 __version__ = '1.1'
 
 
-class Rules(object):
+class Rules:
     """Hold all the rules for generating regular expressions."""
 
     # For the inline elements:
@@ -150,7 +150,7 @@ class Rules(object):
             inline_elements.insert(3, self.wiki)
         self.inline_re = c('|'.join(inline_elements), re.X | re.U)
 
-class Parser(object):
+class Parser:
     """
     Parse the raw text and create a document object
     that can be converted into output using Emitter.
@@ -414,7 +414,7 @@ class Parser(object):
 
 ### The document model
 
-class DocNode(object):
+class DocNode:
     """
     A node in the document.
     """

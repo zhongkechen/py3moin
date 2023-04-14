@@ -54,7 +54,7 @@ class Error(Exception):
     """ Daemon error """
 
 
-class Daemon(object):
+class Daemon:
     """ A background process
 
     Represent a background process, which may be running or not. The

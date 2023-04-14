@@ -24,7 +24,7 @@ from tests._tests import nuke_xapian_index, wikiconfig, become_trusted, create_p
 from MoinMoin.action import AttachFile
 
 
-class TestQueryParsing(object):
+class TestQueryParsing:
     """ search: query parser tests """
 
     def testQueryParser(self, req):
@@ -78,7 +78,7 @@ class TestQueryParsing(object):
             yield _test, query
 
 
-class BaseSearchTest(object):
+class BaseSearchTest:
     """ search: test search """
     doesnotexist = u'jfhsdaASDLASKDJ'
 
@@ -540,7 +540,7 @@ class TestXapianSearchStemmed(TestXapianSearch):
         assert found_pages == expected_pages
 
 
-class TestGetSearcher(object):
+class TestGetSearcher:
 
     class Config(wikiconfig.Config):
         xapian_search = True

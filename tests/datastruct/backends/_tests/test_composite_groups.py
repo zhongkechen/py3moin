@@ -50,7 +50,7 @@ second_backend_groups = {u'UserGroup': user_group,
                                    ConfigGroups(r, s.second_backend_groups)),
                          first_backend_groups=first_backend_groups,
                          second_backend_groups=second_backend_groups)
-class TestCompositeGroup(object):
+class TestCompositeGroup:
 
     @pytest.fixture(autouse=True)
     def setup_method(self, req):

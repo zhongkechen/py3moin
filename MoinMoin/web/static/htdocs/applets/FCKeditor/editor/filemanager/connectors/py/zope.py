@@ -154,7 +154,7 @@ class FCKeditorConnectorZope(FCKeditorConnector):
 			return self.zopeFileUpload(resourceType, currentFolder, count)
 		return self.sendUploadResults( 0 )
 
-class FCKeditorRequest(object):
+class FCKeditorRequest:
 	"A wrapper around the request object"
 	def __init__(self, context=None):
 		r = context.REQUEST

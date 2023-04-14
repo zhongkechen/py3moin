@@ -18,7 +18,7 @@ from MoinMoin.security import parseACL
 # TODO: check if and where we can use the helpers:
 from tests._tests import become_trusted, nuke_page
 
-class TestExpandVars(object):
+class TestExpandVars:
     """PageEditor: testing page editor"""
     pagename = u'AutoCreatedMoinMoinTemporaryTestPage'
 
@@ -38,7 +38,7 @@ class TestExpandVars(object):
             assert result == expected
 
 
-class TestExpandUserName(object):
+class TestExpandUserName:
     """ Base class for user name tests
 
     Set user name during tests.
@@ -155,7 +155,7 @@ class TestExpandPrivateVariables(TestExpandUserName):
         return page.getPagePath(use_underlay=0, check_create=0)
 
 
-class TestSave(object):
+class TestSave:
 
     @pytest.fixture(autouse=True)
     def setup_method(self, req):
@@ -188,7 +188,7 @@ class TestSave(object):
         assert page.body != testtext
 
 
-class TestSaveACLChange(object):
+class TestSaveACLChange:
 
     pagename = u'PageACLTest'
     oldtext = u'''\
@@ -219,7 +219,7 @@ foo
         nuke_page(req, self.pagename)
 
 
-class TestDictPageDeletion(object):
+class TestDictPageDeletion:
 
     def testCreateDictAndDeleteDictPage(self, req):
         """
@@ -238,7 +238,7 @@ class TestDictPageDeletion(object):
         assert result == expected
 
 
-class TestCopyPage(object):
+class TestCopyPage:
 
     pagename = u'AutoCreatedMoinMoinTemporaryTestPage'
     copy_pagename = u'AutoCreatedMoinMoinTemporaryCopyTestPage'

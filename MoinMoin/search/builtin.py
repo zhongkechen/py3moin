@@ -25,7 +25,7 @@ from MoinMoin.search.results import getSearchResults
 ##############################################################################
 
 
-class IndexerQueue(object):
+class IndexerQueue:
     """
     Represents a locked on-disk queue with jobs for the xapian indexer
 
@@ -126,7 +126,7 @@ class IndexerQueue(object):
         return entry
 
 
-class BaseIndex(object):
+class BaseIndex:
     """ Represents a search engine index """
 
     def __init__(self, request):
@@ -281,7 +281,7 @@ class BaseIndex(object):
         user = User(request)
         user.may = SecurityPolicy(user)
 
-        class FakeRequest(object):
+        class FakeRequest:
             """ minimal request object for indexing code """
             def __init__(self, request, user):
                 NAMES = """action cfg clock current_lang dicts form
@@ -303,7 +303,7 @@ class BaseIndex(object):
 ##############################################################################
 
 
-class BaseSearch(object):
+class BaseSearch:
     """ A search run """
 
     def __init__(self, request, query, sort='weight', mtime=None, historysearch=0):

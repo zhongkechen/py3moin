@@ -10,7 +10,7 @@ from  MoinMoin.formatter.groups import Formatter
 from MoinMoin.Page import Page
 from tests._tests import become_trusted, create_page, nuke_page
 
-class TestGroupFormatterWikiMarkup(object):
+class TestGroupFormatterWikiMarkup:
 
     def get_members(self, req, text):
         request = req
@@ -104,7 +104,7 @@ Ignore previous line and this text.
         assert u'take this' in members
 
 
-class TestGroupFormatterCreole(object):
+class TestGroupFormatterCreole:
 
     def get_members(self, req, text):
         request = req

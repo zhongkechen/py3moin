@@ -94,7 +94,7 @@ def _check(request, pagename, username, right):
     return False
 
 
-class Permissions(object):
+class Permissions:
     """ Basic interface for user permissions and system policy.
 
     Note that you still need to allow some of the related actions, this
@@ -154,7 +154,7 @@ class Permissions(object):
 Default = Permissions
 
 
-class AccessControlList(object):
+class AccessControlList:
     ''' Access Control List
 
     Control who may do what on or with a wiki page.
@@ -373,7 +373,7 @@ class AccessControlList(object):
         return self.acl_lines != other.acl_lines
 
 
-class ACLStringIterator(object):
+class ACLStringIterator:
     """ Iterator for acl string
 
     Parse acl string and return the next entry on each call to

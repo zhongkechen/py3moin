@@ -10,7 +10,7 @@ import pytest
 
 from MoinMoin.widget import html
 
-class TestHTMLWidgets(object):
+class TestHTMLWidgets:
     """widget.html: testing html widgets"""
 
     def testCreate(self):

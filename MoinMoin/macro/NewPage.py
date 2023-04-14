@@ -17,7 +17,7 @@ from MoinMoin import wikiutil
 
 Dependencies = ["language"]
 
-class NewPage(object):
+class NewPage:
     """ NewPage - create new pages
 
     Let you create new page using optional template, button text

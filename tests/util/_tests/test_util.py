@@ -8,7 +8,7 @@
 
 from MoinMoin import util
 
-class TestUtil(object):
+class TestUtil:
 
     def testRangeList(self):
         """ util.rangelist: test correct function for misc. input values """

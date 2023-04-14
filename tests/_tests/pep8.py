@@ -540,7 +540,7 @@ def mute_string(text):
     return text[:start] + 'x' * (end - start) + text[end:]
 
 
-class Checker(object):
+class Checker:
     """
     Load a Python source file, tokenize it, check coding style.
     """

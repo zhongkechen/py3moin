@@ -15,7 +15,7 @@ from MoinMoin.script import MoinScript, fatal, log
 from MoinMoin.wikiutil import clean_input, decodeUnknownInput
 
 
-class IAmRoot(object):
+class IAmRoot:
     def __getattr__(self, name):
         return lambda *args, **kwargs: True
 

@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Wiki XMLRPC group creation
 
@@ -6,14 +5,13 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
-
 import xmlrpc.client
 
+from MoinMoin.PageEditor import PageEditor
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
-from MoinMoin.PageEditor import PageEditor
 
 def execute(self, groupname, groupcomment, memberlist, pageacls=u"All:read"):
     """
@@ -35,16 +33,16 @@ def execute(self, groupname, groupcomment, memberlist, pageacls=u"All:read"):
     # check if groupname matches page_group_regex
     if not self.request.cfg.cache.page_group_regexact.search(groupname):
         return xmlrpc.client.Fault(2, "The groupname %s does not match your page_group_regex (%s)" % (
-                               groupname, self.request.cfg.page_group_regex))
+            groupname, self.request.cfg.page_group_regex))
 
     newtext = """\
 #acl %(acl)s
 %(comment)s
 %(memberlist)s
 """ % {
-    'acl': pageacls,
-    'comment': groupcomment,
-    'memberlist': "\n * ".join([''] + memberlist)
+        'acl': pageacls,
+        'comment': groupcomment,
+        'memberlist': "\n * ".join([''] + memberlist)
     }
 
     page = PageEditor(self.request, pagename)
@@ -56,9 +54,8 @@ def execute(self, groupname, groupcomment, memberlist, pageacls=u"All:read"):
     if msg:
         logging.debug("saveText msg: %s" % msg)
 
-    #we need this to update pagelinks cache:
-    #self.request.args = self.request.form = self.request.setup_args()
+    # we need this to update pagelinks cache:
+    # self.request.args = self.request.form = self.request.setup_args()
     self.request.redirectedOutput(page.send_page, content_only=1)
 
     return xmlrpc.client.Boolean(1)
-

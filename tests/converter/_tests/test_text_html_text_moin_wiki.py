@@ -23,7 +23,7 @@ convert = converter.convert
 error = ConvertError
 
 
-class TestBase(object):
+class TestBase:
 
     def do_convert_real(self, func_args, successful=True):
         try:
@@ -39,13 +39,13 @@ class TestBase(object):
             pytest.fail("doesn't fail with parse error")
 
 
-class MinimalPage(object):
+class MinimalPage:
     def __init__(self):
         self.hilite_re = None
         self.page_name = "testpage"
 
 
-class MinimalRequest(object):
+class MinimalRequest:
     # TODO: do we really need this class? no other test uses a request replacement.
 
     def __init__(self, request):
@@ -1149,7 +1149,7 @@ class TestConvertInlineItemRepeatable(TestBase):
         output = r"""<img src="/wiki/modern/img/smile.png" alt=":-)" height="15" width="15">"""
         self.do(req, test, output)
 
-class TestStrip(object):
+class TestStrip:
     def do(self, req, cls, text, output):
         tree = converter.parse(req, text)
         cls().do(tree)

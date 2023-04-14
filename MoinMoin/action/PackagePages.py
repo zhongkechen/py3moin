@@ -28,7 +28,7 @@ from MoinMoin.search import searchPages
 class ActionError(Exception):
     pass
 
-class PackagePages(object):
+class PackagePages:
     def __init__(self, pagename, request):
         self.request = request
         self.pagename = pagename

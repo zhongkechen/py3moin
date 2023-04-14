@@ -202,12 +202,12 @@ def _(text):
     return text
 
 
-class CacheClass(object):
+class CacheClass:
     """ just a container for stuff we cache """
     pass
 
 
-class ConfigFunctionality(object):
+class ConfigFunctionality:
     """ Configuration base class with config class behaviour.
 
         This class contains the functionality for the DefaultConfig
@@ -741,7 +741,7 @@ def _default_password_checker(cfg, request, username, password,
     return None
 
 
-class DefaultExpression(object):
+class DefaultExpression:
     def __init__(self, exprstr):
         self.text = exprstr
         self.value = eval(exprstr)

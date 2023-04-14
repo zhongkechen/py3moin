@@ -855,7 +855,7 @@ for key, value in list(MIMETYPES_sanitize_mapping.items()):
     MIMETYPES_spoil_mapping[value] = key
 
 
-class MimeType(object):
+class MimeType:
     """ represents a mimetype like text/plain """
 
     def __init__(self, mimestr=None, filename=None):
@@ -1228,7 +1228,7 @@ def parseAttributes(request, attrstring, endtoken=None, extension=None):
     return attrs, msg or ''
 
 
-class ParameterParser(object):
+class ParameterParser:
     """ MoinMoin macro parameter parser
 
         Parses a given parameter string, separates the individual parameters

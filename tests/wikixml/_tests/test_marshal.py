@@ -10,10 +10,10 @@
 import array
 from MoinMoin.wikixml import marshal
 
-class TestMarshal(object):
+class TestMarshal:
     """Testing Marshal used for ...XXX"""
 
-    class Data(object):
+    class Data:
         cvar = 'Class Variable'
         def __init__(self, value):
             self.ivar = value

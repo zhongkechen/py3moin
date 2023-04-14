@@ -27,7 +27,7 @@ debug = False
 
 re_sigstrip = re.compile("\r?\n-- \r?\n.*$", re.S)
 
-class attachment(object):
+class attachment:
     """ Represents an attachment of a mail. """
     def __init__(self, filename, mimetype, data):
         self.filename = filename

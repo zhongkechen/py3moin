@@ -12,7 +12,7 @@ from MoinMoin.mail import sendmail
 from MoinMoin import config
 
 
-class TestdecodeSpamSafeEmail(object):
+class TestdecodeSpamSafeEmail:
     """mail.sendmail: testing mail"""
 
     _tests = (
@@ -40,7 +40,7 @@ class TestdecodeSpamSafeEmail(object):
         for coded, expected in self._tests:
             assert sendmail.decodeSpamSafeEmail(coded) == expected
 
-class TestencodeSpamSafeEmail(object):
+class TestencodeSpamSafeEmail:
     """mail.sendmail: testing spam safe mail"""
 
     _tests = (
@@ -66,7 +66,7 @@ class TestencodeSpamSafeEmail(object):
             expected = expected.replace(' AT ', ' AT SYCTE ')
             assert sendmail.encodeSpamSafeEmail(coded, 'SYCTE') == expected
 
-class TestEncodeAddress(object):
+class TestEncodeAddress:
     """ Address encoding tests
 
     See http://www.faqs.org/rfcs/rfc2822.html section 3.4.

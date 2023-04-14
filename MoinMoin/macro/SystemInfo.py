@@ -21,7 +21,7 @@ from MoinMoin import action, macro, parser
 from MoinMoin.logfile import editlog, eventlog
 from MoinMoin.Page import Page
 
-class SystemInfo(object):
+class SystemInfo:
     def __init__(self, macro):
         self.macro = macro
         self.request = macro.request

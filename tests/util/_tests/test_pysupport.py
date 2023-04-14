@@ -15,7 +15,7 @@ from MoinMoin.util import pysupport, random_string
 from MoinMoin import wikiutil
 
 
-class TestImportNameFromMoin(object):
+class TestImportNameFromMoin:
     """ Test importName of MoinMoin modules
 
     We don't make any testing for files, assuming that moin package is
@@ -39,7 +39,7 @@ class TestImportNameFromMoin(object):
         assert Parser is text_moin_wiki.Parser
 
 
-class TestImportNameFromPlugin(object):
+class TestImportNameFromPlugin:
     """ Base class for import plugin tests """
 
     name = 'Parser'

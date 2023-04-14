@@ -6,7 +6,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-class Marshal(object):
+class Marshal:
     """ Serialize Python data structures to XML.
 
         XML_DECL is the standard XML declaration.

@@ -26,7 +26,7 @@ from time import sleep
 from io import StringIO
 
 
-class AbstractMonitor(object):
+class AbstractMonitor:
     def activate_hook(self):
         """ Activates the thread monitor hook. Note that this might interfere
         with any kind of profiler and some debugging extensions. """

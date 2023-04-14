@@ -153,7 +153,7 @@ def unescape(text):
     return text.unescape()
 
 
-class Deuglifier(object):
+class Deuglifier:
 
     def __new__(cls):
         self = object.__new__(cls)
@@ -280,7 +280,7 @@ class HTMLSanitizer(HTMLParser):
             self.out.write('</' + tag + '>')
 
 
-class Fragment(object):
+class Fragment:
     __slots__ = ['children']
 
     def __init__(self):
@@ -466,7 +466,7 @@ class Element(Fragment):
             yield Markup(''.join(starttag))
 
 
-class Tags(object):
+class Tags:
 
     def __getattribute__(self, name):
         return Element(name.lower())

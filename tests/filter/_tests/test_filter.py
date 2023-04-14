@@ -7,7 +7,7 @@
 """
 
 
-class TestFilters(object):
+class TestFilters:
 
     def make_file(self, data):
         import tempfile

@@ -9,7 +9,7 @@
 from MoinMoin.mail import mailimport
 
 
-class TestMailHeaderParsing(object):
+class TestMailHeaderParsing:
     _tests = (
         # simple email address (localhost)
         (['From: user', ],

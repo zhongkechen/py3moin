@@ -25,7 +25,7 @@ modules = pysupport.getPackageModules(__file__)
 _ = lambda x: x
 
 
-class Event(object):
+class Event:
     """A class handling information common to all events."""
 
     # NOTE: each Event subclass must have a unique name attribute
@@ -206,7 +206,7 @@ class PagePreSaveEvent(Event):
         self.new_text = new_text
 
 
-class EventResult(object):
+class EventResult:
     """ This is a base class for messages passed from event handlers """
     pass
 

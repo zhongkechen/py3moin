@@ -8,7 +8,7 @@
 
 Dependencies = []
 
-class Parser(object):
+class Parser:
     """
         Send plain text in a HTML <pre> element.
     """

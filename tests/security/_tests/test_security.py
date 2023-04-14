@@ -21,7 +21,7 @@ from MoinMoin.user import User
 from tests._tests import create_page, nuke_page, wikiconfig
 
 
-class TestACLStringIterator(object):
+class TestACLStringIterator:
 
     def testEmpty(self, req):
         """ security: empty acl string raise StopIteration """
@@ -180,7 +180,7 @@ class TestACLStringIterator(object):
         assert rights == []
 
 
-class TestAcl(object):
+class TestAcl:
     """ security: testing access control list
 
     TO DO: test unknown user?
@@ -250,7 +250,7 @@ groups = {
     u'AllGroup': frozenset([]), # note: intended misnomer
 }
 
-class TestGroupACL(object):
+class TestGroupACL:
 
     @pytest.mark.wiki_config(groups=lambda s, r: ConfigGroups(r, groups))
     def testApplyACLByGroup(self, req):
@@ -282,7 +282,7 @@ class TestGroupACL(object):
                 assert not acl.may(req, user, right)
 
 
-class TestPageAcls(object):
+class TestPageAcls:
     """ security: real-life access control list on pages testing
     """
     mainpage_name = u'AclTestMainPage'

@@ -1099,7 +1099,7 @@ def gcd(a, b):
     else:
         return gcd(b, a % b)
 
-class Ratio(object):
+class Ratio:
     def __init__(self, num, den):
         self.num = num
         self.den = den
@@ -1117,7 +1117,7 @@ class Ratio(object):
             self.den = (self.den // div)
 
 # for ease of dealing with tags
-class IFD_Tag(object):
+class IFD_Tag:
     def __init__(self, printable, tag, field_type, values, field_offset,
                  field_length):
         # printable version of data
@@ -1143,7 +1143,7 @@ class IFD_Tag(object):
                                         self.field_offset)
 
 # class that handles an EXIF header
-class EXIF_header(object):
+class EXIF_header:
     def __init__(self, file, endian, offset, fake_exif, debug=0):
         self.file = file
         self.endian = endian

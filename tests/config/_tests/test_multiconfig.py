@@ -10,7 +10,7 @@
 import pytest
 
 
-class TestPasswordChecker(object):
+class TestPasswordChecker:
     username = u"SomeUser"
     tests_builtin = [
         (u'', False), # empty

@@ -12,7 +12,7 @@ from MoinMoin import caching
 from MoinMoin.PageEditor import PageEditor
 
 
-class TestCaching(object):
+class TestCaching:
     """ Tests the caching module """
 
     def test_persistence_simple(self, req):

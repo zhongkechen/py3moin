@@ -24,7 +24,7 @@ from . import errors as _errors
 from .replaylog import log as _log
 from . import parsedate as _parsedate
 
-class Schema(object):
+class Schema:
     def __init__(self):
         pass
 

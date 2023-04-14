@@ -49,7 +49,7 @@ def getNames(cfg):
 ### Macros - Handlers for <<macroname>> markup
 #############################################################################
 
-class Macro(object):
+class Macro:
     """ Macro handler
 
     There are three kinds of macros:

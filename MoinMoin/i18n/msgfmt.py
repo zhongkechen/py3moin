@@ -38,7 +38,7 @@ class SyntaxErrorException(Exception):
     """raised when having trouble parsing the po file content"""
     pass
 
-class MsgFmt(object):
+class MsgFmt:
     """transform .po -> .mo format"""
     def __init__(self):
         self.messages = {}

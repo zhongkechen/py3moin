@@ -6,7 +6,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-class Widget(object):
+class Widget:
 
     def __init__(self, request, **kw):
         self.request = request
