@@ -80,7 +80,7 @@ def execute(pagename, request):
         paging = request.cfg.history_paging
 
         try:
-            max_count = int(request.values.get('max_count', default_count))
+            max_count = int(request.request.values.get('max_count', default_count))
         except ValueError:
             max_count = default_count
         max_count = max(1, min(max_count, limit_max_count))
@@ -99,7 +99,7 @@ def execute(pagename, request):
             log_size = log.lines()
 
             try:
-                offset = int(request.values.get('offset', 0))
+                offset = int(request.request.values.get('offset', 0))
             except ValueError:
                 offset = 0
             offset = max(min(offset, log_size - 1), 0)
@@ -364,8 +364,8 @@ def execute(pagename, request):
         request.write("[%s] " % page.link_to(request, text=text, querystr=querystr, rel='nofollow'))
     request.write(f.paragraph(0))
 
-    show_hitcounts = int(request.values.get('hitcounts', 0)) != 0
-    show_general = int(request.values.get('general', 0)) != 0
+    show_hitcounts = int(request.request.values.get('hitcounts', 0)) != 0
+    show_general = int(request.request.values.get('general', 0)) != 0
 
     if show_hitcounts:
         from MoinMoin.stats import hitcounts
@@ -375,7 +375,7 @@ def execute(pagename, request):
     else:
         history(page, pagename, request)
 
-    request.write(f.div(0)) # end content div
+    request.write(f.div(0))  # end content div
     request.theme.send_footer(pagename)
     request.theme.send_closing_html()
 

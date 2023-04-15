@@ -1,4 +1,3 @@
-
 """
     MoinMoin - search engine internals
 
@@ -13,12 +12,12 @@ import os
 import time
 
 from MoinMoin import log
-
-logging = log.getLogger(__name__)
-
 from MoinMoin import wikiutil, caching
 from MoinMoin.Page import Page
 from MoinMoin.search.results import getSearchResults
+
+logging = log.getLogger(__name__)
+
 
 ##############################################################################
 # Search Engine Abstraction
@@ -68,7 +67,7 @@ class IndexerQueue:
                         attachmentname: attachment name [unicode or None]
                         revision number (int) or None (all revs)
         """
-        cache = self.get_cache(locking=False) # we lock manually
+        cache = self.get_cache(locking=False)  # we lock manually
         cache.lock('w', 60.0)
         try:
             queue = self._queue(cache)
@@ -84,7 +83,7 @@ class IndexerQueue:
         @param attachmentname: attachment name [unicode]
         @param revno: revision number (int) or None (all revs)
         """
-        cache = self.get_cache(locking=False) # we lock manually
+        cache = self.get_cache(locking=False)  # we lock manually
         cache.lock('w', 60.0)
         try:
             queue = self._queue(cache)
@@ -99,7 +98,7 @@ class IndexerQueue:
 
         Raises IndexError if queue was empty when calling get().
         """
-        cache = self.get_cache(locking=False) # we lock manually
+        cache = self.get_cache(locking=False)  # we lock manually
         cache.lock('w', 60.0)
         try:
             queue = self._queue(cache)
@@ -115,7 +114,7 @@ class IndexerQueue:
 
         Raises IndexError if queue was empty when calling get().
         """
-        cache = self.get_cache(locking=False) # we lock manually
+        cache = self.get_cache(locking=False)  # we lock manually
         cache.lock('w', 60.0)
         try:
             queue = self._queue(cache)
@@ -191,7 +190,7 @@ class BaseIndex:
         request = self._indexingRequest(self.request)
         self._queue_pages(request, files, pages)
         logging.info("queuing completed successfully in %0.2f seconds." %
-                    (time.time() - start))
+                     (time.time() - start))
 
     def indexPagesQueued(self, count=-1):
         """ Index <count> queued pages (and/or files)
@@ -199,7 +198,7 @@ class BaseIndex:
         start = time.time()
         done_count = self.do_queued_updates(count)
         logging.info("indexing %d items completed successfully in %0.2f seconds." %
-                    (done_count, time.time() - start))
+                     (done_count, time.time() - start))
 
     def indexPages(self, files=None, mode='update', pages=None):
         """ Index pages (and files, if given)
@@ -212,7 +211,7 @@ class BaseIndex:
         request = self._indexingRequest(self.request)
         self._index_pages(request, files, mode, pages=pages)
         logging.info("indexing completed successfully in %0.2f seconds." %
-                    (time.time() - start))
+                     (time.time() - start))
 
     def _index_pages(self, request, files=None, mode='update', pages=None):
         """ Index all pages (and all given files)
@@ -283,6 +282,7 @@ class BaseIndex:
 
         class FakeRequest:
             """ minimal request object for indexing code """
+
             def __init__(self, request, user):
                 NAMES = """action cfg clock current_lang dicts form
                            getPragma getText href html_formatter
@@ -320,7 +320,7 @@ class BaseSearch:
         self.mtime = mtime
         self.historysearch = historysearch
         self.filtered = False
-        self.fs_rootpage = "FS" # XXX FS hardcoded
+        self.fs_rootpage = "FS"  # XXX FS hardcoded
 
     def run(self):
         """ Perform search and return results object """
@@ -357,11 +357,11 @@ class BaseSearch:
         fs_rootpage = self.fs_rootpage + "/"
         thiswiki = (self.request.cfg.interwikiname, 'Self')
         filtered = [(wikiname, page, attachment, match, rev)
-                for wikiname, page, attachment, match, rev in hits
+                    for wikiname, page, attachment, match, rev in hits
                     if (not wikiname in thiswiki or
-                       page.exists() and userMayRead(page.page_name) or
-                       page.page_name.startswith(fs_rootpage)) and
-                       (not self.mtime or self.mtime <= (page.mtime_usecs() // 1000000))]
+                        page.exists() and userMayRead(page.page_name) or
+                        page.page_name.startswith(fs_rootpage)) and
+                    (not self.mtime or self.mtime <= (page.mtime_usecs() // 1000000))]
         return filtered
 
     def _get_search_results(self, hits, start, estimated_hits):
@@ -392,7 +392,7 @@ class BaseSearch:
 
             logging.debug("_getHits processing %r %r %d %r" % (wikiname, pagename, revision, attachment))
 
-            if wikiname in (self.request.cfg.interwikiname, 'Self'): # THIS wiki
+            if wikiname in (self.request.cfg.interwikiname, 'Self'):  # THIS wiki
                 page = Page(self.request, pagename, rev=revision)
 
                 if not self.historysearch and revision:
@@ -405,7 +405,7 @@ class BaseSearch:
 
                 if attachment:
                     # revision currently is 0 ever
-                    if pagename == fs_rootpage: # not really an attachment
+                    if pagename == fs_rootpage:  # not really an attachment
                         page = Page(self.request, "%s/%s" % (fs_rootpage, attachment))
                         hits.append((wikiname, page, None, None, revision))
                     else:
@@ -415,13 +415,14 @@ class BaseSearch:
                     matches = self._get_match(page=page, uid=uid)
                     logging.debug("self._get_match %r" % matches)
                     if matches:
-                        if not self.historysearch and pagename in revisionCache and revisionCache[pagename][0] < revision:
+                        if not self.historysearch and pagename in revisionCache and revisionCache[pagename][
+                            0] < revision:
                             hits.remove(revisionCache[pagename][1])
                             del revisionCache[pagename]
                         hits.append((wikiname, page, attachment, matches, revision))
                         revisionCache[pagename] = (revision, hits[-1])
 
-            else: # other wiki
+            else:  # other wiki
                 hits.append((wikiname, pagename, attachment, None, revision))
         logging.debug("_getHits returning %r." % hits)
         return hits
@@ -469,4 +470,3 @@ class MoinSearch(BaseSearch):
             return self.request.rootpage.getPageList(filter=filter_)
         else:
             return self.request.rootpage.getPageList(user='', exists=0)
-

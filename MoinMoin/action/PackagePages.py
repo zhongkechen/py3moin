@@ -1,4 +1,3 @@
-
 """
     MoinMoin - PackagePages action
 
@@ -11,22 +10,21 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
 import io
-import os
 import zipfile
 from datetime import datetime
 
-from MoinMoin import wikiutil, config, user
+from MoinMoin import wikiutil, user
 from MoinMoin.Page import Page
-from MoinMoin.action.AttachFile import _addLogEntry
-from MoinMoin.packages import MOIN_PACKAGE_FILE, packLine, unpackLine
 from MoinMoin.action import AttachFile
 from MoinMoin.action.AttachFile import _get_files
+from MoinMoin.packages import MOIN_PACKAGE_FILE, packLine, unpackLine
 from MoinMoin.search import searchPages
+
 
 class ActionError(Exception):
     pass
+
 
 class PackagePages:
     def __init__(self, pagename, request):
@@ -36,7 +34,7 @@ class PackagePages:
 
     def allowed(self):
         """ Check if user is allowed to do this. """
-        return not self.__class__.__name__ in self.request.cfg.actions_excluded
+        return self.__class__.__name__ not in self.request.cfg.actions_excluded
 
     def render(self):
         """ Render action
@@ -46,7 +44,7 @@ class PackagePages:
         """
         _ = self.request.getText
 
-        if 'cancel' in self.request.values:
+        if 'cancel' in self.request.request.values:
             # User canceled
             return self.page.send_page()
 
@@ -67,18 +65,19 @@ class PackagePages:
         _ = self.request.getText
 
         # Get new name from form and normalize.
-        pagelist = self.request.values.get('pagelist', u'')
-        packagename = self.request.values.get('packagename', u'')
-        include_attachments = self.request.values.get('include_attachments', False)
+        pagelist = self.request.request.values.get('pagelist', u'')
+        packagename = self.request.request.values.get('packagename', u'')
+        include_attachments = self.request.request.values.get('include_attachments', False)
 
-        if not self.request.values.get('submit'):
+        if not self.request.request.values.get('submit'):
             self.request.theme.add_msg(self.makeform(), "dialog")
             raise ActionError
 
         target = wikiutil.taintfilename(packagename)
 
         if not target:
-            self.request.theme.add_msg(self.makeform(_('Invalid filename "%s"!') % wikiutil.escape(packagename)), "error")
+            self.request.theme.add_msg(self.makeform(_('Invalid filename "%s"!') % wikiutil.escape(packagename)),
+                                       "error")
             raise ActionError
 
         request = self.request
@@ -102,7 +101,7 @@ class PackagePages:
             error = u'<p class="error">%s</p>\n' % error
 
         d = {
-            'url': self.request.href(self.pagename),
+            'url': self.request.request.href(self.pagename),
             'error': error,
             'action': self.__class__.__name__,
             'pagename': wikiutil.escape(self.pagename, True),
@@ -188,7 +187,7 @@ class PackagePages:
                 if page.exists() and self.request.user.may.read(pagename):
                     pages.append(page)
         if not pages:
-            return (_('No pages like "%s"!') % wikiutil.escape(pagelist))
+            return _('No pages like "%s"!') % wikiutil.escape(pagelist)
 
         # Set zipfile output
         zf = zipfile.ZipFile(fileobject, "w", COMPRESSION_LEVEL)
@@ -200,13 +199,14 @@ class PackagePages:
         for page in pages:
             cnt += 1
             files = _get_files(self.request, page.page_name)
-            script.append(packLine(["AddRevision", str(cnt), page.page_name, userid, "Created by the PackagePages action."]))
+            script.append(
+                packLine(["AddRevision", str(cnt), page.page_name, userid, "Created by the PackagePages action."]))
 
             timestamp = wikiutil.version2timestamp(page.mtime_usecs())
 
             # avoid getting strange exceptions from zipfile in case of pre-1980 timestamps
-            nineteeneighty = (10 * 365 + 3) * 24 * 3600 # 1970 + 10y + 3d
-            timestamp = max(nineteeneighty, timestamp) # zip can not store timestamps before 1980
+            nineteeneighty = (10 * 365 + 3) * 24 * 3600  # 1970 + 10y + 3d
+            timestamp = max(nineteeneighty, timestamp)  # zip can not store timestamps before 1980
 
             zi = zipfile.ZipInfo(filename=str(cnt), date_time=datetime.fromtimestamp(timestamp).timetuple()[:6])
             zi.compress_type = COMPRESSION_LEVEL
@@ -216,7 +216,8 @@ class PackagePages:
                     if attname != pkgname:
                         cnt += 1
                         zipname = "%d_attachment" % cnt
-                        script.append(packLine(["AddAttachment", zipname, attname, page.page_name, userid, "Created by the PackagePages action."]))
+                        script.append(packLine(["AddAttachment", zipname, attname, page.page_name, userid,
+                                                "Created by the PackagePages action."]))
                         filename = AttachFile.getFilename(self.request, page.page_name, attname)
                         zf.write(filename, zipname)
         script += [packLine(['Print', 'Thank you for using PackagePages!'])]
@@ -224,7 +225,7 @@ class PackagePages:
         zf.writestr(MOIN_PACKAGE_FILE, u"\n".join(script).encode("utf-8"))
         zf.close()
 
+
 def execute(pagename, request):
     """ Glue code for actions """
     PackagePages(pagename, request).render()
-

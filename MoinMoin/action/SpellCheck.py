@@ -105,7 +105,7 @@ def _addLocalWords(request):
     from MoinMoin.PageEditor import PageEditor
     # get the new words as a string (if any are marked at all)
     try:
-        newwords = request.form.getlist('newwords')
+        newwords = request.request.form.getlist('newwords')
     except KeyError:
         # no new words checked
         return
@@ -127,7 +127,7 @@ def checkSpelling(page, request, own_form=1):
     _ = request.getText
 
     # first check to see if we we're called with a "newwords" parameter
-    if 'button_newwords' in request.form:
+    if 'button_newwords' in request.request.form:
         _addLocalWords(request)
 
     # load words
@@ -168,7 +168,7 @@ def checkSpelling(page, request, own_form=1):
 
     if badwords:
         badwords = list(badwords.keys())
-        badwords.sort(lambda x, y: cmp(x.lower(), y.lower()))
+        badwords.sort(key=lambda y: y.lower())
 
         # build regex recognizing the bad words
         badwords_re = r'(^|(?<!\w))(%s)(?!\w)'
@@ -191,7 +191,9 @@ def checkSpelling(page, request, own_form=1):
         # add a form containing the bad words
         if own_form:
             msg = msg + ('<form method="post" action="%s">\n'
-                         '<input type="hidden" name="action" value="%s">\n') % (request.href(page.page_name), action_name)
+                         '<input type="hidden" name="action" value="%s">\n') % (
+                request.request.href(page.page_name),
+                action_name)
 
         checkbox = '<input type="checkbox" name="newwords" value="%(word)s">%(word)s&nbsp;&nbsp;'
         msg = msg + (

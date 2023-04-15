@@ -11,6 +11,7 @@ import time
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
 
+
 def execute(pagename, request):
     """ set bookmarks (in time) for RecentChanges or delete them """
     _ = request.getText
@@ -19,7 +20,7 @@ def execute(pagename, request):
         request.theme.add_msg(_("You must login to use this action: %(action)s.") % {"action": actname}, "error")
         return Page(request, pagename).send_page()
 
-    timestamp = request.values.get('time')
+    timestamp = request.request.values.get('time')
     if timestamp is not None:
         if timestamp == 'del':
             tm = None

@@ -24,6 +24,7 @@ Dependencies = ['language']
 class Error(error.Error):
     """ Raised for errors in this module """
 
+
 # This could be delivered in a separate plugin, but
 # it is more convenient to have everything in one module.
 
@@ -142,7 +143,6 @@ class SlidePage(Page):
 
 
 class SlideshowAction:
-
     name = 'SlideShow'
     maxSlideLinks = 15
 
@@ -159,7 +159,7 @@ class SlideshowAction:
         try:
             self.setSlideNumber()
             language = self.page.pi['language']
-            self.request.content_type = "text/html; charset=%s" % (config.charset, )
+            self.request.content_type = "text/html; charset=%s" % (config.charset,)
             self.request.setContentLanguage(language)
             self.request.write(self.template % self)
         except Error as err:
@@ -169,7 +169,7 @@ class SlideshowAction:
     # Private ----------------------------------------------------------------
 
     def setSlideNumber(self):
-        slideNumber = self.request.values.get('n', 1)
+        slideNumber = self.request.request.values.get('n', 1)
         if slideNumber == "all":
             slideNumber = None
         else:
@@ -231,7 +231,7 @@ class SlideshowAction:
             'url': wikiutil.escape(url),
             'attributes': self.formatAttributes(attributes),
             'text': wikiutil.escape(text),
-            }
+        }
 
     def formatAttributes(self, attributes):
         """ Return formatted attributes string """
@@ -256,7 +256,7 @@ class SlideshowAction:
 
     def slideLinksRange(self):
         """ Return range of slides to display, current centered """
-        other = self.maxSlideLinks - 1 # other slides except current
+        other = self.maxSlideLinks - 1  # other slides except current
         first, last = self.first_slide(), self.last_slide()
         start = max(first, (self.slideNumber or 1) - (other // 2))
         end = min(start + other, last)
@@ -300,9 +300,9 @@ class SlideshowAction:
             slides = []
             for n in range(0, len(self.page)):
                 slides.append(slide_template % {
-                    'slide_title' : self.item_slide_title(n + 1),
-                    'slide_body' : self.item_slide_body(n + 1)
-                    })
+                    'slide_title': self.item_slide_title(n + 1),
+                    'slide_body': self.item_slide_body(n + 1)
+                })
             return ''.join(slides)
         else:
             return slide_template % self
@@ -394,6 +394,7 @@ class SlideshowAction:
             return "%d|%d" % (self.slideNumber, self.last_slide())
         else:
             return ''
+
 
 # This is quite stupid template, but it cleans most of the code from
 # html. With smarter templates, there will be no html in the action code.
@@ -487,7 +488,7 @@ slide_template = """
     </div>
 """
 
+
 def execute(pagename, request):
     """ Glue to current plugin system """
     SlideshowAction(request, pagename, template).execute()
-

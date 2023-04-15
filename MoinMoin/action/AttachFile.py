@@ -671,13 +671,13 @@ def send_uploadform(pagename, request):
 </p>
 </form>
 """ % {
-            'url': request.href(pagename),
+            'url': request.request.href(pagename),
             'action_name': action_name,
             'upload_label_file': _('File to upload'),
             'upload_label_target': _('Rename to'),
-            'target': wikiutil.escape(request.values.get('target', ''), 1),
+            'target': wikiutil.escape(request.request.values.get('target', ''), 1),
             'upload_label_overwrite': _('Overwrite existing attachment of same name'),
-            'overwrite_checked': ('', 'checked')[request.form.get('overwrite', '0') == '1'],
+            'overwrite_checked': ('', 'checked')[request.request.form.get('overwrite', '0') == '1'],
             'upload_button': _('Upload'),
             'textcha': TextCha(request).render(),
             'ticket': wikiutil.createTicket(request),
@@ -731,7 +731,7 @@ def upload_form(pagename, request, msg=''):
 def _do_upload(pagename, request):
     _ = request.getText
 
-    if not wikiutil.checkTicket(request, request.form.get('ticket', '')):
+    if not wikiutil.checkTicket(request, request.request.form.get('ticket', '')):
         return _('Please use the interactive user interface to use action %(actionname)s!') % {
             'actionname': 'AttachFile.upload'}
 
@@ -740,9 +740,9 @@ def _do_upload(pagename, request):
     if not TextCha(request).check_answer_from_form():
         return _('TextCha: Wrong answer! Go back and try again...')
 
-    form = request.form
+    form = request.request.form
 
-    file_upload = request.files.get('file')
+    file_upload = request.request.files.get('file')
     if not file_upload:
         # This might happen when trying to upload file names
         # with non-ascii characters on Safari.

@@ -33,12 +33,12 @@ class Settings(UserPrefBase):
     def handle_form(self):
         _ = self._
         request = self.request
-        form = request.form
+        form = request.request.form
 
         if 'cancel' in form:
             return
 
-        if request.method != 'POST':
+        if request.request.method != 'POST':
             return
 
         if not wikiutil.checkTicket(request, form['ticket']):
@@ -73,7 +73,7 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
         if not uid:
             # create new user
             theuser.save()
-        return  _("You can now change the settings of the selected user account; log out to get back to your account.")
+        return _("You can now change the settings of the selected user account; log out to get back to your account.")
 
     def _user_select(self):
         options = []
@@ -83,7 +83,7 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
             if uid != current_uid:
                 name = user.User(self.request, id=uid).name
                 options.append((uid, name))
-        options.sort(lambda x, y: cmp(x[1].lower(), y[1].lower()))
+        options.sort(key=lambda y: y[1].lower())
 
         if not options:
             _ = self._

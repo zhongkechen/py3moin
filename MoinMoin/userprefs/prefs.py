@@ -6,12 +6,12 @@
                 2003-2007 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
-from past.builtins import cmp
 import time
+
 from MoinMoin import user, util, wikiutil, events
 from MoinMoin.theme import load_theme_fallback
-from MoinMoin.widget import html
 from MoinMoin.userprefs import UserPrefBase
+from MoinMoin.widget import html
 
 
 #################################################################
@@ -45,7 +45,7 @@ class Settings(UserPrefBase):
         @rtype: list of unicode strings
         @return: list of normalized names
         """
-        text = self.request.form.get(key, '')
+        text = self.request.request.form.get(key, '')
         text = text.replace('\r', '')
         items = []
         for item in text.split('\n'):
@@ -57,7 +57,7 @@ class Settings(UserPrefBase):
 
     def _save_user_prefs(self):
         _ = self._
-        form = self.request.form
+        form = self.request.request.form
         request = self.request
 
         if not 'name' in request.user.auth_attribs:
@@ -82,8 +82,7 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
             # done sanity checking the name, set it
             request.user.name = new_name
 
-
-        if not 'email' in request.user.auth_attribs:
+        if 'email' not in request.user.auth_attribs:
             # try to get the email
             new_email = wikiutil.clean_input(form.get('email', request.user.email)).strip()
 
@@ -101,8 +100,7 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
             # done checking the email, set it
             request.user.email = new_email
 
-
-        if not 'jid' in request.user.auth_attribs:
+        if 'jid' not in request.user.auth_attribs:
             # try to get the jid
             new_jid = wikiutil.clean_input(form.get('jid', '')).strip()
 
@@ -122,7 +120,6 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
 
             # done checking the JID, set it
             request.user.jid = new_jid
-
 
         if not 'aliasname' in request.user.auth_attribs:
             # aliasname
@@ -217,15 +214,14 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
         result = _("User preferences saved!")
         return result
 
-
     def handle_form(self):
         request = self.request
-        form = request.form
+        form = request.request.form
 
         if 'cancel' in form:
             return
 
-        if request.method != 'POST':
+        if request.request.method != 'POST':
             return
 
         if not wikiutil.checkTicket(request, form['ticket']):
@@ -267,7 +263,6 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
 
         return util.web.makeSelection('tz_offset', options, str(tz), 1, False, enabled)
 
-
     def _dtfmt_select(self):
         """ Create date format selection. """
         _ = self._
@@ -282,14 +277,13 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
 
         return util.web.makeSelection('datetime_fmt', options, selected)
 
-
     def _lang_select(self, enabled=True):
         """ Create language selection. """
         from MoinMoin import i18n
         _ = self._
         cur_lang = self.request.user.valid and self.request.user.language or ''
         langs = list(i18n.wikiLanguages().items())
-        langs.sort(lambda x, y: cmp(x[1]['x-language'], y[1]['x-language']))
+        langs.sort(key=lambda  y: y[1]['x-language'])
         options = [('', _('<Browser setting>'))]
         for lang in langs:
             name = lang[1]['x-language']
@@ -322,7 +316,6 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
                    ("freechoice", self._("free choice")),
                   ]
         return util.web.makeSelection('editor_ui', options, editor_ui)
-
 
     def create_form(self):
         """ Create the complete HTML form code. """
@@ -375,7 +368,7 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
             # boolean user options
             bool_options = []
             checkbox_fields = self.cfg.user_checkbox_fields
-            checkbox_fields.sort(lambda a, b: cmp(a[1](_), b[1](_)))
+            checkbox_fields.sort(key=lambda  b: b[1](_))
             for key, label in checkbox_fields:
                 if not key in self.cfg.user_checkbox_remove:
                     bool_options.extend([

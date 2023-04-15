@@ -32,7 +32,7 @@ class Settings(UserPrefBase):
         @rtype: list of unicode strings
         @return: list of normalized names
         """
-        text = self.request.form.get(key, '')
+        text = self.request.request.form.get(key, '')
         text = text.replace('\r', '')
         items = []
         for item in text.split('\n'):
@@ -44,7 +44,7 @@ class Settings(UserPrefBase):
 
     def _save_notification_settings(self):
         _ = self._
-        form = self.request.form
+        form = self.request.request.form
 
         theuser = self.request.user
         if not theuser:
@@ -75,12 +75,12 @@ class Settings(UserPrefBase):
     def handle_form(self):
         _ = self._
         request = self.request
-        form = request.form
+        form = request.request.form
 
         if 'cancel' in form:
             return
 
-        if request.method != 'POST':
+        if request.request.method != 'POST':
             return
 
         if not wikiutil.checkTicket(request, form.get('ticket', '')):

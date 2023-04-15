@@ -1,4 +1,3 @@
-
 """
     MoinMoin - user settings action
 
@@ -10,13 +9,14 @@
 from MoinMoin import Page, wikiutil
 from MoinMoin.widget import html
 
+
 def _handle_submission(request):
     """ Handle GET and POST requests of preferences forms.
 
     Return error msg_class, msg tuple or None, None.
     """
     _ = request.getText
-    sub = request.values.get('handler')
+    sub = request.request.values.get('handler')
 
     if sub in request.cfg.userprefs_disabled:
         return None, None
@@ -37,6 +37,7 @@ def _handle_submission(request):
     # backward compatibility for userprefs plugins,
     # they just get 'dialog'-style messages.
     return None, res
+
 
 def _create_prefs_page(request, sel=None):
     _ = request.getText

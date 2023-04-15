@@ -27,7 +27,7 @@ def show_form(pagename, request):
 %s <input type="text" name="users" size="50">
 <input type="submit" value="Subscribe">
 </form>
-""" % (request.href(pagename),
+""" % (request.request.href(pagename),
       _("Enter user names (comma separated):")))
     request.theme.send_footer(pagename)
     request.theme.send_closing_html()
@@ -130,7 +130,7 @@ def execute(pagename, request):
         thispage = Page(request, pagename)
         request.theme.add_msg(_("You are not allowed to perform this action."), "error")
         return thispage.send_page()
-    elif 'users' not in request.form:
+    elif 'users' not in request.request.form:
         show_form(pagename, request)
     else:
         show_result(pagename, request)

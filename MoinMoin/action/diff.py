@@ -15,6 +15,7 @@ from MoinMoin import wikiutil
 from MoinMoin.logfile import editlog
 from MoinMoin.Page import Page
 
+
 def execute(pagename, request):
     """ Handle "action=diff"
         checking for either a "rev=formerrevision" parameter
@@ -25,20 +26,20 @@ def execute(pagename, request):
         return
 
     try:
-        date = request.values['date']
+        date = request.request.values['date']
         try:
-            date = int(date) # must be long for py 2.2.x
+            date = int(date)  # must be long for py 2.2.x
         except Exception:
             date = 0
     except KeyError:
         date = 0
 
     try:
-        rev1 = int(request.values.get('rev1', -1))
+        rev1 = int(request.request.values.get('rev1', -1))
     except Exception:
         rev1 = 0
     try:
-        rev2 = int(request.values.get('rev2', 0))
+        rev2 = int(request.request.values.get('rev2', 0))
     except Exception:
         rev2 = 0
 
@@ -48,7 +49,7 @@ def execute(pagename, request):
             rev1 = -1
 
     # spacing flag?
-    ignorews = int(request.values.get('ignorews', 0))
+    ignorews = int(request.request.values.get('ignorews', 0))
 
     _ = request.getText
 
@@ -71,7 +72,7 @@ def execute(pagename, request):
             rev1 = 1
         rev2 = 0
 
-    if rev1 > 0 and rev2 > 0 and rev1 > rev2 or rev1 == 0 and rev2 > 0:
+    if 0 < rev2 < rev1 or rev1 == 0 and rev2 > 0:
         rev1, rev2 = rev2, rev1
 
     if rev1 == -1:

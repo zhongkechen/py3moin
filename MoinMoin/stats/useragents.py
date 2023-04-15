@@ -1,4 +1,3 @@
-
 """
     MoinMoin - User-Agent Statistics
 
@@ -12,14 +11,11 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
-
-
-_debug = 0
-
 from MoinMoin import wikiutil, caching, logfile
 from MoinMoin.Page import Page
 from MoinMoin.logfile import eventlog
+
+_debug = 0
 
 
 def linkto(pagename, request, params=''):
@@ -55,7 +51,7 @@ def get_data(request):
         try:
             cache_date, data = cache.content()
         except:
-            cache.remove() # cache gone bad
+            cache.remove()  # cache gone bad
 
     log = eventlog.EventLog(request)
     try:
@@ -75,7 +71,7 @@ def get_data(request):
                     ua = ua[pos:].split(';')[1].strip()
                 except ValueError:
                     ua = ua.split()[0]
-                #ua = ua.replace(';', '\n')
+                # ua = ua.replace(';', '\n')
                 data[ua] = data.get(ua, 0) + 1
 
         # write results to cache
@@ -99,7 +95,6 @@ def text(pagename, request):
     for cnt, ua in data:
         total += cnt
 
-
     agents = TupleDataset()
     agents.columns = [Column('agent', label=_("User agent"), align='left'),
                       Column('value', label='%', align='right')]
@@ -122,9 +117,10 @@ def text(pagename, request):
     table.setData(agents)
     return table.render(method="GET")
 
+
 def draw(pagename, request):
     import shutil, io
-    from MoinMoin.stats.chart import Chart, ChartData, Color
+    from MoinMoin.stats.chart import Chart, Color
 
     _ = request.getText
 
@@ -140,7 +136,7 @@ def draw(pagename, request):
     maxdata = len(colors) - 1
     if len(data) > maxdata:
         others = [x[0] for x in data[maxdata:]]
-        data = data[:maxdata] + [(sum(others), _('Others').encode('iso-8859-1', 'replace'))] # gdchart can't do utf-8
+        data = data[:maxdata] + [(sum(others), _('Others').encode('iso-8859-1', 'replace'))]  # gdchart can't do utf-8
 
     # shift front to end if others is very small
     if data[-1][0] * 10 < data[0][0]:
@@ -171,11 +167,11 @@ def draw(pagename, request):
         threed_angle=225,
         percent_labels=Chart.GDCPIE_PCT_RIGHT,
         title_font=c.GDC_GIANT,
-        title=title.encode('iso-8859-1', 'replace')) # gdchart can't do utf-8
+        title=title.encode('iso-8859-1', 'replace'))  # gdchart can't do utf-8
     labels = [label.encode('iso-8859-1', 'replace') for label in labels]
     c.draw(style,
-        (request.cfg.chart_options['width'], request.cfg.chart_options['height']),
-        image, labels)
+           (request.cfg.chart_options['width'], request.cfg.chart_options['height']),
+           image, labels)
 
     request.content_type = 'image/gif'
     request.content_length = len(image.getvalue())
@@ -183,4 +179,3 @@ def draw(pagename, request):
     # copy the image
     image.reset()
     shutil.copyfileobj(image, request, 8192)
-

@@ -1,10 +1,10 @@
-
 """
     MoinMoin - Helper functions for WWW stuff
 
     @copyright: 2002 Juergen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
 """
+
 
 def getIntegerInput(request, fieldname, default=None, minval=None, maxval=None):
     """ Get an integer value from a request parameter. If the value
@@ -14,7 +14,7 @@ def getIntegerInput(request, fieldname, default=None, minval=None, maxval=None):
         is missing).
     """
     try:
-        result = int(request.values[fieldname])
+        result = int(request.request.values[fieldname])
     except (KeyError, ValueError):
         return default
     else:
@@ -39,10 +39,11 @@ def makeSelection(name, values, selectedval=None, size=1, multiple=False, enable
             val = (val, val)
         result.append(html.OPTION(
             value=val[0], selected=(val[0] == selectedval))
-            .append(html.Text(val[1]))
-        )
+                      .append(html.Text(val[1]))
+                      )
 
     return result
+
 
 def makeMultiSelection(name, values, selectedvals=None, size=5, enabled=True):
     """Make a HTML multiple <select> element with named `name` from a value list.
@@ -58,10 +59,11 @@ def makeMultiSelection(name, values, selectedvals=None, size=5, enabled=True):
             val = (val, val)
         result.append(html.OPTION(
             value=val[0], selected=(val[0] in selectedvals))
-            .append(html.Text(val[1]))
-        )
+                      .append(html.Text(val[1]))
+                      )
 
     return result
+
 
 class Color:
     """ RGB-Triple that automatically converts from and to
@@ -257,4 +259,3 @@ class Color:
 
     def __long__(self):
         return (self.r << 16) | (self.g << 8) | self.b
-

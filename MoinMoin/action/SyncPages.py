@@ -179,19 +179,19 @@ class ActionClass:
 
         params = self.fix_params(self.parse_page())
 
-        if self.request.method != 'POST':
+        if self.request.request.method != 'POST':
             # display the username / password dialog if we were just called by a GET request
             return self.show_password_form(params["user"], params["password"])
 
         try:
-            if "cancel" in self.request.values:
+            if "cancel" in self.request.request.values:
                 raise ActionStatus(_("Operation was canceled."), "error")
 
-            if not wikiutil.checkTicket(self.request, self.request.form.get('ticket', '')):
+            if not wikiutil.checkTicket(self.request, self.request.request.form.get('ticket', '')):
                 raise ActionStatus(_('Please use the interactive user interface to use action %(actionname)s!') % {'actionname': 'SyncPages' })
 
-            name = self.request.form.get('name', '')
-            password = self.request.form.get('password', '')
+            name = self.request.request.form.get('name', '')
+            password = self.request.request.form.get('password', '')
 
             if params["direction"] == UP:
                 raise ActionStatus(_("The only supported directions are BOTH and DOWN."), "error")
@@ -445,7 +445,7 @@ class ActionClass:
                 # XXX upgrade to write lock
                 try:
                     local_change_done = True
-                    current_page.saveText(merged_text, sp.local_rev or 0, comment=comment) # YYY direct access
+                    current_page.saveText(merged_text, sp.local_rev or 0, comment=comment)  # YYY direct access
                 except PageEditor.Unchanged:
                     local_change_done = False
                 except PageEditor.EditConflict:

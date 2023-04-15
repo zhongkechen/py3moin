@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Password change preferences plugin
 
@@ -24,18 +23,16 @@ class Settings(UserPrefBase):
         self.title = _("Change password")
         self.name = 'changepass'
 
-
     def allowed(self):
         return (not 'password' in self.cfg.user_form_remove and
                 not 'password' in self.cfg.user_form_disable and
                 UserPrefBase.allowed(self) and
                 not 'password' in self.request.user.auth_attribs)
 
-
     def handle_form(self):
         _ = self._
         request = self.request
-        form = request.form
+        form = request.request.form
 
         if 'cancel' in form:
             return
@@ -69,7 +66,6 @@ class Settings(UserPrefBase):
             # Should never happen
             return "Can't encode password: %s" % str(err)
 
-
     def create_form(self, create_only=False, recover_only=False):
         """ Create the complete HTML form code. """
         _ = self._
@@ -86,9 +82,9 @@ class Settings(UserPrefBase):
 
         # Add buttons
         self.make_row('', [
-                html.INPUT(type="submit", name='save', value=_("Change password")),
-                ' ',
-                html.INPUT(type="submit", name='cancel', value=_("Cancel")),
-              ])
+            html.INPUT(type="submit", name='save', value=_("Change password")),
+            ' ',
+            html.INPUT(type="submit", name='cancel', value=_("Cancel")),
+        ])
 
         return str(form)

@@ -5,17 +5,15 @@
     @license: GNU GPL, see COPYING for details
 """
 
+import datetime
+import re
+import time
 
-
-
-import re, time, datetime
-
+from MoinMoin import caching, wikiutil
 from MoinMoin import log
+from MoinMoin.security import Permissions
 
 logging = log.getLogger(__name__)
-
-from MoinMoin.security import Permissions
-from MoinMoin import caching, wikiutil
 
 
 # Errors ---------------------------------------------------------------

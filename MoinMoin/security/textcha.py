@@ -30,7 +30,6 @@ from MoinMoin.wikiutil import safe_str_cmp
 
 logging = log.getLogger(__name__)
 
-
 SHA1_LEN = 40  # length of hexdigest
 TIMESTAMP_LEN = 10  # length of timestamp
 

@@ -34,7 +34,7 @@ class RenamePage(ActionBase):
         except AttributeError:
             self.show_redirect = False
         try:
-            self.rename_redirect = int(self.request.form.get('rename_redirect', '0'))
+            self.rename_redirect = int(self.request.request.form.get('rename_redirect', '0'))
         except ValueError:
             self.rename_redirect = 0
 
@@ -58,7 +58,7 @@ class RenamePage(ActionBase):
         comment = form.get('comment', u'')
         comment = wikiutil.clean_input(comment)
         try:
-            rename_subpages = int(self.request.form.get('rename_subpages', '0'))
+            rename_subpages = int(self.request.request.form.get('rename_subpages', '0'))
         except ValueError:
             rename_subpages = 0
 
@@ -177,6 +177,7 @@ class RenamePage(ActionBase):
     </tr>
 </table>
 ''' % d
+
 
 def execute(pagename, request):
     """ Glue code for actions """

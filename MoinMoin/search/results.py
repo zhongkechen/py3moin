@@ -1,4 +1,3 @@
-
 """
     MoinMoin - search results processing
 
@@ -10,11 +9,12 @@
     @license: GNU GPL, see COPYING for details
 """
 
-
-import io, time
+import io
+import time
 
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
+
 
 ############################################################################
 ### Results
@@ -99,7 +99,7 @@ class FoundPage:
 
     def __init__(self, page_name, matches=None, page=None, rev=0):
         self.page_name = page_name
-        self.attachment = '' # this is not an attachment
+        self.attachment = ''  # this is not an attachment
         self.page = page
         self.rev = rev
         if matches is None:
@@ -121,7 +121,7 @@ class FoundPage:
             # More sophisticated things to be added, like increase
             # weight of near matches.
         if self.page.parse_processing_instructions().get('deprecated', False):
-            weight = int((weight // 4)) # rank it down
+            weight = int((weight // 4))  # rank it down
         return weight
 
     def add_matches(self, matches):
@@ -240,14 +240,15 @@ class SearchResults:
     and then ask for the same list sorted from Z to A. Or sort results
     by name and then by rank.
     """
+
     # Public functions --------------------------------------------------
 
     def __init__(self, query, hits, pages, elapsed, sort, estimated_hits):
-        self.query = query # the query
-        self.hits = hits # hits list
-        self.pages = pages # number of pages in the wiki
-        self.elapsed = elapsed # search time
-        self.estimated_hits = estimated_hits # about how much hits?
+        self.query = query  # the query
+        self.hits = hits  # hits list
+        self.pages = pages  # number of pages in the wiki
+        self.elapsed = elapsed  # search time
+        self.estimated_hits = estimated_hits  # about how much hits?
 
         if sort == 'weight':
             self._sortByWeight()
@@ -285,26 +286,26 @@ class SearchResults:
         output = [
             formatter.paragraph(1, attr={'class': 'searchstats'}),
             _("Results %(bs)s%(hitsFrom)d - %(hitsTo)d%(be)s "
-                    "of %(aboutHits)s %(bs)s%(hits)d%(be)s results out of "
-                    "about %(pages)d pages.") %
-                {'aboutHits': self.estimated_hits[0],
-                    'hits': self.estimated_hits[1], 'pages': self.pages,
-                    'hitsFrom': hitsFrom + 1,
-                    'hitsTo': hitsFrom +
-                            min(self.estimated_hits[1] - hitsFrom,
-                                request.cfg.search_results_per_page),
-                    'bs': formatter.strong(1), 'be': formatter.strong(0)},
+              "of %(aboutHits)s %(bs)s%(hits)d%(be)s results out of "
+              "about %(pages)d pages.") %
+            {'aboutHits': self.estimated_hits[0],
+             'hits': self.estimated_hits[1], 'pages': self.pages,
+             'hitsFrom': hitsFrom + 1,
+             'hitsTo': hitsFrom +
+                       min(self.estimated_hits[1] - hitsFrom,
+                           request.cfg.search_results_per_page),
+             'bs': formatter.strong(1), 'be': formatter.strong(0)},
             u' (%s %s)' % (''.join([formatter.strong(1),
-                formatter.text("%.2f" % self.elapsed),
-                formatter.strong(0)]),
-                formatter.text(_("seconds"))),
+                                    formatter.text("%.2f" % self.elapsed),
+                                    formatter.strong(0)]),
+                           formatter.text(_("seconds"))),
             formatter.paragraph(0),
-            ]
+        ]
         return ''.join(output)
 
     def pageList(self, request, formatter, info=0, numbered=1,
-            paging=True, hitsFrom=0, hitsInfo=0, highlight_titles=True,
-            highlight_pages=True):
+                 paging=True, hitsFrom=0, hitsInfo=0, highlight_titles=True,
+                 highlight_pages=True):
         """ Format a list of found pages
 
         @param request: current request
@@ -324,7 +325,7 @@ class SearchResults:
         f = formatter
         write = self.buffer.write
         if numbered:
-            lst = lambda on: f.number_list(on, start=hitsFrom+1)
+            lst = lambda on: f.number_list(on, start=hitsFrom + 1)
         else:
             lst = f.bullet_list
 
@@ -376,13 +377,13 @@ class SearchResults:
                     matchInfo,
                     info_for_hits,
                     f.listitem(0),
-                    ]
+                ]
                 write(''.join(item))
             write(lst(0))
             if paging:
                 write(self.formatPageLinks(hitsFrom=hitsFrom,
-                    hitsPerPage=request.cfg.search_results_per_page,
-                    hitsNum=len(self.hits)))
+                                           hitsPerPage=request.cfg.search_results_per_page,
+                                           hitsNum=len(self.hits)))
 
         return self.getvalue()
 
@@ -434,7 +435,7 @@ class SearchResults:
                         'do': 'view',
                         'target': page.attachment,
                     }
-                elif page.page_name.startswith('FS/'): # XXX FS hardcoded
+                elif page.page_name.startswith('FS/'):  # XXX FS hardcoded
                     fmt_context = ""
                     querydict = None
                 else:
@@ -446,7 +447,7 @@ class SearchResults:
                     else:
                         querydict = None
                 querystr = self.querystring(querydict,
-                    do_highlight=highlight_pages)
+                                            do_highlight=highlight_pages)
                 item = [
                     f.definition_term(1),
                     f.pagelink(1, page.page_name, querystr=querystr),
@@ -458,13 +459,13 @@ class SearchResults:
                     fmt_context,
                     f.definition_desc(0),
                     self.formatHitInfoBar(page),
-                    ]
+                ]
                 write(''.join(item))
             write(f.definition_list(0))
             if paging:
                 write(self.formatPageLinks(hitsFrom=hitsFrom,
-                    hitsPerPage=request.cfg.search_results_per_page,
-                    hitsNum=len(self.hits)))
+                                           hitsPerPage=request.cfg.search_results_per_page,
+                                           hitsNum=len(self.hits)))
 
         return self.getvalue()
 
@@ -644,12 +645,12 @@ class SearchResults:
         if start < len(pagename):
             output.append(f.text(pagename[start:]))
 
-        if page.attachment: # show the attachment that matched
+        if page.attachment:  # show the attachment that matched
             output.extend([
-                    " ",
-                    f.strong(1),
-                    f.text("(%s)" % page.attachment),
-                    f.strong(0)])
+                " ",
+                f.strong(1),
+                f.text("(%s)" % page.attachment),
+                f.strong(0)])
 
         return ''.join(output)
 
@@ -673,7 +674,7 @@ class SearchResults:
                 f.strong(1),
                 f.text(body[start:match.end]),
                 f.strong(0),
-                ]
+            ]
             return ''.join(output)
         return ''
 
@@ -705,28 +706,28 @@ class SearchResults:
         # previous page available
         if cur_page > 0:
             textlinks.append(''.join([
-                        f.url(1, href=page_url(cur_page-1)),
-                        f.text(_('Previous')),
-                        f.url(0)]))
+                f.url(1, href=page_url(cur_page - 1)),
+                f.text(_('Previous')),
+                f.url(0)]))
         else:
             textlinks.append('')
 
         # list of pages to be shown
         page_range = list(range(*(
-            cur_page - 5 < 0 and
+                cur_page - 5 < 0 and
                 (0, pages > 10 and 10 or pages) or
                 (cur_page - 5, cur_page + 6 > pages and
-                    pages or cur_page + 6))))
+                 pages or cur_page + 6))))
         textlinks.extend([''.join([
-                i != cur_page and f.url(1, href=page_url(i)) or '',
-                f.text(str(i+1)),
-                i != cur_page and f.url(0) or '',
-            ]) for i in page_range])
+            i != cur_page and f.url(1, href=page_url(i)) or '',
+            f.text(str(i + 1)),
+            i != cur_page and f.url(0) or '',
+        ]) for i in page_range])
 
         # next page available
         if cur_page < pages - 1:
             textlinks.append(''.join([
-                f.url(1, href=page_url(cur_page+1)),
+                f.url(1, href=page_url(cur_page + 1)),
                 f.text(_('Next')),
                 f.url(0)]))
         else:
@@ -735,10 +736,10 @@ class SearchResults:
         return ''.join([
             f.table(1, attrs={'tableclass': 'searchpages'}),
             f.table_row(1),
-                f.table_cell(1),
-                # textlinks
-                (f.table_cell(0) + f.table_cell(1)).join(textlinks),
-                f.table_cell(0),
+            f.table_cell(1),
+            # textlinks
+            (f.table_cell(0) + f.table_cell(1)).join(textlinks),
+            f.table_cell(0),
             f.table_row(0),
             f.table(0),
         ])
@@ -757,12 +758,12 @@ class SearchResults:
         if rev is None:
             rev = 0
 
-        size_str = '%.1fk' % (p.size()/1024.0)
+        size_str = '%.1fk' % (p.size() / 1024.0)
         revisions = p.getRevList()
         if len(revisions) and rev == revisions[0]:
             rev_str = '%s: %d (%s)' % (_('rev'), rev, _('current'))
         else:
-            rev_str = '%s: %d' % (_('rev'), rev, )
+            rev_str = '%s: %d' % (_('rev'), rev,)
         lastmod_str = _('last modified: %s') % p.mtime_printable(request)
 
         result = f.paragraph(1, attr={'class': 'searchhitinfobar'}) + \
@@ -779,7 +780,7 @@ class SearchResults:
         if querydict is None:
             querydict = {}
         if do_highlight and ('action' not in querydict or
-            querydict['action'] == 'AttachFile'):
+                             querydict['action'] == 'AttachFile'):
             highlight = self.query.highlight_re()
             if highlight:
                 querydict.update({'highlight': highlight})
@@ -807,7 +808,7 @@ class SearchResults:
             self.formatter.div(1, css_class='searchresults'),
             self.buffer.getvalue(),
             self.formatter.div(0),
-            ]
+        ]
         return '\n'.join(value)
 
     def _reset(self, request, formatter):
@@ -840,16 +841,15 @@ def getSearchResults(request, query, hits, start, sort, estimated_hits):
     """
     result_hits = []
     for wikiname, page, attachment, match, rev in hits:
-        if wikiname in (request.cfg.interwikiname, 'Self'): # a local match
+        if wikiname in (request.cfg.interwikiname, 'Self'):  # a local match
             if attachment:
                 result_hits.append(FoundAttachment(page.page_name, attachment, matches=match, page=page, rev=rev))
             else:
                 result_hits.append(FoundPage(page.page_name, matches=match, page=page, rev=rev))
         else:
-            page_name = page # for remote wikis, we have the page_name, not the page obj
+            page_name = page  # for remote wikis, we have the page_name, not the page obj
             result_hits.append(FoundRemote(wikiname, page_name, attachment, matches=match, rev=rev))
     elapsed = time.time() - start
     count = request.rootpage.getPageCount()
     return SearchResults(query, result_hits, count, elapsed, sort,
-            estimated_hits)
-
+                         estimated_hits)

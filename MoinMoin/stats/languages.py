@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Language Statistics
 
@@ -25,12 +24,12 @@ def get_data(request):
             # User is using <Browser setting>, attempting to look up if we've managed to store the real language...
             try:
                 data[current_user.real_language] = data.get(current_user.real_language, 0) + 1
-            except AttributeError: # Couldn't find the used language at all...
+            except AttributeError:  # Couldn't find the used language at all...
                 data[u''] = data.get(u'', 0) + 1
         else:
             data[current_user.language] = data.get(current_user.language, 0) + 1
     if u'' in data:
-        data[u'browser'] = data.pop(u'') # In case we have users whose languages aren't detectable.
+        data[u'browser'] = data.pop(u'')  # In case we have users whose languages aren't detectable.
     data = [(cnt, current_user_language) for current_user_language, cnt in list(data.items())]
     data.sort()
     data.reverse()
@@ -48,7 +47,6 @@ def used_languages(request):
     total = 0.0
     for cnt, lang in data:
         total += cnt
-
 
     languages = TupleDataset()
     languages.columns = [Column('language', label=_("Language"), align='left'),
@@ -80,10 +78,9 @@ def used_languages(request):
                 'percent': (100.0 * (total - cnt_printed) // total),
                 'count': total - cnt_printed}))
 
-    else: # If we don't have any users, we can safely assume that the only real user is the visitor (who is normally ignored, though) who is using "Browser setting"
+    else:  # If we don't have any users, we can safely assume that the only real user is the visitor (who is normally ignored, though) who is using "Browser setting"
         languages.addRow((browserlang, "100% (1)"))
 
     table = DataBrowserWidget(request)
     table.setData(languages)
     return table.render(method="GET")
-

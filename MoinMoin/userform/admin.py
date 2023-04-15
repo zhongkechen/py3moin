@@ -1,4 +1,3 @@
-
 """
     MoinMoin - User account administration
 
@@ -9,12 +8,11 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
 from MoinMoin import user, wikiutil
-from MoinMoin.util.dataset import TupleDataset, Column
 from MoinMoin.Page import Page
-from MoinMoin.widget import html
 from MoinMoin.datastruct.backends.wiki_groups import WikiGroup
+from MoinMoin.util.dataset import TupleDataset, Column
+from MoinMoin.widget import html
 
 
 def do_user_browser(request):
@@ -36,6 +34,7 @@ def do_user_browser(request):
         def __init__(self, **kw):
             for k, v in list(kw.items()):
                 setattr(self, k, v)
+
         def __repr__(self):
             return "<UserAccount %r>" % self.__dict__
 
@@ -49,7 +48,7 @@ def do_user_browser(request):
 
     def sortkey(account):
         # enabled accounts at top, sorted by name
-        return (account.disabled, account.name)
+        return account.disabled, account.name
 
     # Iterate over user accounts
     for account in sorted(accounts, key=sortkey):
@@ -70,9 +69,9 @@ def do_user_browser(request):
 
         # creates the POST data for account disable/enable
         val = "1"
-        text=_('Disable user')
+        text = _('Disable user')
         if account.disabled:
-            text=_('Enable user')
+            text = _('Enable user')
             val = "0"
             namelink += " (%s)" % _("disabled")
 
@@ -95,7 +94,7 @@ def do_user_browser(request):
         ret.append(html.INPUT(type='hidden', name='account_sendmail', value="1"))
         ret.append(html.INPUT(type='hidden', name='sysadm', value="users"))
         ret.append(html.INPUT(type='submit', name='recoverpass', value=_('Mail account data')))
-        recoverpass_link =  str(str(ret))
+        recoverpass_link = str(str(ret))
 
         if account.email:
             email_link = (request.formatter.url(1, 'mailto:' + account.email, css='mailto') +
@@ -128,4 +127,3 @@ def do_user_browser(request):
 
     # No data
     return ''
-

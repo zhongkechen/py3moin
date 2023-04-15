@@ -1,4 +1,3 @@
-
 """
     MoinMoin - fullsearch action
 
@@ -8,11 +7,15 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import re, time
-from MoinMoin.Page import Page
-from MoinMoin import wikiutil
+import re
+import time
+
 from parsedatetime import Calendar
+
+from MoinMoin import wikiutil
+from MoinMoin.Page import Page
 from MoinMoin.web.utils import check_surge_protect
+
 
 def checkTitleSearch(request):
     """ Return 1 for title search, 0 for full text search, -1 for idiot spammer
@@ -23,9 +26,9 @@ def checkTitleSearch(request):
     'fullsearch' with localized string. If both missing, default to
     True (might happen with Safari) if this isn't an advanced search.
 """
-    form = request.values
+    form = request.request.values
     if 'titlesearch' in form and 'fullsearch' in form:
-        ret = -1 # spammer / bot
+        ret = -1  # spammer / bot
     else:
         try:
             ret = int(form['titlesearch'])
@@ -35,10 +38,11 @@ def checkTitleSearch(request):
             ret = ('fullsearch' not in form and not isAdvancedSearch(request)) and 1 or 0
     return ret
 
+
 def isAdvancedSearch(request):
     """ Return True if advanced search is requested """
     try:
-        return int(request.values['advancedsearch'])
+        return int(request.request.values['advancedsearch'])
     except KeyError:
         return False
 
@@ -61,25 +65,25 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
     _ = request.getText
     titlesearch = checkTitleSearch(request)
     if titlesearch < 0:
-        check_surge_protect(request, kick=True) # get rid of spammer
+        check_surge_protect(request, kick=True)  # get rid of spammer
         return
 
     advancedsearch = isAdvancedSearch(request)
 
-    form = request.values
+    form = request.request.values
 
     # context is relevant only for full search
     if titlesearch:
         context = 0
     elif advancedsearch:
-        context = 180 # XXX: hardcoded context count for advancedsearch
+        context = 180  # XXX: hardcoded context count for advancedsearch
     else:
         context = int(form.get('context', 0))
 
     # Get other form parameters
     needle = form.get(fieldname, '')
     case = int(form.get('case', 0))
-    regex = int(form.get('regex', 0)) # no interface currently
+    regex = int(form.get('regex', 0))  # no interface currently
     hitsFrom = int(form.get('from', 0))
     highlight_titles = int(form.get('highlight_titles', 1))
     highlight_pages = int(form.get('highlight_pages', 1))
@@ -92,7 +96,7 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
         and_terms = form.get('and_terms', '').strip()
         or_terms = form.get('or_terms', '').strip()
         not_terms = form.get('not_terms', '').strip()
-        #xor_terms = form.get('xor_terms', '').strip()
+        # xor_terms = form.get('xor_terms', '').strip()
         categories = form.getlist('categories') or ['']
         timeframe = form.get('time', '').strip()
         language = form.getlist('language') or ['']
@@ -107,8 +111,8 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
 
             # get mtime from known date/time formats
             for fmt in (request.user.datetime_fmt,
-                    request.cfg.datetime_fmt, request.user.date_fmt,
-                    request.cfg.date_fmt):
+                        request.cfg.datetime_fmt, request.user.date_fmt,
+                        request.cfg.date_fmt):
                 try:
                     mtime_parsed = time.strptime(mtime, fmt)
                 except ValueError:
@@ -129,7 +133,7 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
                 if parsed_what > 0 and mtime_parsed <= time.localtime():
                     mtime = time.mktime(mtime_parsed)
                 else:
-                    mtime_parsed = None # we don't use invalid stuff
+                    mtime_parsed = None  # we don't use invalid stuff
 
             # show info
             if mtime_parsed:
@@ -138,8 +142,8 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
                               wiki=True) % request.user.getFormattedDateTime(mtime)
             else:
                 mtime_msg = _('/!\\ The modification date you entered was not '
-                        'recognized and is therefore not considered for the '
-                        'search results!', wiki=True)
+                              'recognized and is therefore not considered for the '
+                              'search results!', wiki=True)
         else:
             mtime_msg = None
 
@@ -166,7 +170,7 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
     stripped = needle.strip()
     if len(stripped) == 0:
         request.theme.add_msg(_('Please use a more selective search term instead '
-                'of {{{"%s"}}}', wiki=True) % wikiutil.escape(needle), "error")
+                                'of {{{"%s"}}}', wiki=True) % wikiutil.escape(needle), "error")
         Page(request, pagename).send_page()
         return
     needle = stripped
@@ -186,10 +190,11 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
     from MoinMoin.search import searchPages, QueryParser, QueryError
     try:
         query = QueryParser(case=case, regex=regex,
-                titlesearch=titlesearch).parse_query(needle)
-    except QueryError: # catch errors in the search query
+                            titlesearch=titlesearch).parse_query(needle)
+    except QueryError:  # catch errors in the search query
         request.theme.add_msg(_('Your search query {{{"%s"}}} is invalid. Please refer to '
-                'HelpOnSearching for more information.', wiki=True, percent=True) % wikiutil.escape(needle), "error")
+                                'HelpOnSearching for more information.', wiki=True, percent=True) % wikiutil.escape(
+            needle), "error")
         Page(request, pagename).send_page()
         return
 
@@ -200,7 +205,7 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
     # the pagename exactly, but just some parts of it
     if titlesearch and len(results.hits) == 1:
         page = results.hits[0]
-        if not page.attachment: # we did not find an attachment
+        if not page.attachment:  # we did not find an attachment
             page = Page(request, page.page_name)
             querydict = {}
             if highlight_pages:
@@ -210,21 +215,24 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
             url = page.url(request, querystr=querydict)
             request.http_redirect(url)
             return
-    if not results.hits: # no hits?
+    if not results.hits:  # no hits?
         f = request.formatter
         querydict = wikiutil.parseQueryString(request.query_string).to_dict()
         querydict.update({'titlesearch': 0})
 
         request.theme.add_msg(_('Your search query {{{"%s"}}} didn\'t return any results. '
-                'Please change some terms and refer to HelpOnSearching for '
-                'more information.%s', wiki=True, percent=True) % (wikiutil.escape(needle),
-                    titlesearch and ''.join([
-                        '<br>',
-                        _('(!) Consider performing a', wiki=True), ' ',
-                        f.url(1, href=request.page.url(request, querydict, escape=0)),
-                        _('full-text search with your search terms'),
-                        f.url(0), '.',
-                    ]) or ''), "error")
+                                'Please change some terms and refer to HelpOnSearching for '
+                                'more information.%s', wiki=True, percent=True) % (wikiutil.escape(needle),
+                                                                                   titlesearch and ''.join([
+                                                                                       '<br>',
+                                                                                       _('(!) Consider performing a',
+                                                                                         wiki=True), ' ',
+                                                                                       f.url(1, href=request.page.url(
+                                                                                           request, querydict,
+                                                                                           escape=0)),
+                                                                                       _('full-text search with your search terms'),
+                                                                                       f.url(0), '.',
+                                                                                   ]) or ''), "error")
         Page(request, pagename).send_page()
         return
 
@@ -241,16 +249,16 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
     hints = []
 
     if titlesearch:
-        querydict = wikiutil.parseQueryString(request.query_string).to_dict()
+        querydict = wikiutil.parseQueryString(request.request.query_string).to_dict()
         querydict.update({'titlesearch': 0})
 
         hints.append(''.join([
             _("(!) You're performing a title search that might not include"
-                ' all related results of your search query in this wiki. <<BR>>', wiki=True),
+              ' all related results of your search query in this wiki. <<BR>>', wiki=True),
             ' ',
             f.url(1, href=request.page.url(request, querydict, escape=0)),
             f.text(_('Click here to perform a full-text search with your '
-                'search terms!')),
+                     'search terms!')),
             f.url(0),
         ]))
 
@@ -267,18 +275,17 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
     info = not titlesearch
     if context:
         output = results.pageListWithContext(request, request.formatter,
-                info=info, context=context, hitsFrom=hitsFrom, hitsInfo=1,
-                highlight_titles=highlight_titles,
-                highlight_pages=highlight_pages)
+                                             info=info, context=context, hitsFrom=hitsFrom, hitsInfo=1,
+                                             highlight_titles=highlight_titles,
+                                             highlight_pages=highlight_pages)
     else:
         output = results.pageList(request, request.formatter, info=info,
-                hitsFrom=hitsFrom, hitsInfo=1,
-                highlight_titles=highlight_titles,
-                highlight_pages=highlight_pages)
+                                  hitsFrom=hitsFrom, hitsInfo=1,
+                                  highlight_titles=highlight_titles,
+                                  highlight_pages=highlight_pages)
 
     request.write(output)
 
     request.write(request.formatter.endContent())
     request.theme.send_footer(pagename)
     request.theme.send_closing_html()
-

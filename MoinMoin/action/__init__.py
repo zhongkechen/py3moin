@@ -49,11 +49,11 @@ class ActionBase:
         if only_form:
             # use only form (POST) data, this was 1.9.0 .. 1.9.2 default,
             # but different from 1.8 behaviour:
-            self.form = request.form
+            self.form = request.request.form
         else:
             # use query string values mixed with post form data - this gives
             # better compatibility to moin 1.8 behaviour
-            self.form = request.values
+            self.form = request.request.values
         self.cfg = request.cfg
         self._ = _ = request.getText
         self.pagename = pagename
@@ -145,7 +145,7 @@ class ActionBase:
 
         d = {
             'method': self.method,
-            'url': self.request.href(self.pagename),
+            'url': self.request.request.href(self.pagename),
             'enctype': self.enctype,
             'error_html': error_html,
             'actionname': self.actionname,
@@ -244,7 +244,7 @@ def do_raw(pagename, request):
         Page(request, pagename).send_page()
     else:
         rev = request.rev or 0
-        mimetype = request.values.get('mimetype', None)
+        mimetype = request.request.values.get('mimetype', None)
         if mimetype and not MIMETYPE_CRE.match(mimetype):
             mimetype = None
         Page(request, pagename, rev=rev).send_raw(mimetype=mimetype)

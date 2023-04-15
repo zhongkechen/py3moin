@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Date & Time Utilities
 
@@ -7,18 +6,21 @@
 """
 
 # we guarantee that time is always imported!
-import re, time
+import re
+import time
 from email.utils import formatdate
 
-def tmtuple(tmsecs=None):
+
+def tmtuple(tmsecs=0):
     """ Return a time tuple.
 
         This is currently an alias for gmtime(), but allows later tweaking.
     """
     # avoid problems due to timezones etc. - especially a underflow
-    if -86400 <= tmsecs <= 86400: # if we are around 0, we maybe had
-        tmsecs = 0                # 0 initially, so reset it to 0.
+    if -86400 <= tmsecs <= 86400:  # if we are around 0, we maybe had
+        tmsecs = 0  # 0 initially, so reset it to 0.
     return time.gmtime(tmsecs or time.time())
+
 
 def formathttpdate(tmsecs=None):
     """ Return a HTTP date/time stamp as defined in
@@ -29,10 +31,10 @@ def formathttpdate(tmsecs=None):
     stamp = re.match('^(.*) [\-\+]0000$', stamp).group(1) + " GMT"
     return stamp
 
+
 def W3CDate(tmsecs=None):
     """ Return UTC time string according to http://www.w3.org/TR/NOTE-datetime
     """
     if not tmsecs:
         tmsecs = time.gmtime()
     return time.strftime("%Y-%m-%dT%H:%M:%S", tmsecs) + "Z"
-

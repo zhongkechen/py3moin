@@ -55,12 +55,12 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-grouppage_autocreate = False  # autocreate the group pages - alternatively use templates
-grouppages = ['AdminGroup', 'ReadGroup', 'ReadWriteGroup', ]  # names of the subpages defining ACL groups
-
-from MoinMoin.security import Permissions
 from MoinMoin.Page import Page
 from MoinMoin.PageEditor import PageEditor
+from MoinMoin.security import Permissions
+
+grouppage_autocreate = False  # autocreate the group pages - alternatively use templates
+grouppages = ['AdminGroup', 'ReadGroup', 'ReadWriteGroup', ]  # names of the subpages defining ACL groups
 
 
 class SecurityPolicy(Permissions):

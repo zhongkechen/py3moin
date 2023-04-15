@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Pagesize Statistics
 
@@ -8,12 +7,10 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
-
-_debug = 0
-
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
+
+_debug = 0
 
 
 def linkto(pagename, request, params=''):
@@ -47,7 +44,7 @@ def _slice(data, lo, hi):
     data = data[:]
     if lo: data[:lo] = [None] * lo
     if hi < len(data):
-        data[hi:] = [None] * (len(data)-hi)
+        data[hi:] = [None] * (len(data) - hi)
     return data
 
 
@@ -62,17 +59,17 @@ def draw(pagename, request):
     pages = request.rootpage.getPageDict()
     sizes = []
     for name, page in list(pages.items()):
-        sizes.append((page.size(), name.encode('iso-8859-1', 'replace')) ) # gdchart does no utf-8
+        sizes.append((page.size(), name.encode('iso-8859-1', 'replace')))  # gdchart does no utf-8
     sizes.sort()
 
     upper_bound = sizes[-1][0]
-    bounds = [s*128 for s in range(1, 9)]
+    bounds = [s * 128 for s in range(1, 9)]
     if upper_bound >= 1024:
-        bounds.extend([s*1024 for s in range(2, 9)])
+        bounds.extend([s * 1024 for s in range(2, 9)])
     if upper_bound >= 8192:
-        bounds.extend([s*8192 for s in range(2, 9)])
+        bounds.extend([s * 8192 for s in range(2, 9)])
     if upper_bound >= 65536:
-        bounds.extend([s*65536 for s in range(2, 9)])
+        bounds.extend([s * 65536 for s in range(2, 9)])
 
     data = [None] * len(bounds)
     for size, name in sizes:
@@ -103,7 +100,7 @@ def draw(pagename, request):
     title = title + _('Page Size Distribution')
     c.option(
         annotation=(bisect.bisect(bounds, upper_bound), Color('black'), "%d %s" % sizes[-1]),
-        title=title.encode('iso-8859-1', 'replace'), # gdchart can't do utf-8
+        title=title.encode('iso-8859-1', 'replace'),  # gdchart can't do utf-8
         xtitle=_('page size upper bound [bytes]').encode('iso-8859-1', 'replace'),
         ytitle=_('# of pages of this size').encode('iso-8859-1', 'replace'),
         title_font=c.GDC_GIANT,
@@ -112,8 +109,8 @@ def draw(pagename, request):
         stack_type=c.GDC_STACK_LAYER,
     )
     c.draw(style,
-        (request.cfg.chart_options['width'], request.cfg.chart_options['height']),
-        image, labels)
+           (request.cfg.chart_options['width'], request.cfg.chart_options['height']),
+           image, labels)
 
     request.content_type = 'image/gif'
     request.content_length = len(image.getvalue())
@@ -121,4 +118,3 @@ def draw(pagename, request):
     # copy the image
     image.reset()
     shutil.copyfileobj(image, request, 8192)
-

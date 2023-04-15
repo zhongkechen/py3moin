@@ -1109,9 +1109,9 @@ class Page:
                 # There is no solution that is compatible to IE except stripping non-ascii chars
                 filename_enc = "%s.txt" % self.page_name.encode(config.charset)
                 dispo_string = '%s; filename="%s"' % (content_disposition, filename_enc)
-                request.headers['Content-Disposition'] = dispo_string
+                request.response.headers['Content-Disposition'] = dispo_string
         else:
-            request.status_code = 404
+            request.response.status_code = 404
             text = u"Page %s not found." % self.page_name
 
         request.write(text)

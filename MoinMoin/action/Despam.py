@@ -192,17 +192,18 @@ def execute(pagename, request):
         request.theme.add_msg(_('You are not allowed to use this action.'), "error")
         return Page.Page(request, pagename).send_page()
 
-    editor = request.values.get('editor')
+    editor = request.request.values.get('editor')
     timestamp = time.time() - DAYS * 24 * 3600
-    ok = request.form.get('ok', 0)
+    ok = request.request.form.get('ok', 0)
     logging.debug("editor: %r ok: %r" % (editor, ok))
 
     request.theme.send_title("Despam", pagename=pagename)
     # Start content (important for RTL support)
     request.write(request.formatter.startContent("content"))
 
-    if (request.method == 'POST' and ok and
-        wikiutil.checkTicket(request, request.form.get('ticket', ''))):
+    if request.request.method == 'POST' \
+            and ok \
+            and wikiutil.checkTicket(request, request.request.form.get('ticket', '')):
         revert_pages(request, editor, timestamp)
         request.write(show_editors(request, pagename, timestamp))
     elif editor:

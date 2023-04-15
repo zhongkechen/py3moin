@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Hitcount Statistics
 
@@ -13,18 +12,16 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
-_debug = 0
-
 import time
 
 from MoinMoin import caching, wikiutil, logfile
 from MoinMoin.Page import Page
 from MoinMoin.logfile import eventlog
 
+_debug = 0
 # this is a CONSTANT used for on-disk caching, it must NOT be configurable and
 # not depend on request.user!
-DATE_FMT = '%04d-%02d-%02d' # % (y, m, d)
+DATE_FMT = '%04d-%02d-%02d'  # % (y, m, d)
 
 
 def linkto(pagename, request, params=''):
@@ -69,7 +66,7 @@ def get_data(pagename, request, filterpage=None):
         try:
             cache_date, cache_days, cache_views, cache_edits = cache.content()
         except:
-            cache.remove() # cache gone bad
+            cache.remove()  # cache gone bad
 
     # Get new results from the log
     log = eventlog.EventLog(request)
@@ -98,13 +95,13 @@ def get_data(pagename, request, filterpage=None):
             if filterpage and eventpage != filterpage:
                 continue
             event_secs = wikiutil.version2timestamp(event_usecs)
-            time_tuple = time.gmtime(event_secs) # must be UTC
+            time_tuple = time.gmtime(event_secs)  # must be UTC
             day = tuple(time_tuple[0:3])
             if day != ratchet_day:
                 # new day
                 while ratchet_time:
-                    ratchet_time -= 86400 # seconds per day
-                    rday = tuple(time.gmtime(ratchet_time)[0:3]) # must be UTC
+                    ratchet_time -= 86400  # seconds per day
+                    rday = tuple(time.gmtime(ratchet_time)[0:3])  # must be UTC
                     if rday <= day:
                         break
                     days.append(DATE_FMT % rday)
@@ -150,8 +147,8 @@ def text(pagename, request, params=''):
     if params.startswith('page='):
         filterpage = wikiutil.url_unquote(params[len('page='):])
 
-    if request and request.values and 'page' in request.values:
-        filterpage = request.values['page']
+    if request and request.request.values and 'page' in request.request.values:
+        filterpage = request.request.values['page']
 
     days, views, edits = get_data(pagename, request, filterpage)
 
@@ -164,7 +161,7 @@ def text(pagename, request, params=''):
     maxentries = 30
 
     if maxentries < len(days):
-        step = float(len(days))/ maxentries
+        step = float(len(days)) / maxentries
     else:
         step = 1
 
@@ -173,7 +170,7 @@ def text(pagename, request, params=''):
     sd = 0.0
     cnt = 0
 
-    for i in range(len(days)-1, -1, -1):
+    for i in range(len(days) - 1, -1, -1):
         d, v, e = days[i], views[i], edits[i]
         # sum up views and edits to step days
         sd += 1
@@ -182,7 +179,7 @@ def text(pagename, request, params=''):
         se += e
         if cnt >= step:
             cnt -= step
-            hits.addRow((d, "%.1f" % (sv/sd), "%.1f" % (se/sd)))
+            hits.addRow((d, "%.1f" % (sv / sd), "%.1f" % (se / sd)))
             sv = 0.0
             se = 0.0
             sd = 0.0
@@ -194,21 +191,21 @@ def text(pagename, request, params=''):
 
 def draw(pagename, request):
     import shutil, io
-    from MoinMoin.stats.chart import Chart, ChartData, Color
+    from MoinMoin.stats.chart import Chart, ChartData
 
     _ = request.getText
 
     # check params
     filterpage = None
-    if request and request.values and 'page' in request.values:
-        filterpage = request.values['page']
+    if request and request.request.values and 'page' in request.request.values:
+        filterpage = request.request.values['page']
 
     days, views, edits = get_data(pagename, request, filterpage)
 
     import math
 
     try:
-        scalefactor = float(max(views))/max(edits)
+        scalefactor = float(max(views)) / max(edits)
     except (ZeroDivisionError, ValueError):
         scalefactor = 1.0
     else:
@@ -233,29 +230,28 @@ def draw(pagename, request):
         }
     chart_title = "%s\n%sx%d" % (chart_title, _("green=view\nred=edit"), scalefactor)
     c.option(
-        title=chart_title.encode('iso-8859-1', 'replace'), # gdchart can't do utf-8
+        title=chart_title.encode('iso-8859-1', 'replace'),  # gdchart can't do utf-8
         xtitle=(_('date') + ' (Server)').encode('iso-8859-1', 'replace'),
         ytitle=_('# of hits').encode('iso-8859-1', 'replace'),
         title_font=c.GDC_GIANT,
-        #thumblabel = 'THUMB', thumbnail = 1, thumbval = 10,
-        #ytitle_color = Color('green'),
-        #yaxis2 = 1,
-        #ytitle2 = '# of edits',
-        #ytitle2_color = Color('red'),
-        #ylabel2_color = Color('black'),
-        #interpolations = 0,
+        # thumblabel = 'THUMB', thumbnail = 1, thumbval = 10,
+        # ytitle_color = Color('green'),
+        # yaxis2 = 1,
+        # ytitle2 = '# of edits',
+        # ytitle2_color = Color('red'),
+        # ylabel2_color = Color('black'),
+        # interpolations = 0,
         threed_depth=1.0,
         requested_yinterval=1.0,
         stack_type=c.GDC_STACK_BESIDE
     )
     c.draw(c.GDC_LINE,
-        (request.cfg.chart_options['width'], request.cfg.chart_options['height']),
-        image, days)
+           (request.cfg.chart_options['width'], request.cfg.chart_options['height']),
+           image, days)
 
-    request.content_type = 'image/gif'
-    request.content_length = len(image.getvalue())
+    request.response.content_type = 'image/gif'
+    request.response.content_length = len(image.getvalue())
 
     # copy the image
     image.reset()
     shutil.copyfileobj(image, request, 8192)
-
