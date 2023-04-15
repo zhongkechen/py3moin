@@ -1,4 +1,3 @@
-
 """
     MoinMoin - refresh cache of a page
 
@@ -22,4 +21,3 @@ def execute(pagename, request):
     caching.CacheEntry(request, arena, key, scope='item').remove()
     caching.CacheEntry(request, arena, "pagelinks", scope='item').remove()
     request.page.send_page()
-

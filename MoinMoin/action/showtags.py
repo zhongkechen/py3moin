@@ -1,4 +1,3 @@
-
 """
     MoinMoin - "showtags" action
 
@@ -11,10 +10,10 @@
 from MoinMoin.Page import Page
 from MoinMoin.wikisync import TagStore
 
+
 def execute(pagename, request):
     request.mimetype = "text/plain"
 
     page = Page(request, pagename)
     tags = TagStore(page)
     request.write(tags.dump())
-

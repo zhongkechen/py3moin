@@ -1,4 +1,3 @@
-
 """
     MoinMoin - edit a page
 
@@ -10,8 +9,9 @@
 """
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
-from MoinMoin.web.utils import check_surge_protect
 from MoinMoin.util.abuse import log_attempt
+from MoinMoin.web.utils import check_surge_protect
+
 
 def execute(pagename, request):
     """ edit a page """
@@ -19,7 +19,7 @@ def execute(pagename, request):
 
     if 'button_preview' in request.request.form and 'button_spellcheck' in request.request.form:
         # multiple buttons pressed at once? must be some spammer/bot
-        check_surge_protect(request, kick=True) # get rid of him
+        check_surge_protect(request, kick=True)  # get rid of him
         return
 
     if not request.user.may.write(pagename):
@@ -62,14 +62,14 @@ def execute(pagename, request):
     if 'button_switch' in request.request.form:
         if editor == 'text':
             editor = 'gui'
-        else: # 'gui'
+        else:  # 'gui'
             editor = 'text'
 
     # load right editor class
     if editor == 'gui':
         from MoinMoin.PageGraphicalEditor import PageGraphicalEditor
         pg = PageGraphicalEditor(request, pagename)
-    else: # 'text'
+    else:  # 'text'
         from MoinMoin.PageEditor import PageEditor
         pg = PageEditor(request, pagename)
 
@@ -89,7 +89,7 @@ def execute(pagename, request):
             if format == 'wiki':
                 converter_name = 'text_html_text_moin_wiki'
             else:
-                converter_name = 'undefined' # XXX we don't have other converters yet
+                converter_name = 'undefined'  # XXX we don't have other converters yet
             convert = wikiutil.importPlugin(request.cfg, "converter", converter_name, 'convert')
             savetext = convert(request, pagename, savetext)
 
@@ -118,7 +118,7 @@ def execute(pagename, request):
     # a full interface for categories (add, delete) or just add them by
     # markup.
 
-    if category and category != _('<No addition>'): # opera 8.5 needs this
+    if category and category != _('<No addition>'):  # opera 8.5 needs this
         # strip trailing whitespace
         savetext = savetext.rstrip()
 
@@ -127,8 +127,8 @@ def execute(pagename, request):
         lines = [line for line in savetext.splitlines() if line]
         if lines:
 
-            #TODO: this code is broken, will not work for extended links
-            #categories, e.g ["category hebrew"]
+            # TODO: this code is broken, will not work for extended links
+            # categories, e.g ["category hebrew"]
             categories = lines[-1].split()
 
             if categories:
@@ -140,17 +140,19 @@ def execute(pagename, request):
         # Add new category
         if savetext and savetext[-1] != u'\n':
             savetext += ' '
-        savetext += category + u'\n' # Should end with newline!
+        savetext += category + u'\n'  # Should end with newline!
 
     if (request.cfg.edit_ticketing and
-        not wikiutil.checkTicket(request, request.request.form.get('ticket', ''))):
-        request.theme.add_msg(_('Please use the interactive user interface to use action %(actionname)s!') % {'actionname': 'edit' }, "error")
+            not wikiutil.checkTicket(request, request.request.form.get('ticket', ''))):
+        request.theme.add_msg(
+            _('Please use the interactive user interface to use action %(actionname)s!') % {'actionname': 'edit'},
+            "error")
         pg.sendEditor(preview=savetext, comment=comment, staytop=1)
 
     # Preview, spellcheck or spellcheck add new words
     elif ('button_preview' in request.request.form or
-        'button_spellcheck' in request.request.form or
-        'button_newwords' in request.request.form):
+          'button_spellcheck' in request.request.form or
+          'button_newwords' in request.request.form):
         pg.sendEditor(preview=savetext, comment=comment)
 
     # Preview with mode switch

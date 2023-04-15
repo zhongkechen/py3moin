@@ -1,4 +1,3 @@
-
 """
     MoinMoin - "links" action
 
@@ -8,6 +7,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 from MoinMoin import wikiutil
+
 
 def execute(pagename, request):
     _ = request.getText
@@ -45,8 +45,8 @@ def execute(pagename, request):
         request.theme.send_footer(pagename)
         request.theme.send_closing_html()
 
+
 def _emit(request, pagename):
     """ Send pagename, encode it if it contains spaces
     """
     request.write(wikiutil.quoteWikinameURL(pagename))
-

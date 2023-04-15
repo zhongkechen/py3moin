@@ -38,12 +38,11 @@ import os
 import re
 from logging import NOTSET
 
+from MoinMoin import config, caching, user, util, wikiutil
 from MoinMoin import log
+from MoinMoin.logfile import eventlog
 
 logging = log.getLogger(__name__)
-
-from MoinMoin import config, caching, user, util, wikiutil
-from MoinMoin.logfile import eventlog
 
 
 def is_cache_exception(e):
@@ -68,7 +67,7 @@ class ItemCache:
         self.cache = {}
         self.log_pos = None  # TODO: initialize this to EOF pos of log
         # to avoid reading in the whole log on first request
-        self.requests = 0
+        self.contexts = 0
         self.hits = 0
         self.loglevel = NOTSET
 
@@ -97,11 +96,11 @@ class ItemCache:
         except KeyError:
             data = None
             hit_str = 'miss'
-        self.requests += 1
+        self.contexts += 1
         logging.log(self.loglevel, "%s cache %s (h/r %2.1f%%) for %r %r" % (
             self.name,
             hit_str,
-            float(self.hits * 100) / self.requests,
+            float(self.hits * 100) / self.contexts,
             name,
             key,
         ))
@@ -150,7 +149,7 @@ class Page:
                             None or no kw arg will use default formatter
         @keyword include_self: if 1, include current user (default: 0)
         """
-        self.request = context
+        self.context = context
         self.cfg = context.cfg
         self.page_name = page_name
         self.rev = kw.get('rev', 0)  # revision of this page
@@ -390,7 +389,7 @@ class Page:
             else:  # 1
                 return 'layer_underlay'
 
-        request = self.request
+        request = self.context
         cache_name = self.page_name
         cache_key = layername(use_underlay)
         if self._text_filename_force is None:
@@ -529,7 +528,7 @@ class Page:
     def editlog_entry(self):
         """ Return the edit-log entry for this Page object (can be an old revision).
         """
-        request = self.request
+        request = self.context
         use_cache = self.rev == 0  # use the cache for current rev
         if use_cache:
             cache_name, cache_key = self.page_name, 'lastlog'
@@ -562,7 +561,7 @@ class Page:
         """
         line = self.editlog_entry()
         if line:
-            editordata = line.getInterwikiEditorData(self.request)
+            editordata = line.getInterwikiEditorData(self.context)
             if editordata[0] == 'interwiki':
                 editor = "%s:%s" % editordata[1]
             else:
@@ -594,7 +593,7 @@ class Page:
         """
         log = self.editlog_entry()
         if log:
-            request = self.request
+            request = self.context
             editor = log.getEditor(request)
             time = wikiutil.version2timestamp(log.ed_time_usecs)
             time = request.user.getFormattedDateTime(time)  # Use user time format
@@ -652,7 +651,7 @@ class Page:
         @return: true, if page exists
         """
         # Edge cases
-        if domain == 'underlay' and not self.request.cfg.data_underlay_dir:
+        if domain == 'underlay' and not self.context.cfg.data_underlay_dir:
             return False
 
         if includeDeleted:
@@ -726,7 +725,7 @@ class Page:
         @rtype: unicode
         @return: pagename of this page, splitted into space separated words
         """
-        request = self.request
+        request = self.context
         if not force and not request.user.wikiname_add_spaces:
             return self.page_name
 
@@ -735,12 +734,12 @@ class Page:
         splitted = config.split_regex.sub(r'\1 \2', self.page_name)
         return splitted
 
-    def url(self, request, querystr=None, anchor=None, relative=False, **kw):
+    def url(self, context, querystr=None, anchor=None, relative=False, **kw):
         """ Return complete URL for this page, including scriptname.
             The URL is NOT escaped, if you write it to HTML, use wikiutil.escape
             (at least if you have a querystr, to escape the & chars).
 
-        @param request: the request object
+        @param context: the request object
         @param querystr: the query string to add after a "?" after the url
             (str or dict, see wikiutil.makeQueryString)
         @param anchor: if specified, make a link to this anchor
@@ -761,16 +760,16 @@ class Page:
             querystr = wikiutil.makeQueryString(querystr)
 
             # make action URLs denyable by robots.txt:
-            if action is not None and request.cfg.url_prefix_action is not None:
-                url = "%s/%s/%s" % (request.cfg.url_prefix_action, action, url)
+            if action is not None and context.cfg.url_prefix_action is not None:
+                url = "%s/%s/%s" % (context.cfg.url_prefix_action, action, url)
             url = '%s?%s' % (url, querystr)
 
         if not relative:
-            url = '%s/%s' % (request.request.script_root, url)
+            url = '%s/%s' % (context.request.script_root, url)
 
         # Add anchor
         if anchor:
-            fmt = getattr(self, 'formatter', request.html_formatter)
+            fmt = getattr(self, 'formatter', context.html_formatter)
             if fmt:
                 anchor = fmt.sanitize_to_id(anchor)
             url = "%s#%s" % (url, anchor)
@@ -1004,7 +1003,7 @@ class Page:
         """
         from MoinMoin import i18n
         from MoinMoin import security
-        request = self.request
+        request = self.context
         pi = {}  # we collect the processing instructions here
 
         # default language from cfg
@@ -1094,14 +1093,14 @@ class Page:
             offer a dialogue to save it to disk (used by Save action).
             Supplied mimetype overrides default text/plain.
         """
-        request = self.request
-        request.mimetype = mimetype or 'text/plain'
+        context = self.context
+        context.mimetype = mimetype or 'text/plain'
         if self.exists():
             # use the correct last-modified value from the on-disk file
             # to ensure cacheability where supported. Because we are sending
             # RAW (file) content, the file mtime is correct as Last-Modified header.
-            request.status_code = 200
-            request.last_modified = os.path.getmtime(self._text_filename())
+            context.status_code = 200
+            context.last_modified = os.path.getmtime(self._text_filename())
             text = self.encodeTextMimeType(self.body)
             # request.headers['Content-Length'] = len(text)  # XXX WRONG! text is unicode obj, but we send utf-8!
             if content_disposition:
@@ -1109,12 +1108,12 @@ class Page:
                 # There is no solution that is compatible to IE except stripping non-ascii chars
                 filename_enc = "%s.txt" % self.page_name.encode(config.charset)
                 dispo_string = '%s; filename="%s"' % (content_disposition, filename_enc)
-                request.response.headers['Content-Disposition'] = dispo_string
+                context.response.headers['Content-Disposition'] = dispo_string
         else:
-            request.response.status_code = 404
+            context.response.status_code = 404
             text = u"Page %s not found." % self.page_name
 
-        request.write(text)
+        context.write(text)
 
     def send_page(self, **keywords):
         """ Output the formatted page.
@@ -1127,7 +1126,7 @@ class Page:
         @keyword send_special: if True, this is a special page send
         @keyword omit_footnotes: if True, do not send footnotes (used by include macro)
         """
-        context = self.request
+        context = self.context
         _ = context.getText
         context.clock.start('send_page')
         emit_headers = keywords.get('emit_headers', 1)
@@ -1247,7 +1246,7 @@ class Page:
                 else:
                     context.response.status_code = 404
 
-            if not page_exists and self.request.isSpiderAgent:
+            if not page_exists and self.context.isSpiderAgent:
                 # don't send any 404 content to bots
                 return
 
@@ -1320,7 +1319,8 @@ class Page:
                                                                                      querystr={'action': 'serveopenid',
                                                                                                'yadis': 'idp'})), True)
 
-                context.theme.send_title(title, page=self, print_mode=print_mode, media=media, pi_refresh=pi.get('refresh'),
+                context.theme.send_title(title, page=self, print_mode=print_mode, media=media,
+                                         pi_refresh=pi.get('refresh'),
                                          allow_doubleclick=1, trail=trail, html_head=html_head)
 
         # special pages handling, including denying access
@@ -1413,7 +1413,7 @@ class Page:
             # Everything is fine, now check the parser:
             if parser is None:
                 try:
-                    parser = wikiutil.searchAndImportPlugin(self.request.cfg, "parser", self.pi['format'])
+                    parser = wikiutil.searchAndImportPlugin(self.context.cfg, "parser", self.pi['format'])
                 except wikiutil.PluginMissingError:
                     return False
             return getattr(parser, 'caching', False)
@@ -1693,7 +1693,7 @@ class Page:
         if self.page_name:
             pos = self.page_name.rfind('/')
             if pos > 0:
-                parent = Page(self.request, self.page_name[:pos])
+                parent = Page(self.context, self.page_name[:pos])
                 if parent.exists():
                     return parent
         return None
@@ -1749,11 +1749,11 @@ class Page:
         try:
             lastRevision = self.getRevList()[0]
         except IndexError:
-            return security.AccessControlList(self.request.cfg)
+            return security.AccessControlList(self.context.cfg)
         if self.rev == lastRevision:
             return self.pi['acl']
 
-        return Page(self.request, self.page_name, rev=lastRevision).parseACL()
+        return Page(self.context, self.page_name, rev=lastRevision).parseACL()
 
     # Text format -------------------------------------------------------
 
@@ -1790,7 +1790,7 @@ class Page:
         @return: true if there is a known conflict.
         """
 
-        cache = caching.CacheEntry(self.request, self, 'conflict', scope='item')
+        cache = caching.CacheEntry(self.context, self, 'conflict', scope='item')
         return cache.exists()
 
     def setConflict(self, state):
@@ -1798,7 +1798,7 @@ class Page:
 
         @param state: bool, true if there is a conflict.
         """
-        cache = caching.CacheEntry(self.request, self, 'conflict', scope='item')
+        cache = caching.CacheEntry(self.context, self, 'conflict', scope='item')
         if state:
             cache.update("")  # touch it!
         else:
@@ -1871,7 +1871,7 @@ class RootPage(Page):
         @rtype: list of unicode strings
         @return: user readable wiki page names
         """
-        request = self.request
+        request = self.context
         request.clock.start('getPageList')
         # Check input
         if user is None:
@@ -1941,7 +1941,7 @@ class RootPage(Page):
         """
         pages = {}
         for name in self.getPageList(user=user, exists=exists, filter=filter, include_underlay=include_underlay):
-            pages[name] = Page(self.request, name)
+            pages[name] = Page(self.context, name)
         return pages
 
     def _listPages(self):
@@ -2009,13 +2009,13 @@ class RootPage(Page):
         @rtype: int
         @return: number of pages
         """
-        self.request.clock.start('getPageCount')
+        self.context.clock.start('getPageCount')
         if exists:
             # WARNING: SLOW
             pages = self.getPageList(user='')
         else:
             pages = self._listPages()
         count = len(pages)
-        self.request.clock.stop('getPageCount')
+        self.context.clock.stop('getPageCount')
 
         return count

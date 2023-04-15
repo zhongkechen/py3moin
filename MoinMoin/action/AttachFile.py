@@ -26,8 +26,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
 import datetime
+import mimetypes
 import os
 import tarfile
 import time
@@ -36,20 +36,15 @@ from io import StringIO
 
 from werkzeug.http import http_date
 
+from MoinMoin import config, packages
 from MoinMoin import log
+from MoinMoin import wikiutil
+from MoinMoin.Page import Page
+from MoinMoin.events import FileAttachedEvent, FileRemovedEvent, send_event
+from MoinMoin.security.textcha import TextCha
+from MoinMoin.util import filesys
 
 logging = log.getLogger(__name__)
-
-# keep both imports below as they are, order is important:
-from MoinMoin import wikiutil
-import mimetypes
-
-from MoinMoin import config, packages
-from MoinMoin.Page import Page
-from MoinMoin.util import filesys
-from MoinMoin.security.textcha import TextCha
-from MoinMoin.events import FileAttachedEvent, FileRemovedEvent, send_event
-
 action_name = __name__.split('.')[-1]
 
 

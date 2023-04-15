@@ -1,4 +1,3 @@
-
 """
     MoinMoin - create account action
 
@@ -8,9 +7,9 @@
 
 from MoinMoin import user, wikiutil
 from MoinMoin.Page import Page
-from MoinMoin.widget import html
-from MoinMoin.security.textcha import TextCha
 from MoinMoin.auth import MoinAuth
+from MoinMoin.security.textcha import TextCha
+from MoinMoin.widget import html
 
 
 def _create_user(request):
@@ -105,7 +104,7 @@ def _create_form(request):
     row = html.TR()
     tbl.append(row)
     row.append(html.TD().append(html.STRONG().append(
-                                  html.Text(_("Name")))))
+        html.Text(_("Name")))))
     cell = html.TD()
     row.append(cell)
     cell.append(html.INPUT(type="text", size="36", name="name"))
@@ -114,14 +113,14 @@ def _create_form(request):
     row = html.TR()
     tbl.append(row)
     row.append(html.TD().append(html.STRONG().append(
-                                  html.Text(_("Password")))))
+        html.Text(_("Password")))))
     row.append(html.TD().append(html.INPUT(type="password", size="36",
                                            name="password1")))
 
     row = html.TR()
     tbl.append(row)
     row.append(html.TD().append(html.STRONG().append(
-                                  html.Text(_("Password repeat")))))
+        html.Text(_("Password repeat")))))
     row.append(html.TD().append(html.INPUT(type="password", size="36",
                                            name="password2")))
 
@@ -136,7 +135,7 @@ def _create_form(request):
         row = html.TR()
         tbl.append(row)
         row.append(html.TD().append(html.STRONG().append(
-                                      html.Text(_('TextCha (required)')))))
+            html.Text(_('TextCha (required)')))))
         td = html.TD()
         if textcha:
             td.append(textcha.render())
@@ -151,6 +150,7 @@ def _create_form(request):
                          value=_('Create Profile')))
 
     return str(ret)
+
 
 def execute(pagename, request):
     found = False
@@ -170,10 +170,10 @@ def execute(pagename, request):
 
     submitted = 'create' in form
 
-    if submitted: # user pressed create button
+    if submitted:  # user pressed create button
         request.theme.add_msg(_create_user(request), "dialog")
         return page.send_page()
-    else: # show create form
+    else:  # show create form
         request.theme.send_title(_("Create Account"), pagename=pagename)
 
         request.write(request.formatter.startContent("content"))
@@ -185,4 +185,3 @@ def execute(pagename, request):
 
         request.theme.send_footer(pagename)
         request.theme.send_closing_html()
-

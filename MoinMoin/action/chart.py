@@ -9,6 +9,7 @@
 from MoinMoin import wikiutil
 from MoinMoin.util import pysupport
 
+
 def execute(pagename, request):
     """ Show page charts """
     _ = request.getText

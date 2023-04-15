@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 MoinMoin - SlideShow action
 
@@ -134,7 +133,7 @@ class SlidePage(Page):
         format = self.pi['format']
         plugin = 'slideshow_' + format
         try:
-            Parser = wikiutil.importPlugin(self.request.cfg, 'parser', plugin, 'SlideParser')
+            Parser = wikiutil.importPlugin(self.context.cfg, 'parser', plugin, 'SlideParser')
         except wikiutil.PluginMissingError:
             if format != self.defaultFormat:
                 raise Error('SlideShow does not support %s format.' % format)
@@ -147,29 +146,29 @@ class SlideshowAction:
     maxSlideLinks = 15
 
     def __init__(self, request, pagename, template):
-        self.request = request
-        self.page = SlidePage(self.request, pagename)
+        self.context = request
+        self.page = SlidePage(self.context, pagename)
         self.template = template
 
         # Cache values used many times
         self.pageURL = self.page.url(request)
 
     def execute(self):
-        _ = self.request.getText
+        _ = self.context.getText
         try:
             self.setSlideNumber()
             language = self.page.pi['language']
-            self.request.content_type = "text/html; charset=%s" % (config.charset,)
-            self.request.setContentLanguage(language)
-            self.request.write(self.template % self)
+            self.context.content_type = "text/html; charset=%s" % (config.charset,)
+            self.context.setContentLanguage(language)
+            self.context.write(self.template % self)
         except Error as err:
-            self.request.theme.add_msg(wikiutil.escape(str(err)), "error")
+            self.context.theme.add_msg(wikiutil.escape(str(err)), "error")
             self.page.send_page()
 
     # Private ----------------------------------------------------------------
 
     def setSlideNumber(self):
-        slideNumber = self.request.request.values.get('n', 1)
+        slideNumber = self.context.request.values.get('n', 1)
         if slideNumber == "all":
             slideNumber = None
         else:
@@ -185,22 +184,22 @@ class SlideshowAction:
         if format == "wiki":
             format = 'text_moin_wiki'
         try:
-            Parser = wikiutil.importPlugin(self.request.cfg, 'parser', format,
+            Parser = wikiutil.importPlugin(self.context.cfg, 'parser', format,
                                            'Parser')
         except wikiutil.PluginMissingError:
             from MoinMoin.parser.text import Parser
-        parser = Parser(text, self.request)
+        parser = Parser(text, self.context)
         return parser
 
     def createFormatter(self, format):
         try:
-            Formatter = wikiutil.importPlugin(self.request.cfg, 'formatter',
+            Formatter = wikiutil.importPlugin(self.context.cfg, 'formatter',
                                               format, 'Formatter')
         except wikiutil.PluginMissingError:
             from MoinMoin.formatter.text_plain import Formatter
 
-        formatter = Formatter(self.request)
-        self.request.formatter = formatter
+        formatter = Formatter(self.context)
+        self.context.formatter = formatter
         formatter.page = self.page
         return formatter
 
@@ -240,7 +239,7 @@ class SlideshowAction:
 
     def adaptToLanguage(self, direction):
         # In RTL, directional items should be switched
-        if i18n.getDirection(self.request.lang) == 'rtl':
+        if i18n.getDirection(self.context.lang) == 'rtl':
             return not direction
         return direction
 
@@ -285,10 +284,10 @@ class SlideshowAction:
             return item
 
     def item_language_attributes(self):
-        return self.languageAttributes(self.request.content_lang)
+        return self.languageAttributes(self.context.content_lang)
 
     def item_theme_url(self):
-        return '%s/%s' % (self.request.cfg.url_prefix_static, self.request.theme.name)
+        return '%s/%s' % (self.context.cfg.url_prefix_static, self.context.theme.name)
 
     item_action_name = name
 
@@ -315,13 +314,13 @@ class SlideshowAction:
         format = self.page.pi['format']
         parser = self.createParser(format, text)
         formatter = self.createFormatter('text_html')
-        return self.request.redirectedOutput(parser.format, formatter)
+        return self.context.redirectedOutput(parser.format, formatter)
 
     def item_navigation_language_attributes(self):
-        return self.languageAttributes(self.request.lang)
+        return self.languageAttributes(self.context.lang)
 
     def item_navigation_print(self):
-        _ = self.request.getText
+        _ = self.context.getText
         text = _('Print')
         if self.slideNumber is None:
             return self.disabledLink(text)
@@ -329,33 +328,33 @@ class SlideshowAction:
             return self.linkToSlide('all', text, title=_('Print slide show'))
 
     def item_navigation_edit(self):
-        _ = self.request.getText
+        _ = self.context.getText
         text = _('Edit')
-        if self.request.user.may.write(self.page.page_name):
+        if self.context.user.may.write(self.page.page_name):
             return self.linkToPage(text, 'action=edit', title=_('Edit slide show'))
         return self.disabledLink(text, title=_("You are not allowed to edit this page."))
 
     def item_navigation_quit(self):
-        _ = self.request.getText
+        _ = self.context.getText
         return self.linkToPage(_('Quit'), title=_('Quit slide show'))
 
     def item_navigation_start(self):
-        _ = self.request.getText
+        _ = self.context.getText
         number = self.first_slide()
         return self.linkToSlide(number, '|', title=_('Show first slide (up arrow)'))
 
     def item_navigation_end(self):
-        _ = self.request.getText
+        _ = self.context.getText
         number = self.last_slide()
         return self.linkToSlide(number, '|', title=_('Show last slide (down arrow)'))
 
     def item_navigation_back(self):
-        _ = self.request.getText
+        _ = self.context.getText
         number = self.previous_slide()
         return self.linkToSlide(number, text=self.backIcon(), title=_('Show previous slide (left arrow)'))
 
     def item_navigation_forward(self):
-        _ = self.request.getText
+        _ = self.context.getText
         number = self.next_slide()
         return self.linkToSlide(number, self.forwardIcon(), title=_('Show next slide (right arrow)'))
 
@@ -384,10 +383,10 @@ class SlideshowAction:
     item_last_slide = last_slide
 
     def item_date(self):
-        return wikiutil.escape(self.request.getPragma('date', defval=''))
+        return wikiutil.escape(self.context.getPragma('date', defval=''))
 
     def item_author(self):
-        return wikiutil.escape(self.request.getPragma('author', defval=''))
+        return wikiutil.escape(self.context.getPragma('author', defval=''))
 
     def item_counter(self):
         if self.slideNumber is not None:

@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Action for saving a page
 
@@ -7,6 +6,7 @@
 """
 
 from MoinMoin.Page import Page
+
 
 def execute(pagename, request):
     if not request.user.may.read(pagename):

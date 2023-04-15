@@ -11,15 +11,17 @@
 """
 
 import time
+
 from MoinMoin.Page import Page
 from MoinMoin.util.abuse import log_attempt
+
 
 class NewPage:
     """ Open editor for a new page, using template """
 
     def __init__(self, request, referrer):
         self.request = request
-        self.referrer = referrer # The page the user came from
+        self.referrer = referrer  # The page the user came from
         self.pagename = self.request.values.get('pagename')
         self.nametemplate = self.request.values.get('nametemplate', '%s')
         self.nametemplate = self.nametemplate.replace('\x00', '')
@@ -36,8 +38,8 @@ class NewPage:
             return _("Cannot create a new page without a page name."
                      "  Please specify a page name.")
         if need_replace:
-        # generate a string that can be safely used as the pagename
-        # template variable
+            # generate a string that can be safely used as the pagename
+            # template variable
             repl = 'A@'
             i = 0
             while repl in self.nametemplate:
@@ -97,10 +99,10 @@ class NewPage:
 
         return ''
 
+
 def execute(pagename, request):
     """ Temporary glue code for current moin action system """
     if request.method != 'POST':
         return False, u''
 
     return NewPage(request, pagename).render()
-

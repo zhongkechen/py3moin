@@ -1,4 +1,3 @@
-
 """
     MoinMoin - subscribe to a page to get notified when it changes
 
@@ -7,6 +6,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 from MoinMoin.Page import Page
+
 
 def execute(pagename, request):
     """ Subscribe the user to pagename """
@@ -40,7 +40,7 @@ def execute(pagename, request):
         # Try to subscribe
         if request.user.subscribe(pagename):
             request.theme.add_msg(_('You have been subscribed to this page.'), "info")
-        else: # should not happen
+        else:  # should not happen
             request.theme.add_msg(_('You could not get subscribed to this page.'), "error")
 
     Page(request, pagename).send_page()

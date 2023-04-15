@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Spelling Action
 
@@ -20,10 +19,10 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from past.builtins import cmp
+import codecs
+import os
+import re
 
-
-import os, re, codecs
 from MoinMoin import config, wikiutil
 from MoinMoin.Page import Page
 
@@ -48,11 +47,13 @@ def _getWordsFiles(request):
     # return validated file list
     return wordsfiles
 
+
 def _loadWords(lines, dict):
     for line in lines:
         words = line.split()
         for word in words:
             dict[word.encode(config.charset)] = ''
+
 
 def _loadWordsFile(request, dict, filename):
     request.clock.start('spellread')
@@ -67,6 +68,7 @@ def _loadWordsFile(request, dict, filename):
         f.close()
     _loadWords(lines, dict)
     request.clock.stop('spellread')
+
 
 def _loadWordsPage(request, dict, page):
     lines = page.getlines()
@@ -148,7 +150,7 @@ def checkSpelling(page, request, own_form=1):
         config.chars_upper, config.chars_lower), re.UNICODE)
 
     def checkword(match, wordsdict=wordsdict, badwords=badwords,
-            localwords=localwords, num_re=re.compile(r'^\d+$', re.UNICODE)):
+                  localwords=localwords, num_re=re.compile(r'^\d+$', re.UNICODE)):
         word = match.group(1)
         if len(word) == 1:
             return ""
@@ -172,7 +174,7 @@ def checkSpelling(page, request, own_form=1):
 
         # build regex recognizing the bad words
         badwords_re = r'(^|(?<!\w))(%s)(?!\w)'
-        badwords_re = badwords_re % ("|".join([re.escape(bw) for bw in badwords]), )
+        badwords_re = badwords_re % ("|".join([re.escape(bw) for bw in badwords]),)
         badwords_re = re.compile(badwords_re, re.UNICODE)
 
         lsw_msg = ''
@@ -181,9 +183,9 @@ def checkSpelling(page, request, own_form=1):
                 'localwords': len(localwords), 'pagelink': lsw_page.link_to(request)}
         msg = _('The following %(badwords)d words could not be found in the dictionary of '
                 '%(totalwords)d words%(localwords)s and are highlighted below:') % {
-            'badwords': len(badwords),
-            'totalwords': len(wordsdict)+len(localwords),
-            'localwords': lsw_msg} + "<br>"
+                  'badwords': len(badwords),
+                  'totalwords': len(wordsdict) + len(localwords),
+                  'localwords': lsw_msg} + "<br>"
 
         # figure out what this action is called
         action_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -192,13 +194,13 @@ def checkSpelling(page, request, own_form=1):
         if own_form:
             msg = msg + ('<form method="post" action="%s">\n'
                          '<input type="hidden" name="action" value="%s">\n') % (
-                request.request.href(page.page_name),
-                action_name)
+                      request.request.href(page.page_name),
+                      action_name)
 
         checkbox = '<input type="checkbox" name="newwords" value="%(word)s">%(word)s&nbsp;&nbsp;'
         msg = msg + (
-            " ".join([checkbox % {'word': wikiutil.escape(w, True), } for w in badwords]) +
-            '<p><input type="submit" name="button_newwords" value="%s"></p>' %
+                " ".join([checkbox % {'word': wikiutil.escape(w, True), } for w in badwords]) +
+                '<p><input type="submit" name="button_newwords" value="%s"></p>' %
                 _('Add checked words to dictionary')
         )
         if own_form:
@@ -232,4 +234,3 @@ def execute(pagename, request):
         page.send_page(hilite_re=badwords_re)
     else:
         page.send_page()
-

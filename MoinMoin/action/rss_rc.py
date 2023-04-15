@@ -9,25 +9,27 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
 import io
 import re
 import time
+
 from MoinMoin import wikixml, wikiutil
+from MoinMoin.Page import Page
+from MoinMoin.action import AttachFile
 from MoinMoin.logfile import editlog
 from MoinMoin.util import timefuncs
-from MoinMoin.Page import Page
 from MoinMoin.wikixml.util import RssGenerator
-from MoinMoin.action import AttachFile
 
 
 def full_url(request, page, querystr=None, anchor=None):
     url = page.url(request, anchor=anchor, querystr=querystr)
     return request.getQualifiedURL(url)
 
+
 def attach_url(request, pagename, filename, do):
     url = AttachFile.getAttachUrl(pagename, filename, request, do=do)
     return request.getQualifiedURL(url)
+
 
 def match_page(pagename, page_pattern):
     # Match everything for empty pattern
@@ -43,6 +45,7 @@ def match_page(pagename, page_pattern):
     else:
         return pagename == page_pattern
 
+
 def is_single_page_match(page_pattern):
     # note: keep this code in sync with match_page()!
     if not page_pattern:
@@ -54,6 +57,7 @@ def is_single_page_match(page_pattern):
     else:
         return True
 
+
 def execute(pagename, request):
     """ Send recent changes as an RSS document
     """
@@ -61,7 +65,7 @@ def execute(pagename, request):
         request.mimetype = 'text/plain'
         request.write("rss_rc action is not supported because of missing pyxml module.")
         return
-    if request.isSpiderAgent: # reduce bot cpu usage
+    if request.isSpiderAgent:  # reduce bot cpu usage
         return ''
 
     cfg = request.cfg
@@ -123,11 +127,11 @@ def execute(pagename, request):
         if not request.user.may.read(line.pagename):
             continue
         if ((not show_att and not line.action.startswith('SAVE')) or
-            ((line.pagename in pages) and unique) or
-            not match_page(line.pagename, page_pattern)):
+                ((line.pagename in pages) and unique) or
+                not match_page(line.pagename, page_pattern)):
             continue
         line.editor = line.getInterwikiEditorData(request)
-        line.time = timefuncs.tmtuple(wikiutil.version2timestamp(line.ed_time_usecs)) # UTC
+        line.time = timefuncs.tmtuple(wikiutil.version2timestamp(line.ed_time_usecs))  # UTC
         logdata.append(line)
         pages[line.pagename] = None
 
@@ -141,7 +145,7 @@ def execute(pagename, request):
 
     timestamp = timefuncs.formathttpdate(lastmod)
     etag = "%d-%d-%d-%d-%d-%d-%d" % (lastmod, max_items, diffs, ddiffs, unique,
-        max_lines, show_att)
+                                     max_lines, show_att)
 
     # for 304, we look at if-modified-since and if-none-match headers,
     # one of them must match and the other is either not there or must match.
@@ -209,12 +213,12 @@ def execute(pagename, request):
             u'    diffs=%(diffs)i, ddiffs=%(ddiffs)i, lines=%(max_lines)i, \n'
             u'    show_att=%(show_att)i\n'
             u'-->\n' % locals()
-            )
+        )
 
         # emit channel description
         handler.startNode('channel', {
             (handler.xmlns['rdf'], 'about'): request.request.url_root,
-            })
+        })
         handler.simpleNode('title', cfg.sitename)
         page = Page(request, pagename)
         handler.simpleNode('link', full_url(request, page))
@@ -222,7 +226,7 @@ def execute(pagename, request):
         if logo:
             handler.simpleNode('image', None, {
                 (handler.xmlns['rdf'], 'resource'): logo,
-                })
+            })
         if cfg.interwikiname:
             handler.simpleNode(('wiki', 'interwiki'), cfg.interwikiname)
 
@@ -241,7 +245,7 @@ def execute(pagename, request):
         if logo:
             handler.startNode('image', attr={
                 (handler.xmlns['rdf'], 'about'): logo,
-                })
+            })
             handler.simpleNode('title', cfg.sitename)
             handler.simpleNode('link', baseurl)
             handler.simpleNode('url', logo)
@@ -269,7 +273,7 @@ def execute(pagename, request):
 
             show_diff = diffs
 
-            if action.startswith('ATT'): # Attachment
+            if action.startswith('ATT'):  # Attachment
                 show_diff = 0
                 filename = wikiutil.url_unquote(item.extra)
                 att_exists = AttachFile.exists(request, cur_pagename, filename)
@@ -280,7 +284,7 @@ def execute(pagename, request):
                     # RSS readers.
                     if ddiffs:
                         handler.simpleNode('link', attach_url(request,
-                            cur_pagename, filename, do='view'))
+                                                              cur_pagename, filename, do='view'))
 
                     comment = _(u"Upload of attachment '%(filename)s'.") % {
                         'filename': filename}
@@ -288,7 +292,7 @@ def execute(pagename, request):
                 elif action == 'ATTDEL':
                     if ddiffs:
                         handler.simpleNode('link', full_url(request, page,
-                            querystr={'action': 'AttachFile'}))
+                                                            querystr={'action': 'AttachFile'}))
 
                     comment = _(u"Attachment '%(filename)s' deleted.") % {
                         'filename': filename}
@@ -296,7 +300,7 @@ def execute(pagename, request):
                 elif action == 'ATTDRW':
                     if ddiffs:
                         handler.simpleNode('link', attach_url(request,
-                            cur_pagename, filename, do='view'))
+                                                              cur_pagename, filename, do='view'))
 
                     comment = _(u"Drawing '%(filename)s' saved.") % {
                         'filename': filename}
@@ -306,13 +310,13 @@ def execute(pagename, request):
                     to_rev = int(item.extra)
                     comment = (_(u"Revert to revision %(rev)d.") % {
                         'rev': to_rev}) + "<br />" \
-                        + _("Comment:") + " " + comment
+                              + _("Comment:") + " " + comment
 
                 elif action == 'SAVE/RENAME':
                     show_diff = 0
                     comment = (_(u"Renamed from '%(oldpagename)s'.") % {
                         'oldpagename': item.extra}) + "<br />" \
-                        + _("Comment:") + " " + comment
+                              + _("Comment:") + " " + comment
                     if item.pagename in pagename_map:
                         newpage = pagename_map[item.pagename]
                         del pagename_map[item.pagename]
@@ -331,21 +335,21 @@ def execute(pagename, request):
                     # first revision can't have older revisions to diff with
                     if item_rev == 1:
                         handler.simpleNode('link', full_url(request, page,
-                            querystr={'action': 'recall',
-                                      'rev': str(item_rev)}))
+                                                            querystr={'action': 'recall',
+                                                                      'rev': str(item_rev)}))
                     else:
                         handler.simpleNode('link', full_url(request, page,
-                            querystr={'action': 'diff',
-                                      'rev1': str(item_rev),
-                                      'rev2': str(item_rev - 1)}))
+                                                            querystr={'action': 'diff',
+                                                                      'rev1': str(item_rev),
+                                                                      'rev2': str(item_rev - 1)}))
 
                 if show_diff:
                     if item_rev == 1:
                         lines = Page(request, cur_pagename,
-                            rev=item_rev).getlines()
+                                     rev=item_rev).getlines()
                     else:
                         lines = wikiutil.pagediff(request, cur_pagename,
-                            item_rev - 1, cur_pagename, item_rev, ignorews=1)
+                                                  item_rev - 1, cur_pagename, item_rev, ignorews=1)
 
                     if len(lines) > max_lines:
                         lines = lines[:max_lines] + ['...\n']
@@ -369,7 +373,7 @@ def execute(pagename, request):
                 if item.editor[0] == 'interwiki':
                     edname = "%s:%s" % item.editor[1]
                     ##edattr[(None, 'link')] = baseurl + wikiutil.quoteWikiname(edname)
-                else: # 'ip'
+                else:  # 'ip'
                     edname = item.editor[1]
                     ##edattr[(None, 'link')] = link + "?action=info"
 
@@ -396,4 +400,3 @@ def execute(pagename, request):
         handler.endDocument()
 
         request.write(out.getvalue())
-

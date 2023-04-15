@@ -23,6 +23,7 @@ from MoinMoin.widget import html
 def execute(pagename, request):
     return MoinOpenIDServer(pagename, request).handle()
 
+
 class MoinOpenIDServer:
     def __init__(self, pagename, request):
         self.request = request
@@ -69,12 +70,12 @@ class MoinOpenIDServer:
   </XRD>
 </xrds:XRDS>
 """ % {
-    'type10': OPENID_1_0_TYPE,
-    'type11': OPENID_1_1_TYPE,
-    'type20': OPENID_2_0_TYPE,
-    'uri': endpoint_url,
-    'id': user_url
-})
+            'type10': OPENID_1_0_TYPE,
+            'type11': OPENID_1_1_TYPE,
+            'type20': OPENID_2_0_TYPE,
+            'uri': endpoint_url,
+            'id': user_url
+        })
 
     def serveYadisIDP(self, endpoint_url):
         request = self.request
@@ -97,10 +98,10 @@ class MoinOpenIDServer:
   </XRD>
 </xrds:XRDS>
 """ % {
-    'typeidp': OPENID_IDP_2_0_TYPE,
-    'uri': endpoint_url,
-    'id': user_url
-})
+            'typeidp': OPENID_IDP_2_0_TYPE,
+            'uri': endpoint_url,
+            'id': user_url
+        })
 
     def _verify_endpoint_identity(self, identity):
         """
@@ -162,7 +163,7 @@ class MoinOpenIDServer:
         page = wikiutil.getHomePage(self.request)
         if page:
             server_url = self.request.getQualifiedURL(
-                             page.url(self.request, querystr={'action': 'serveopenid'}))
+                page.url(self.request, querystr={'action': 'serveopenid'}))
             identity = self.request.getQualifiedURL(page.url(self.request))
             return identity, server_url
         return None, None
@@ -176,7 +177,6 @@ class MoinOpenIDServer:
         if 'openid.user' in request.page.pi:
             username = request.page.pi['openid.user']
 
-
         if not request.cfg.openid_server_enabled:
             # since we didn't put any openid.server into
             # the page to start with, this is someone trying
@@ -185,7 +185,7 @@ class MoinOpenIDServer:
             return
 
         server_url = request.getQualifiedURL(
-                         request.page.url(request, querystr={'action': 'serveopenid'}))
+            request.page.url(request, querystr={'action': 'serveopenid'}))
 
         yadis_type = form.get('yadis')
         if yadis_type == 'ep':
@@ -272,10 +272,9 @@ class MoinOpenIDServer:
         del request.session['openidserver.request']
 
         if (not positive or
-            not request.user.valid or
-            request.user.name != username):
+                not request.user.valid or
+                request.user.name != username):
             return openidreq.answer(False)
-
 
         if form.get('remember', 'no') == 'yes':
             if not hasattr(request.user, 'openid_trusted_roots'):
@@ -299,7 +298,7 @@ class MoinOpenIDServer:
 
         # obtain the endpoint if not overridden by an identity endpoint
         page_url = request.getQualifiedURL(
-                         request.page.url(request, querystr={'action': 'serveopenid'}))
+            request.page.url(request, querystr={'action': 'serveopenid'}))
         endpoint_changed = server_url != page_url
 
         # prepare the response

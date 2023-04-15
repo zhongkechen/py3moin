@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Action to load page content from a file upload
 
@@ -19,6 +18,7 @@ class Load(ActionBase):
 
     Note: the action name is the class name
     """
+
     def __init__(self, pagename, request):
         ActionBase.__init__(self, pagename, request)
         self.use_ticket = True
@@ -59,7 +59,7 @@ class Load(ActionBase):
         target = wikiutil.clean_input(target)
 
         if target:
-            filecontent = file_upload.stream.read() # XXX reads complete file into memory!
+            filecontent = file_upload.stream.read()  # XXX reads complete file into memory!
             filecontent = wikiutil.decodeUnknownInput(filecontent)
 
             self.pagename = target
@@ -103,20 +103,20 @@ class Load(ActionBase):
 <td class="buttons">
 %(buttons_html)s
 </td>""" % {
-    'headline': _("Upload page content"),
-    'explanation': _("You can upload content for the page named below. "
-                     "If you change the page name, you can also upload content for another page. "
-                     "If the page name is empty, we derive the page name from the file name."),
-    'upload_label_file': _('File to load page content from'),
-    'upload_label_comment': _('Comment'),
-    'upload_label_rename': _('Page name'),
-    'pagename': wikiutil.escape(self.pagename, quote=1),
-    'buttons_html': buttons_html,
-    'action_name': self.form_trigger,
-    'textcha': TextCha(self.request).render(),
-}
+            'headline': _("Upload page content"),
+            'explanation': _("You can upload content for the page named below. "
+                             "If you change the page name, you can also upload content for another page. "
+                             "If the page name is empty, we derive the page name from the file name."),
+            'upload_label_file': _('File to load page content from'),
+            'upload_label_comment': _('Comment'),
+            'upload_label_rename': _('Page name'),
+            'pagename': wikiutil.escape(self.pagename, quote=1),
+            'buttons_html': buttons_html,
+            'action_name': self.form_trigger,
+            'textcha': TextCha(self.request).render(),
+        }
+
 
 def execute(pagename, request):
     """ Glue code for actions """
     Load(pagename, request).render()
-

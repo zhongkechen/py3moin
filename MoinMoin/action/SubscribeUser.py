@@ -8,7 +8,6 @@
    @license: GNU GPL, see COPYING for details.
 """
 
-
 import os
 import re
 import sys
@@ -28,7 +27,7 @@ def show_form(pagename, request):
 <input type="submit" value="Subscribe">
 </form>
 """ % (request.request.href(pagename),
-      _("Enter user names (comma separated):")))
+       _("Enter user names (comma separated):")))
     request.theme.send_footer(pagename)
     request.theme.send_closing_html()
 
@@ -95,7 +94,7 @@ def subscribe_users(request, subscribe, unsubscribe, pagename, formatter):
             if re.match(name_re, name, re.U):
                 matched = did_match[name_re] = True
                 if (not userobj.isSubscribedTo([pagename]) or
-                    userobj.unsubscribe(pagename)):
+                        userobj.unsubscribe(pagename)):
                     subscribed = False
                 break
 
@@ -103,7 +102,7 @@ def subscribe_users(request, subscribe, unsubscribe, pagename, formatter):
             if re.match(name_re, name, re.U):
                 matched = did_match[name_re] = True
                 if (userobj.isSubscribedTo([pagename]) or
-                    (userobj.email or userobj.jid) and userobj.subscribe(pagename)):
+                        (userobj.email or userobj.jid) and userobj.subscribe(pagename)):
                     subscribed = True
                 break
 
@@ -114,7 +113,7 @@ def subscribe_users(request, subscribe, unsubscribe, pagename, formatter):
                            formatter.text(name),
                            formatter.url(0),
                            formatter.linebreak(preformatted=0),
-                          ])
+                           ])
 
     result.extend([''.join([formatter.smiley('{X}'),
                             formatter.text(" " + _("Not a user:") + " " + name_re),
@@ -166,12 +165,13 @@ Example:
 
     # Setup MoinMoin environment
     from MoinMoin.web.contexts import ScriptContext
+
     request = ScriptContext(url=request_url)
 
     from MoinMoin.formatter.text_plain import Formatter
+
     formatter = Formatter(request)
 
     subscribe, unsubscribe = parse_userlist(usernames)
 
     print(subscribe_users(request, subscribe, unsubscribe, pagename, formatter))
-

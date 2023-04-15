@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Thread monitor action
 
@@ -8,12 +7,13 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
-import os, time
+import os
+import time
 from io import StringIO
 
 from MoinMoin import Page, wikiutil
 from MoinMoin.util import thread_monitor
+
 
 def execute_fs(pagename, request):
     _ = request.getText
@@ -25,7 +25,7 @@ def execute_fs(pagename, request):
     if thread_monitor.hook_enabled():
         s = StringIO()
         thread_monitor.trigger_dump(s)
-        time.sleep(5) # allow for all threads to dump to request
+        time.sleep(5)  # allow for all threads to dump to request
         data = s.getvalue()
         timestamp = time.time()
         dump_fname = os.path.join(request.cfg.data_dir, "tm_%d.log" % timestamp)
@@ -36,6 +36,7 @@ def execute_fs(pagename, request):
         dump_fname = "nowhere"
 
     request.write('<html><body>A dump has been saved to %s.</body></html>' % dump_fname)
+
 
 def execute_wiki(pagename, request):
     _ = request.getText
@@ -53,12 +54,12 @@ def execute_wiki(pagename, request):
     else:
         s = StringIO()
         thread_monitor.trigger_dump(s)
-        time.sleep(5) # allow for all threads to dump to request
+        time.sleep(5)  # allow for all threads to dump to request
         request.write(wikiutil.escape(s.getvalue()))
 
     request.write('</pre>')
     request.theme.send_footer(pagename)
     request.theme.send_closing_html()
 
-execute = execute_fs
 
+execute = execute_fs

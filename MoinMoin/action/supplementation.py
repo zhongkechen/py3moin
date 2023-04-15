@@ -1,4 +1,3 @@
-
 """
     MoinMoin -  This Action is used to create a supplementation subpage e.g. a Discussion page below a comon page
 
@@ -11,6 +10,7 @@
 from MoinMoin.Page import Page
 from MoinMoin.wikiutil import quoteWikinameURL
 
+
 def execute(pagename, request):
     _ = request.getText
     sub_page_name = request.cfg.supplementation_page_name
@@ -18,7 +18,7 @@ def execute(pagename, request):
     newpagename = "%s/%s" % (pagename, sub_page_name)
     errormsg = _("You are not allowed to create the supplementation page.")
 
-    if pagename.endswith(sub_page_name): # sub_sub_page redirects to sub_page
+    if pagename.endswith(sub_page_name):  # sub_sub_page redirects to sub_page
         query = {}
         url = Page(request, pagename).url(request, query)
         request.http_redirect(url)
@@ -26,7 +26,7 @@ def execute(pagename, request):
         query = {}
         url = Page(request, newpagename).url(request, query)
         test = Page(request, newpagename)
-        if test.exists(): # page is defined -> redirect
+        if test.exists():  # page is defined -> redirect
             request.http_redirect(url)
         elif request.user.may.write(newpagename):  # page will be created from template
             query = {'action': 'edit', 'backto': newpagename, 'template': quoteWikinameURL(sub_page_template)}
@@ -36,4 +36,3 @@ def execute(pagename, request):
             request.theme.add_msg(errormsg, "error")
     else:
         request.theme.add_msg(errormsg, "error")
-

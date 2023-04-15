@@ -1,4 +1,3 @@
-
 """
     MoinMoin - anywikidraw
 
@@ -12,19 +11,16 @@
                 2005-2009 MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
-import os, re
+import os
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
 from MoinMoin import config, wikiutil
 from MoinMoin.action import AttachFile, do_show
-from MoinMoin.action.AttachFile import _write_stream
 
 action_name = __name__.split('.')[-1]
-
-
-from MoinMoin.action.twikidraw import gedit_drawing
 
 
 def attachment_drawing(self, url, text, **kw):
@@ -68,7 +64,7 @@ def attachment_drawing(self, url, text, **kw):
             kw['title'] = title
         if 'alt' not in kw:
             kw['alt'] = kw['title']
-        kw['usemap'] = '#'+mapid
+        kw['usemap'] = '#' + mapid
         return self.url(1, drawing_url) + map + self.image(**kw) + self.url(0)
     else:
         if 'title' not in kw:
@@ -80,6 +76,7 @@ def attachment_drawing(self, url, text, **kw):
 
 class AnyWikiDraw:
     """ anywikidraw action """
+
     def __init__(self, request, pagename, target):
         self.request = request
         self.pagename = pagename
@@ -90,7 +87,8 @@ class AnyWikiDraw:
         _ = request.getText
 
         if not wikiutil.checkTicket(request, request.args.get('ticket', '')):
-            return _('Please use the interactive user interface to use action %(actionname)s!') % {'actionname': 'anywikidraw.save' }
+            return _('Please use the interactive user interface to use action %(actionname)s!') % {
+                'actionname': 'anywikidraw.save'}
 
         pagename = self.pagename
         target = self.target
@@ -112,19 +110,19 @@ class AnyWikiDraw:
         ci = AttachFile.ContainerItem(request, pagename, target)
         filecontent = file_upload.stream
         content_length = None
-        if ext == '.svg': # AnyWikiDraw POSTs this first
+        if ext == '.svg':  # AnyWikiDraw POSTs this first
             AttachFile._addLogEntry(request, 'ATTDRW', pagename, target)
             ci.truncate()
-            filecontent = filecontent.read() # read file completely into memory
+            filecontent = filecontent.read()  # read file completely into memory
             filecontent = filecontent.replace("\r", "")
         elif ext == '.map':
             # touch attachment directory to invalidate cache if new map is saved
             attach_dir = AttachFile.getAttachDir(request, pagename)
             os.utime(attach_dir, None)
-            filecontent = filecontent.read() # read file completely into memory
+            filecontent = filecontent.read()  # read file completely into memory
             filecontent = filecontent.strip()
         else:
-            #content_length = file_upload.content_length
+            # content_length = file_upload.content_length
             # XXX gives -1 for wsgiref :( If this is fixed, we could use the file obj,
             # without reading it into memory completely:
             filecontent = filecontent.read()
@@ -182,12 +180,12 @@ class AnyWikiDraw:
 </applet>
 </p>
 """ % dict(
-    htdocs=request.cfg.url_prefix_static,
-    basename=wikiutil.escape(target, 1),
-    drawurl=wikiutil.escape(drawurl, 1),
-    pageurl=wikiutil.escape(pageurl, 1),
-    saveurl=wikiutil.escape(saveurl, 1),
-)
+            htdocs=request.cfg.url_prefix_static,
+            basename=wikiutil.escape(target, 1),
+            drawurl=wikiutil.escape(drawurl, 1),
+            pageurl=wikiutil.escape(pageurl, 1),
+            saveurl=wikiutil.escape(saveurl, 1),
+        )
 
         title = '%s %s:%s' % (_('Edit drawing'), pagename, target)
         request.theme.send_title(title, page=request.page, pagename=pagename)
@@ -212,4 +210,3 @@ def execute(pagename, request):
     if msg:
         request.theme.add_msg(wikiutil.escape(msg), 'error')
         do_show(pagename, request)
-

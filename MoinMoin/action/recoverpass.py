@@ -1,4 +1,3 @@
-
 """
     MoinMoin - password recovery action
 
@@ -8,8 +7,9 @@
 
 from MoinMoin import user, wikiutil
 from MoinMoin.Page import Page
-from MoinMoin.widget import html
 from MoinMoin.auth import MoinAuth
+from MoinMoin.widget import html
+
 
 def _do_email(request, u):
     _ = request.getText
@@ -152,7 +152,7 @@ def execute(pagename, request):
 
     page = Page(request, pagename)
     _ = request.getText
-    form = request.values # link in mail -> GET request
+    form = request.values  # link in mail -> GET request
 
     if not request.cfg.mail_enabled:
         request.theme.add_msg(_("""This wiki is not enabled for mail processing.
@@ -203,13 +203,13 @@ Enter a new password below.""", wiki=True))
 
         request.theme.send_footer(pagename)
         request.theme.send_closing_html()
-    elif submitted: # user pressed create button
+    elif submitted:  # user pressed create button
         if request.method != 'POST':
             return
         msg = _do_recover(request)
         request.theme.add_msg(msg, "dialog")
         page.send_page()
-    else: # show create form
+    else:  # show create form
         request.theme.send_title(_("Lost password"), pagename=pagename)
 
         request.write(request.formatter.startContent("content"))

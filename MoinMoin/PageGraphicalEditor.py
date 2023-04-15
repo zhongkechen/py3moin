@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Call the GUI editor (FCKeditor)
 
@@ -34,6 +33,7 @@ def execute(pagename, request):
 
 class PageGraphicalEditor(PageEditor.PageEditor):
     """ Same as PageEditor, but use the GUI editor (FCKeditor) """
+
     def word_rule(self):
         regex = re.compile(r"\(\?<![^)]*?\)")
         word_rule = regex.sub("", WikiParser.word_rule_js)
@@ -49,7 +49,7 @@ class PageGraphicalEditor(PageEditor.PageEditor):
         from MoinMoin import i18n
         from MoinMoin.action import SpellCheck
 
-        request = self.request
+        request = self.context
         form = request.form
         _ = self._
 
@@ -76,7 +76,7 @@ class PageGraphicalEditor(PageEditor.PageEditor):
                 # failed to get the lock
                 if preview is not None:
                     edit_lock_message = _('The lock you held timed out. Be prepared for editing conflicts!'
-                        ) + "<br>" + edit_lock_message
+                                          ) + "<br>" + edit_lock_message
                 else:
                     msg = edit_lock_message
 
@@ -175,11 +175,11 @@ Please review the page and save then. Do not save this page as it is!""")
             if request.user.may.read(template_page):
                 raw_body = Page(request, template_page).get_raw_body()
                 if raw_body:
-                    request.write(_("[Content of new page loaded from %s]") % (template_page_escaped, ), '<br>')
+                    request.write(_("[Content of new page loaded from %s]") % (template_page_escaped,), '<br>')
                 else:
-                    request.write(_("[Template %s not found]") % (template_page_escaped, ), '<br>')
+                    request.write(_("[Template %s not found]") % (template_page_escaped,), '<br>')
             else:
-                request.write(_("[You may not read %s]") % (template_page_escaped, ), '<br>')
+                request.write(_("[You may not read %s]") % (template_page_escaped,), '<br>')
 
         # Make backup on previews - but not for new empty pages
         if not use_draft and preview and raw_body:
@@ -195,7 +195,9 @@ Please review the page and save then. Do not save this page as it is!""")
                     loadable_draft = True
                     page_rev = rev
                     draft_timestamp_str = request.user.getFormattedDateTime(draft_timestamp)
-                    draft_message = _(u"'''<<BR>>Your draft based on revision %(draft_rev)d (saved %(draft_timestamp_str)s) can be loaded instead of the current revision %(page_rev)d by using the load draft button - in case you lost your last edit somehow without saving it.''' A draft gets saved for you when you do a preview, cancel an edit or unsuccessfully save.", wiki=True, percent=True) % locals()
+                    draft_message = _(
+                        u"'''<<BR>>Your draft based on revision %(draft_rev)d (saved %(draft_timestamp_str)s) can be loaded instead of the current revision %(page_rev)d by using the load draft button - in case you lost your last edit somehow without saving it.''' A draft gets saved for you when you do a preview, cancel an edit or unsuccessfully save.",
+                        wiki=True, percent=True) % locals()
 
         # Setup status message
         status = [kw.get('msg', ''), conflict_msg, edit_lock_message, draft_message]
@@ -208,13 +210,13 @@ Please review the page and save then. Do not save this page as it is!""")
             title % {'pagename': self.split_title(), },
             page=self,
             html_head=self.lock.locktype and (
-                PageEditor._countdown_js % {
-                     'countdown_script': request.theme.externalScript('countdown'),
-                     'lock_timeout': lock_timeout,
-                     'lock_expire': lock_expire,
-                     'lock_mins': lock_mins,
-                     'lock_secs': lock_secs,
-                    }) or '',
+                    PageEditor._countdown_js % {
+                'countdown_script': request.theme.externalScript('countdown'),
+                'lock_timeout': lock_timeout,
+                'lock_expire': lock_expire,
+                'lock_mins': lock_mins,
+                'lock_secs': lock_secs,
+            }) or '',
             editor_mode=1,
             allow_doubleclick=1,
         )
@@ -223,12 +225,12 @@ Please review the page and save then. Do not save this page as it is!""")
 
         # Generate default content for new pages
         if not raw_body:
-            raw_body = _('Describe %s here.') % (self.page_name, )
+            raw_body = _('Describe %s here.') % (self.page_name,)
 
         # send form
         request.write('<form id="editor" method="post" action="%s#preview">' % (
-                request.href(self.page_name)
-            ))
+            request.href(self.page_name)
+        ))
 
         # yet another weird workaround for broken IE6 (it expands the text
         # editor area to the right after you begin to type...). IE sucks...
@@ -238,7 +240,7 @@ Please review the page and save then. Do not save this page as it is!""")
         request.write(str(html.INPUT(type="hidden", name="action", value="edit")))
 
         # Send revision of the page our edit is based on
-        request.write('<input type="hidden" name="rev" value="%d">' % (rev, ))
+        request.write('<input type="hidden" name="rev" value="%d">' % (rev,))
 
         # Add src format (e.g. 'wiki') into a hidden form field, so that
         # we can load the correct converter after POSTing.
@@ -253,25 +255,27 @@ Please review the page and save then. Do not save this page as it is!""")
             request.write(str(html.INPUT(type="hidden", name="backto", value=backto)))
 
         # button bar
-        button_spellcheck = '<input class="button" type="submit" name="button_spellcheck" value="%s">' % _('Check Spelling')
+        button_spellcheck = '<input class="button" type="submit" name="button_spellcheck" value="%s">' % _(
+            'Check Spelling')
 
         save_button_text = _('Save Changes')
         cancel_button_text = _('Cancel')
 
         if self.cfg.page_license_enabled:
             request.write('<p><em>', _(
-"""By hitting '''%(save_button_text)s''' you put your changes under the %(license_link)s.
-If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.""", wiki=True) % {
-                'save_button_text': save_button_text,
-                'cancel_button_text': cancel_button_text,
-                'license_link': wikiutil.getLocalizedPage(request, self.cfg.page_license_page).link_to(request),
-            }, '</em></p>')
+                """By hitting '''%(save_button_text)s''' you put your changes under the %(license_link)s.
+                If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.""", wiki=True) % {
+                              'save_button_text': save_button_text,
+                              'cancel_button_text': cancel_button_text,
+                              'license_link': wikiutil.getLocalizedPage(request, self.cfg.page_license_page).link_to(
+                                  request),
+                          }, '</em></p>')
 
         request.write('''
 <input class="button" type="submit" name="button_save" value="%s">
 <input class="button" type="submit" name="button_preview" value="%s">
 <input class="button" type="submit" name="button_switch" value="%s">
-''' % (save_button_text, _('Preview'), _('Text mode'), ))
+''' % (save_button_text, _('Preview'), _('Text mode'),))
 
         if loadable_draft:
             request.write('''
@@ -284,7 +288,7 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
 %s
 <input class="button" type="submit" name="button_cancel" value="%s">
 <input type="hidden" name="editor" value="gui">
-''' % (button_spellcheck, cancel_button_text, ))
+''' % (button_spellcheck, cancel_button_text,))
         if self.cfg.mail_enabled:
             request.write('''
 <script type="text/javascript">
@@ -299,18 +303,18 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
 <input type="checkbox" name="trivial" id="chktrivialtop" value="1" %(checked)s onclick="toggle_trivial(this)">
 <label for="chktrivialtop">%(label)s</label>
 ''' % {
-          'checked': ('', 'checked')[form.get('trivial', '0') == '1'],
-          'label': _("Trivial change"),
-       })
+                'checked': ('', 'checked')[form.get('trivial', '0') == '1'],
+                'label': _("Trivial change"),
+            })
 
         from MoinMoin.security.textcha import TextCha
         request.write(TextCha(request).render())
 
-        self.sendconfirmleaving() # TODO update state of flgChange to make this work, see PageEditor
+        self.sendconfirmleaving()  # TODO update state of flgChange to make this work, see PageEditor
 
         # Add textarea with page text
         lang = self.pi.get('language', request.cfg.language_default)
-        contentlangdirection = i18n.getDirection(lang) # 'ltr' or 'rtl'
+        contentlangdirection = i18n.getDirection(lang)  # 'ltr' or 'rtl'
         uilanguage = request.lang
         url_prefix_static = request.cfg.url_prefix_static
         url_prefix_local = request.cfg.url_prefix_local
@@ -329,7 +333,7 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
             # the iphone where you can't operate both sliders.
             current_rows = len(raw_body.split('\n'))
             text_rows = max(10, int(current_rows * 1.5))
-        editor_size = text_rows * 22 # 22 height_pixels/line
+        editor_size = text_rows * 22  # 22 height_pixels/line
         word_rule = self.word_rule()
 
         request.write("""
@@ -354,7 +358,8 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
         from MoinMoin.formatter.text_gedit import Formatter
         self.formatter = Formatter(request)
         self.formatter.page = self
-        output = request.redirectedOutput(self.send_page_content, request, raw_body, format=self.pi['format'], do_cache=False)
+        output = request.redirectedOutput(self.send_page_content, request, raw_body, format=self.pi['format'],
+                                          do_cache=False)
         output = repr(output)
         if output[0] == 'u':
             output = output[1:]
@@ -366,8 +371,8 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
 """)
         request.write("<p>")
         request.write(_("Comment:"),
-            ' <input id="editor-comment" type="text" name="comment" value="%s" size="80" maxlength="200">' % (
-                wikiutil.escape(kw.get('comment', ''), 1), ))
+                      ' <input id="editor-comment" type="text" name="comment" value="%s" size="80" maxlength="200">' % (
+                          wikiutil.escape(kw.get('comment', ''), 1),))
         request.write("</p>")
 
         # Category selection
@@ -387,7 +392,7 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
 <label for="chktrivial">%(label)s</label> ''' % {
                 'checked': ('', 'checked')[form.get('trivial', '0') == '1'],
                 'label': _("Trivial change"),
-                })
+            })
 
         request.write('''
 &nbsp;
@@ -396,7 +401,7 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
 </p> ''' % {
             'checked': ('', 'checked')[form.get('rstrip', '0') == '1'],
             'label': _('Remove trailing whitespace from each line')
-            })
+        })
 
         request.write("</p>")
 
@@ -415,7 +420,6 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
                 content_id = 'preview'
             self.send_page(content_id=content_id, content_only=1, hilite_re=badwords_re)
 
-        request.write(request.formatter.endContent()) # end content div
+        request.write(request.formatter.endContent())  # end content div
         request.theme.send_footer(self.page_name)
         request.theme.send_closing_html()
-

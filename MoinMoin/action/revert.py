@@ -1,4 +1,3 @@
-
 """
     MoinMoin - revert a page to a previous revision
 
@@ -14,11 +13,13 @@ from MoinMoin.PageEditor import PageEditor
 from MoinMoin.action import ActionBase
 from MoinMoin.util.abuse import log_attempt
 
+
 class revert(ActionBase):
     """ revert page action
 
     Note: the action name is the class name
     """
+
     def __init__(self, pagename, request):
         ActionBase.__init__(self, pagename, request)
         self.use_ticket = True
@@ -80,7 +81,7 @@ class revert(ActionBase):
             'buttons_html': buttons_html,
             'querytext': _('Really revert this page?'),
             'rev': self.request.rev
-            }
+        }
 
         return '''
 <strong>%(querytext)s</strong>
@@ -100,7 +101,6 @@ class revert(ActionBase):
     </tr>
 </table>
 ''' % d
-
 
 
 def execute(pagename, request):

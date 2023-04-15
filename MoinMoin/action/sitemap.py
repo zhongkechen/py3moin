@@ -1,4 +1,3 @@
-
 """
     MoinMoin - "sitemap" action
 
@@ -8,12 +7,15 @@
     @license: GNU GPL, see COPYING for details.
 """
 import time
+
 from MoinMoin import wikiutil
 
 datetime_fmt = "%Y-%m-%dT%H:%M:%S+00:00"
 
+
 def now():
     return time.strftime(datetime_fmt, time.gmtime())
+
 
 def make_url_xml(request, vars):
     """ assemble a single <url> xml fragment """
@@ -28,12 +30,13 @@ def make_url_xml(request, vars):
 </url>
 """ % vars
 
+
 def sitemap_url(request, page):
     """ return a sitemap <url>..</url> fragment for page object <page> """
     url = page.url(request)
     pagename = page.page_name
     lastmod = page.mtime_printable(request)
-    if lastmod == "0": # can happen in case of errors
+    if lastmod == "0":  # can happen in case of errors
         lastmod = now()
 
     # page's changefreq, priority and lastmod depends on page type / name
@@ -41,7 +44,7 @@ def sitemap_url(request, page):
         # important dynamic pages with macros
         changefreq = "hourly"
         priority = "0.9"
-        lastmod = now() # the page text mtime never changes, but the macro output DOES
+        lastmod = now()  # the page text mtime never changes, but the macro output DOES
 
     elif pagename in [request.cfg.page_front_page, ]:
         # important user edited pages
@@ -60,6 +63,7 @@ def sitemap_url(request, page):
 
     return make_url_xml(request, locals())
 
+
 def execute(pagename, request):
     _ = request.getText
     request.user.datetime_fmt = datetime_fmt
@@ -76,7 +80,7 @@ def execute(pagename, request):
     rooturl = request.script_root + '/'
     result.append(make_url_xml(request, {
         'url': rooturl,
-        'lastmod': now(), # fake
+        'lastmod': now(),  # fake
         'changefreq': 'hourly',
         'priority': '1.0',
     }))
@@ -95,8 +99,7 @@ def execute(pagename, request):
     result.append("""</urlset>\n""")
 
     result = "".join(result)
-    result = result.replace("\n", "\r\n") # text/* requires CR/LF
+    result = result.replace("\n", "\r\n")  # text/* requires CR/LF
 
     # emit all real data
     request.write(result)
-

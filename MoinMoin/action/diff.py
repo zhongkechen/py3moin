@@ -1,4 +1,3 @@
-
 """
     MoinMoin - show diff between 2 page revisions
 
@@ -9,11 +8,11 @@
 """
 
 from MoinMoin import log
-logging = log.getLogger(__name__)
-
 from MoinMoin import wikiutil
-from MoinMoin.logfile import editlog
 from MoinMoin.Page import Page
+from MoinMoin.logfile import editlog
+
+logging = log.getLogger(__name__)
 
 
 def execute(pagename, request):
@@ -61,7 +60,7 @@ def execute(pagename, request):
         currentpage.send_page()
         return
 
-    if date: # this is how we get called from RecentChanges
+    if date:  # this is how we get called from RecentChanges
         rev1 = 0
         log = editlog.EditLog(request, rootpagename=pagename)
         for line in log.reverse():
@@ -108,7 +107,7 @@ def execute(pagename, request):
     # This action generates content in the user language
     request.setContentLanguage(request.lang)
 
-    request.theme.send_title(_('Diff for "%s"') % (pagename, ), pagename=pagename, allow_doubleclick=1)
+    request.theme.send_title(_('Diff for "%s"') % (pagename,), pagename=pagename, allow_doubleclick=1)
 
     f = request.formatter
     request.write(f.div(1, id="content"))
@@ -118,7 +117,7 @@ def execute(pagename, request):
 
     title = _('Differences between revisions %d and %d') % (oldrev, newrev)
     if edit_count > 1:
-        title += ' ' + _('(spanning %d versions)') % (edit_count, )
+        title += ' ' + _('(spanning %d versions)') % (edit_count,)
     title = f.text(title)
 
     page_url = wikiutil.escape(currentpage.url(request), True)
@@ -171,25 +170,28 @@ def execute(pagename, request):
     next_newrev = (newrev < currentrev) and (newrev + 1) or currentrev
 
     navigation_html = navigation_html % (title,
-       page_url, "left", prev_oldrev, oldrev, _("Previous change"), enabled(oldrev > 1),
-       revert_html,
-       page_url, "right", newrev, next_newrev, _("Next change"), enabled(newrev < currentrev), )
+                                         page_url, "left", prev_oldrev, oldrev, _("Previous change"),
+                                         enabled(oldrev > 1),
+                                         revert_html,
+                                         page_url, "right", newrev, next_newrev, _("Next change"),
+                                         enabled(newrev < currentrev),)
 
     request.write(f.rawHTML(navigation_html))
 
     def rev_nav_link(enabled, old_rev, new_rev, caption, css_classes, enabled_title, disabled_title):
         if enabled:
             return currentpage.link_to(request, on=1, querystr={
-                    'action': 'diff',
-                    'rev1': old_rev,
-                    'rev2': new_rev,
-                    }, css_class="diff-nav-link %s" % css_classes, title=enabled_title) + request.formatter.text(caption) + currentpage.link_to(request, on=0)
+                'action': 'diff',
+                'rev1': old_rev,
+                'rev2': new_rev,
+            }, css_class="diff-nav-link %s" % css_classes, title=enabled_title) + request.formatter.text(
+                caption) + currentpage.link_to(request, on=0)
         else:
             return '<span class="diff-no-nav-link %(css_classes)s" title="%(disabled_title)s">%(caption)s</span>' % {
                 'css_classes': css_classes,
                 'disabled_title': disabled_title,
                 'caption': caption,
-                }
+            }
 
     rev_info_html = """
   <div class="diff-info diff-info-header">%%(rev_first_link)s %%(rev_prev_link)s %(rev_header)s %%(rev_next_link)s %%(rev_last_link)s</div>
@@ -197,17 +199,23 @@ def execute(pagename, request):
   <div class="diff-info diff-info-rev-author"><span class="diff-info-caption">%(rev_author_caption)s:</span> <span class="diff-info-value">%%(rev_author)s</span></div>
   <div class="diff-info diff-info-rev-comment"><span class="diff-info-caption">%(rev_comment_caption)s:</span> <span class="diff-info-value">%%(rev_comment)s</span></div>
 """ % {
-    'rev_header': _('Revision %(rev)d as of %(date)s'),
-    'rev_size_caption': _('Size'),
-    'rev_author_caption': _('Editor'),
-    'rev_ts_caption': _('Date'),
-    'rev_comment_caption': _('Comment'),
-}
+        'rev_header': _('Revision %(rev)d as of %(date)s'),
+        'rev_size_caption': _('Size'),
+        'rev_author_caption': _('Editor'),
+        'rev_ts_caption': _('Date'),
+        'rev_comment_caption': _('Comment'),
+    }
 
     rev_info_old_html = rev_info_html % {
-        'rev_first_link': rev_nav_link(oldrev > 1, 1, newrev, u'\u21e4', 'diff-first-link diff-old-rev', _('Diff with oldest revision in left pane'), _("No older revision available for diff")),
-        'rev_prev_link': rev_nav_link(oldrev > 1, prev_oldrev, newrev, u'\u2190', 'diff-prev-link diff-old-rev', _('Diff with older revision in left pane'), _("No older revision available for diff")),
-        'rev_next_link': rev_nav_link((oldrev < currentrev) and (next_oldrev < newrev), next_oldrev, newrev, u'\u2192', 'diff-next-link diff-old-rev', _('Diff with newer revision in left pane'), _("Can't change to revision newer than in right pane")),
+        'rev_first_link': rev_nav_link(oldrev > 1, 1, newrev, u'\u21e4', 'diff-first-link diff-old-rev',
+                                       _('Diff with oldest revision in left pane'),
+                                       _("No older revision available for diff")),
+        'rev_prev_link': rev_nav_link(oldrev > 1, prev_oldrev, newrev, u'\u2190', 'diff-prev-link diff-old-rev',
+                                      _('Diff with older revision in left pane'),
+                                      _("No older revision available for diff")),
+        'rev_next_link': rev_nav_link((oldrev < currentrev) and (next_oldrev < newrev), next_oldrev, newrev, u'\u2192',
+                                      'diff-next-link diff-old-rev', _('Diff with newer revision in left pane'),
+                                      _("Can't change to revision newer than in right pane")),
         'rev_last_link': '',
         'rev': oldrev,
         'rev_size': oldpage.size(),
@@ -218,9 +226,15 @@ def execute(pagename, request):
 
     rev_info_new_html = rev_info_html % {
         'rev_first_link': '',
-        'rev_prev_link': rev_nav_link((newrev > 1) and (oldrev < prev_newrev), oldrev, prev_newrev, u'\u2190', 'diff-prev-link diff-new-rev', _('Diff with older revision in right pane'), _("Can't change to revision older than revision in left pane")),
-        'rev_next_link': rev_nav_link(newrev < currentrev, oldrev, next_newrev, u'\u2192', 'diff-next-link diff-new-rev', _('Diff with newer revision in right pane'), _("No newer revision available for diff")),
-        'rev_last_link': rev_nav_link(newrev < currentrev, oldrev, currentrev, u'\u21e5', 'diff-last-link diff-old-rev', _('Diff with newest revision in right pane'), _("No newer revision available for diff")),
+        'rev_prev_link': rev_nav_link((newrev > 1) and (oldrev < prev_newrev), oldrev, prev_newrev, u'\u2190',
+                                      'diff-prev-link diff-new-rev', _('Diff with older revision in right pane'),
+                                      _("Can't change to revision older than revision in left pane")),
+        'rev_next_link': rev_nav_link(newrev < currentrev, oldrev, next_newrev, u'\u2192',
+                                      'diff-next-link diff-new-rev', _('Diff with newer revision in right pane'),
+                                      _("No newer revision available for diff")),
+        'rev_last_link': rev_nav_link(newrev < currentrev, oldrev, currentrev, u'\u21e5', 'diff-last-link diff-old-rev',
+                                      _('Diff with newest revision in right pane'),
+                                      _("No newer revision available for diff")),
         'rev': newrev,
         'rev_size': newpage.size(),
         'rev_author': newlog.getEditor(request) or _('N/A'),
@@ -230,10 +244,14 @@ def execute(pagename, request):
 
     if request.user.show_fancy_diff:
         from MoinMoin.util import diff_html
-        request.write(f.rawHTML(diff_html.diff(request, oldpage.get_raw_body(), newpage.get_raw_body(), old_top=rev_info_old_html, new_top=rev_info_new_html, old_top_class="diff-info", new_top_class="diff-info")))
+        request.write(f.rawHTML(
+            diff_html.diff(request, oldpage.get_raw_body(), newpage.get_raw_body(), old_top=rev_info_old_html,
+                           new_top=rev_info_new_html, old_top_class="diff-info", new_top_class="diff-info")))
         newpage.send_page(count_hit=0, content_only=1, content_id="content-below-diff")
     else:
-        request.write(f.rawHTML('<table class="diff"><tr><td class="diff-info">%s</td><td class="diff-info">%s</td></tr></table>' % (rev_info_old_html, rev_info_new_html)))
+        request.write(f.rawHTML(
+            '<table class="diff"><tr><td class="diff-info">%s</td><td class="diff-info">%s</td></tr></table>' % (
+            rev_info_old_html, rev_info_new_html)))
 
         from MoinMoin.util import diff_text
         lines = diff_text.diff(oldpage.getlines(), newpage.getlines())
@@ -253,8 +271,10 @@ def execute(pagename, request):
                 if rev2:
                     qstr['rev2'] = str(rev2)
                 request.write(f.paragraph(1), Page(request, pagename).link_to(request,
-                    text=_('Ignore changes in the amount of whitespace'),
-                    querystr=qstr, rel='nofollow'), f.paragraph(0))
+                                                                              text=_(
+                                                                                  'Ignore changes in the amount of whitespace'),
+                                                                              querystr=qstr, rel='nofollow'),
+                              f.paragraph(0))
 
             request.write(f.preformatted(1))
             for line in lines:
@@ -263,7 +283,6 @@ def execute(pagename, request):
                 request.write(f.text(line + '\n'))
             request.write(f.preformatted(0))
 
-    request.write(f.div(0)) # end content div
+    request.write(f.div(0))  # end content div
     request.theme.send_footer(pagename)
     request.theme.send_closing_html()
-

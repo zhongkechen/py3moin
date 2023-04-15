@@ -1,4 +1,3 @@
-
 """
     MoinMoin - login action
 
@@ -63,7 +62,7 @@ class LoginHandler:
 
         islogin = form.get('login', '')
 
-        if islogin: # user pressed login button
+        if islogin:  # user pressed login button
             if context._login_multistage:
                 return self.handle_multistage()
             if hasattr(context, '_login_messages'):
@@ -71,7 +70,7 @@ class LoginHandler:
                     context.theme.add_msg(wikiutil.escape(msg), "error")
             return self.page.send_page()
 
-        else: # show login form
+        else:  # show login form
             context.theme.send_title(_("Login"), pagename=self.pagename)
             # Start content (important for RTL support)
             context.write(context.formatter.startContent("content"))
@@ -81,4 +80,3 @@ class LoginHandler:
             context.write(context.formatter.endContent())
             context.theme.send_footer(self.pagename)
             context.theme.send_closing_html()
-

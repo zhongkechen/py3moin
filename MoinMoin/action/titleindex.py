@@ -1,4 +1,3 @@
-
 """
     MoinMoin - "titleindex" action
 
@@ -23,12 +22,11 @@ def execute(pagename, request):
     pages.sort()
 
     if mimetype == "text/xml":
-        request.write('<?xml version="1.0" encoding="%s"?>\r\n' % (config.charset, ))
+        request.write('<?xml version="1.0" encoding="%s"?>\r\n' % (config.charset,))
         request.write('<TitleIndex>\r\n')
         for name in pages:
-            request.write('  <Title>%s</Title>\r\n' % (util.TranslateCDATA(name), ))
+            request.write('  <Title>%s</Title>\r\n' % (util.TranslateCDATA(name),))
         request.write('</TitleIndex>\r\n')
     else:
         for name in pages:
-            request.write(name+'\r\n')
-
+            request.write(name + '\r\n')

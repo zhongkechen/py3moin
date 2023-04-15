@@ -1,4 +1,3 @@
-
 """
     MoinMoin - logout action
 
@@ -11,8 +10,10 @@
 
 from MoinMoin.Page import Page
 
+
 def execute(pagename, request):
     return LogoutHandler(pagename, request).handle()
+
 
 class LogoutHandler:
     def __init__(self, pagename, request):
@@ -28,4 +29,3 @@ class LogoutHandler:
         if not self.request.user.valid:
             self.request.theme.add_msg(_("You are now logged out."), "info")
         return self.page.send_page()
-

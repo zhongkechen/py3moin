@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Despam action
 
@@ -8,22 +7,22 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-DAYS = 30 # we look for spam edits in the last x days
-
 import time
 
 from MoinMoin import log
-logging = log.getLogger(__name__)
-
+from MoinMoin import wikiutil, Page, PageEditor
 from MoinMoin.logfile import editlog
+from MoinMoin.macro import RecentChanges
 from MoinMoin.util.dataset import TupleDataset, Column
 from MoinMoin.widget.browser import DataBrowserWidget
-from MoinMoin import wikiutil, Page, PageEditor
-from MoinMoin.macro import RecentChanges
+
+logging = log.getLogger(__name__)
+DAYS = 30  # we look for spam edits in the last x days
+
 
 def render(editor_tuple):
     etype, evalue = editor_tuple
-    if etype in ('ip', 'email', ):
+    if etype in ('ip', 'email',):
         ret = evalue
     elif etype == 'interwiki':
         ewiki, euser = evalue
@@ -34,6 +33,7 @@ def render(editor_tuple):
     else:
         ret = repr(editor_tuple)
     return ret
+
 
 def show_editors(request, pagename, timestamp):
     _ = request.getText
@@ -66,18 +66,20 @@ def show_editors(request, pagename, timestamp):
                        Column('link', label='', align='left')]
     for nr, editor in editors:
         dataset.addRow((render(editor), str(nr),
-            pg.link_to(request, text=_("Select Author"),
-                querystr={
-                    'action': 'Despam',
-                    'editor': repr(editor),
-                })))
+                        pg.link_to(request, text=_("Select Author"),
+                                   querystr={
+                                       'action': 'Despam',
+                                       'editor': repr(editor),
+                                   })))
 
     table = DataBrowserWidget(request)
     table.setData(dataset)
     return table.render(method="GET")
 
+
 class tmp:
     pass
+
 
 def show_pages(request, pagename, editor, timestamp):
     _ = request.getText
@@ -140,14 +142,14 @@ def revert_page(request, pagename, editor):
                 rev = line.rev
                 break
 
-    if rev == u"00000000": # page created by spammer
+    if rev == u"00000000":  # page created by spammer
         comment = u"Page deleted by Despam action"
         pg = PageEditor.PageEditor(request, pagename, do_editor_backup=0)
         try:
             savemsg = pg.deletePage(comment)
         except pg.SaveError as msg:
             savemsg = str(msg)
-    else: # page edited by spammer
+    else:  # page edited by spammer
         oldpg = Page.Page(request, pagename, rev=int(rev))
         pg = PageEditor.PageEditor(request, pagename, do_editor_backup=0)
         try:
@@ -155,6 +157,7 @@ def revert_page(request, pagename, editor):
         except pg.SaveError as msg:
             savemsg = str(msg)
     return savemsg
+
 
 def revert_pages(request, editor, timestamp):
     _ = request.getText
@@ -184,6 +187,7 @@ def revert_pages(request, editor, timestamp):
             request.write("<p>%s: %s</p>" % (
                 Page.Page(request, pagename).link_to(request), msg))
         request.write("Finished reverting %s.<br>" % wikiutil.escape(pagename))
+
 
 def execute(pagename, request):
     _ = request.getText
@@ -215,4 +219,3 @@ def execute(pagename, request):
     request.write(request.formatter.endContent())
     request.theme.send_footer(pagename)
     request.theme.send_closing_html()
-

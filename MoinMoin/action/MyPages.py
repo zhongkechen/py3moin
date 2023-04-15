@@ -1,10 +1,10 @@
-
 """
     MoinMoin - MyPages - assisting creation of Homepage subpages
 
     @copyright: 2005-2006 Bastian Blank, Florian Festi, Thomas Waldmann
     @license: GNU GPL, see COPYING for details.
 """
+
 
 def execute(pagename, request):
     from MoinMoin import wikiutil
@@ -74,4 +74,3 @@ the group pages.
     request.write(request.formatter.endContent())
     request.theme.send_footer(homepage.page_name)
     request.theme.send_closing_html()
-

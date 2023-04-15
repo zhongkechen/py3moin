@@ -1,4 +1,3 @@
-
 """
     MoinMoin - CopyPage action
 
@@ -9,17 +8,20 @@
     @license: GNU GPL, see COPYING for details.
 """
 import re
+
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
 from MoinMoin.PageEditor import PageEditor
 from MoinMoin.action import ActionBase
 from MoinMoin.security.textcha import TextCha
 
+
 class CopyPage(ActionBase):
     """ Copy page action
 
     Note: the action name is the class name
     """
+
     def __init__(self, pagename, request):
         ActionBase.__init__(self, pagename, request)
         self.use_ticket = True
@@ -73,7 +75,7 @@ class CopyPage(ActionBase):
                 success_i, msg = self.page.copyPage(new_subpagename, comment)
                 msgs = "%s %s" % (msgs, msg)
 
-        self.newpagename = newpagename # keep there for finish
+        self.newpagename = newpagename  # keep there for finish
         return success, msgs
 
     def do_action_finish(self, success):
@@ -98,7 +100,7 @@ class CopyPage(ActionBase):
                 'comment_label': _("Optional reason for the copying"),
                 'buttons_html': buttons_html,
                 'querytext': _('Really copy this page?')
-                }
+            }
 
             return '''
 <strong>%(querytext)s</strong>
@@ -144,7 +146,7 @@ class CopyPage(ActionBase):
                 'newname_label': _("New name"),
                 'comment_label': _("Optional reason for the copying"),
                 'buttons_html': buttons_html,
-                }
+            }
             return '''
 %(textcha)s
 <table>
@@ -169,7 +171,7 @@ class CopyPage(ActionBase):
 </table>
 ''' % d
 
+
 def execute(pagename, request):
     """ Glue code for actions """
     CopyPage(pagename, request).render()
-

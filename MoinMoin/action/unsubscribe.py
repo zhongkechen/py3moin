@@ -1,4 +1,3 @@
-
 """
     MoinMoin - unsubscribe from notifications to a page.
 
@@ -7,6 +6,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 from MoinMoin.Page import Page
+
 
 def execute(pagename, request):
     """ Unsubscribe the user from pagename """
@@ -28,4 +28,3 @@ def execute(pagename, request):
         # The user is not subscribed
         request.theme.add_msg(_('You need to be subscribed to unsubscribe.'), "info")
     Page(request, pagename).send_page()
-

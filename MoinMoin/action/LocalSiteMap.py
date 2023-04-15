@@ -1,4 +1,3 @@
-
 """
     MoinMoin - LocalSiteMap action
 
@@ -23,11 +22,12 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from MoinMoin import wikiutil
 from MoinMoin.Page import Page
+
 
 class MaxNodesReachedException(Exception):
     pass
+
 
 def execute(pagename, request):
     _ = request.getText
@@ -43,9 +43,10 @@ def execute(pagename, request):
 
     request.write(LocalSiteMap(pagename).output(request))
 
-    request.write(request.formatter.endContent()) # end content div
+    request.write(request.formatter.endContent())  # end content div
     request.theme.send_footer(pagename)
     request.theme.send_closing_html()
+
 
 class LocalSiteMap:
     def __init__(self, name):
@@ -54,9 +55,9 @@ class LocalSiteMap:
 
     def output(self, request):
         tree = PageTreeBuilder(request).build_tree(self.name)
-        #self.append("<small>")
+        # self.append("<small>")
         tree.depth_first_visit(request, self)
-        #self.append("</small>")
+        # self.append("</small>")
         return """
 <p>
 %s
@@ -71,7 +72,7 @@ class LocalSiteMap:
         _ = request.getText
         pg = Page(request, name)
         action = __name__.split('.')[-1]
-        self.append('&nbsp;' * (5*depth+1))
+        self.append('&nbsp;' * (5 * depth + 1))
         self.append(pg.link_to(request, querystr={'action': action}))
         self.append("&nbsp;<small>[")
         self.append(pg.link_to(request, _('view')))
@@ -135,7 +136,8 @@ class PageTreeBuilder:
                 self.new_node()
                 all_kids.append(newTree)
         if len(all_kids):
-            self.recurse_build(all_kids, depth+1)
+            self.recurse_build(all_kids, depth + 1)
+
 
 class Tree:
     def __init__(self, node):
@@ -148,5 +150,4 @@ class Tree:
     def depth_first_visit(self, request, visitor, depth=0):
         visitor.visit(request, self.node, depth)
         for c in self.children:
-            c.depth_first_visit(request, visitor, depth+1)
-
+            c.depth_first_visit(request, visitor, depth + 1)

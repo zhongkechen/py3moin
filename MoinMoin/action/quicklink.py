@@ -1,4 +1,3 @@
-
 """
     MoinMoin - add a quicklink to the user's quicklinks
 
@@ -7,6 +6,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 from MoinMoin.Page import Page
+
 
 def execute(pagename, request):
     """ Add the current wiki page to the user quicklinks """
@@ -17,10 +17,9 @@ def execute(pagename, request):
     elif not request.user.isQuickLinkedTo([pagename]):
         if request.user.addQuicklink(pagename):
             request.theme.add_msg(_('A quicklink to this page has been added for you.'), "info")
-        else: # should not happen
+        else:  # should not happen
             request.theme.add_msg(_('A quicklink to this page could not be added for you.'), "error")
     else:
         request.theme.add_msg(_('You already have a quicklink to this page.'))
 
     Page(request, pagename).send_page()
-

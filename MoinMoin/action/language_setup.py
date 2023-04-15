@@ -1,4 +1,3 @@
-
 """
     MoinMoin - language_setup
 
@@ -12,12 +11,13 @@
 """
 
 from MoinMoin import i18n, packages, wikiutil
-from MoinMoin.i18n import strings
-i18n.strings = strings
-
 from MoinMoin.action import AttachFile
+from MoinMoin.i18n import strings
 from MoinMoin.util.dataset import TupleDataset, Column
 from MoinMoin.widget.browser import DataBrowserWidget
+
+i18n.strings = strings
+
 
 def execute(pagename, request):
     _ = request.getText
@@ -53,12 +53,11 @@ def execute(pagename, request):
         else:
             msg = _('The file %s is not a MoinMoin package file.') % target
 
-
     data = TupleDataset()
     data.columns = [
-           Column('page package', label=_('page package')),
-           Column('action', label=_('install')),
-        ]
+        Column('page package', label=_('page package')),
+        Column('action', label=_('install')),
+    ]
 
     label_install = _("install")
     for pageset_name in i18n.strings.pagesets:
@@ -78,9 +77,9 @@ def execute(pagename, request):
 
     fmt = request.formatter
     lang_links = [request.page.link_to_raw(request, _lang,
-                                        querystr={'action': 'language_setup',
-                                                  'language': _lang,
-                                                  'pageset': pageset_name, })
+                                           querystr={'action': 'language_setup',
+                                                     'language': _lang,
+                                                     'pageset': pageset_name, })
                   for _lang in wiki_languages]
 
     lang_selector = u''.join([fmt.paragraph(1), _("Choose:"), ' ', ' '.join(lang_links), fmt.paragraph(0)])
@@ -94,4 +93,3 @@ def execute(pagename, request):
     request.write(request.formatter.endContent())
     request.theme.send_footer(pagename)
     request.theme.send_closing_html()
-

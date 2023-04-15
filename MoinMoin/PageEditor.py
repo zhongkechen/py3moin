@@ -79,19 +79,19 @@ class PageEditor(Page):
     class CouldNotLock(SaveError):
         pass
 
-    def __init__(self, request, page_name, **keywords):
+    def __init__(self, context, page_name, **keywords):
         """ Create page editor object.
 
         @param page_name: name of the page
-        @param request: the request object
+        @param context: the request object
         @keyword do_revision_backup: if 0, suppress making a page backup per revision
         @keyword do_editor_backup: if 0, suppress saving of draft copies
         @keyword uid_override: override user id and name (default None)
         @keyword mtime: time for edit-log and event-log (using current time in UTC, if not given)
                         number of seconds since the epoch, see the time module
         """
-        Page.__init__(self, request, page_name, **keywords)
-        self._ = request.getText
+        Page.__init__(self, context, page_name, **keywords)
+        self._ = context.getText
 
         self.do_revision_backup = keywords.get('do_revision_backup', 1)
         self.do_editor_backup = keywords.get('do_editor_backup', 1)
@@ -114,10 +114,10 @@ class PageEditor(Page):
         savetext = self.get_raw_body()
 
         # The original text from the revision the user was editing
-        original_text = Page(self.request, self.page_name, rev=origrev).get_raw_body()
+        original_text = Page(self.context, self.page_name, rev=origrev).get_raw_body()
 
         # The current revision someone else saved
-        saved_text = Page(self.request, self.page_name).get_raw_body()
+        saved_text = Page(self.context, self.page_name).get_raw_body()
 
         # And try to merge all into one with edit conflict separators
         verynewtext = diff3.text_merge(original_text, saved_text, savetext,
@@ -132,7 +132,7 @@ class PageEditor(Page):
     def sendconfirmleaving(self):
         """ Prevents moving away from the page without saving it. """
         _ = self._
-        self.request.write(u'''\
+        self.context.write(u'''\
 <script type="text/javascript">
     var flgChange = false;
     function confirmleaving() {
@@ -151,8 +151,8 @@ class PageEditor(Page):
         """
         from MoinMoin import i18n
         from MoinMoin.action import SpellCheck
-        request = self.request
-        form = request.request.form
+        context = self.context
+        form = context.request.form
         _ = self._
 
         raw_body = ''
@@ -163,14 +163,14 @@ class PageEditor(Page):
         staytop = kw.get('staytop', 0)
 
         from MoinMoin.formatter.text_html import Formatter
-        request.formatter = Formatter(request, store_pagelinks=1)
+        context.formatter = Formatter(context, store_pagelinks=1)
 
         # check edit permissions
-        if not request.user.may.write(self.page_name):
-            log_attempt('edit/no permissions', False, request, pagename=self.page_name)
+        if not context.user.may.write(self.page_name):
+            log_attempt('edit/no permissions', False, context, pagename=self.page_name)
             msg = _('You are not allowed to edit this page.')
         elif not self.isWritable():
-            log_attempt('edit/immutable', False, request, pagename=self.page_name)
+            log_attempt('edit/immutable', False, context, pagename=self.page_name)
             msg = _('Page is immutable!')
         elif self.rev:
             # Trying to edit an old version, this is not possible via
@@ -195,12 +195,12 @@ class PageEditor(Page):
 
         # Did one of the prechecks fail?
         if msg:
-            request.theme.add_msg(msg, "error")
+            context.theme.add_msg(msg, "error")
             self.send_page()
             return
 
         # Emit http_headers after checks (send_page)
-        request.disableHttpCaching(level=2)
+        context.disableHttpCaching(level=2)
 
         # check if we want to load a draft
         use_draft = None
@@ -225,7 +225,7 @@ class PageEditor(Page):
         else:
             title = _('Preview of "%(pagename)s"')
             # Propagate original revision
-            rev = request.rev
+            rev = context.rev
             self.set_raw_body(preview, modified=1)
 
         # send header stuff
@@ -240,8 +240,8 @@ class PageEditor(Page):
             text_rows = int(form['rows'])
         except Exception:
             text_rows = self.cfg.edit_rows
-            if request.user.valid:
-                text_rows = int(request.user.edit_rows)
+            if context.user.valid:
+                text_rows = int(context.user.edit_rows)
 
         if preview is not None:
             # Check for editing conflicts
@@ -267,30 +267,30 @@ Please review the page and save then. Do not save this page as it is!""")
             rev = 0
 
         # Page editing is done using user language
-        request.setContentLanguage(request.lang)
+        context.setContentLanguage(context.lang)
 
         # Get the text body for the editor field.
         # TODO: what about deleted pages? show the text of the last revision or use the template?
         if preview is not None:
             raw_body = self.get_raw_body()
             if use_draft:
-                request.theme.add_msg(_("[Content loaded from draft]"), 'info')
+                context.theme.add_msg(_("[Content loaded from draft]"), 'info')
         elif self.exists():
             # If the page exists, we get the text from the page.
             # TODO: maybe warn if template argument was ignored because the page exists?
             raw_body = self.get_raw_body()
-        elif 'template' in request.request.values:
+        elif 'template' in context.request.values:
             # If the page does not exist, we try to get the content from the template parameter.
-            template_page = wikiutil.unquoteWikiname(request.request.values['template'])
+            template_page = wikiutil.unquoteWikiname(context.request.values['template'])
             template_page_escaped = wikiutil.escape(template_page)
-            if request.user.may.read(template_page):
-                raw_body = Page(request, template_page).get_raw_body()
+            if context.user.may.read(template_page):
+                raw_body = Page(context, template_page).get_raw_body()
                 if raw_body:
-                    request.theme.add_msg(_("[Content of new page loaded from %s]") % (template_page_escaped, ), 'info')
+                    context.theme.add_msg(_("[Content of new page loaded from %s]") % (template_page_escaped, ), 'info')
                 else:
-                    request.theme.add_msg(_("[Template %s not found]") % (template_page_escaped, ), 'warning')
+                    context.theme.add_msg(_("[Template %s not found]") % (template_page_escaped, ), 'warning')
             else:
-                request.theme.add_msg(_("[You may not read %s]") % (template_page_escaped, ), 'error')
+                context.theme.add_msg(_("[You may not read %s]") % (template_page_escaped, ), 'error')
 
         # Make backup on previews - but not for new empty pages
         if not use_draft and preview and raw_body:
@@ -305,22 +305,22 @@ Please review the page and save then. Do not save this page as it is!""")
                 if draft_text != raw_body:
                     loadable_draft = True
                     page_rev = rev
-                    draft_timestamp_str = request.user.getFormattedDateTime(draft_timestamp)
+                    draft_timestamp_str = context.user.getFormattedDateTime(draft_timestamp)
                     draft_message = _(u"'''<<BR>>Your draft based on revision %(draft_rev)d (saved %(draft_timestamp_str)s) can be loaded instead of the current revision %(page_rev)d by using the load draft button - in case you lost your last edit somehow without saving it.''' A draft gets saved for you when you do a preview, cancel an edit or unsuccessfully save.", wiki=True) % locals()
 
         # Setup status message
         status = [kw.get('msg', ''), conflict_msg, edit_lock_message, draft_message]
         status = [msg for msg in status if msg]
         status = ' '.join(status)
-        status = Status(request, content=status)
-        request.theme.add_msg(status, "dialog")
+        status = Status(context, content=status)
+        context.theme.add_msg(status, "dialog")
 
-        request.theme.send_title(
+        context.theme.send_title(
             title % {'pagename': self.split_title(), },
             page=self,
             html_head=self.lock.locktype and (
                 _countdown_js % {
-                     'countdown_script': request.theme.externalScript('countdown'),
+                     'countdown_script': context.theme.externalScript('countdown'),
                      'lock_timeout': lock_timeout,
                      'lock_expire': lock_expire,
                      'lock_mins': lock_mins,
@@ -330,34 +330,34 @@ Please review the page and save then. Do not save this page as it is!""")
             allow_doubleclick=1,
         )
 
-        request.write(request.formatter.startContent("content"))
+        context.write(context.formatter.startContent("content"))
 
         # Generate default content for new pages
         if not raw_body:
             raw_body = _('Describe %s here.') % (self.page_name, )
 
         # send form
-        request.write('<form id="editor" method="post" action="%s#preview" onSubmit="flgChange = false;">' % (
-                request.request.href(self.page_name)
+        context.write('<form id="editor" method="post" action="%s#preview" onSubmit="flgChange = false;">' % (
+                context.request.href(self.page_name)
         ))
 
         # yet another weird workaround for broken IE6 (it expands the text
         # editor area to the right after you begin to type...). IE sucks...
         # http://fplanque.net/2003/Articles/iecsstextarea/
-        request.write('<fieldset style="border:none;padding:0;">')
+        context.write('<fieldset style="border:none;padding:0;">')
 
-        request.write(str(html.INPUT(type="hidden", name="action", value="edit")))
+        context.write(str(html.INPUT(type="hidden", name="action", value="edit")))
 
         # Send revision of the page our edit is based on
-        request.write('<input type="hidden" name="rev" value="%d">' % (rev, ))
+        context.write('<input type="hidden" name="rev" value="%d">' % (rev, ))
 
         # Create and send a ticket, so we can check the POST
-        request.write('<input type="hidden" name="ticket" value="%s">' % wikiutil.createTicket(request))
+        context.write('<input type="hidden" name="ticket" value="%s">' % wikiutil.createTicket(context))
 
         # Save backto in a hidden input
-        backto = request.request.values.get('backto')
+        backto = context.request.values.get('backto')
         if backto:
-            request.write(str(html.INPUT(type="hidden", name="backto", value=backto)))
+            context.write(str(html.INPUT(type="hidden", name="backto", value=backto)))
 
         # button bar
         button_spellcheck = '<input class="button" type="submit" name="button_spellcheck" value="%s" onClick="flgChange = false;">' % _('Check Spelling')
@@ -366,33 +366,33 @@ Please review the page and save then. Do not save this page as it is!""")
         cancel_button_text = _('Cancel')
 
         if self.cfg.page_license_enabled:
-            request.write('<p><em>', _(
+            context.write('<p><em>', _(
 """By hitting '''%(save_button_text)s''' you put your changes under the %(license_link)s.
 If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.""", wiki=True) % {
                 'save_button_text': save_button_text,
                 'cancel_button_text': cancel_button_text,
-                'license_link': wikiutil.getLocalizedPage(request, self.cfg.page_license_page).link_to(request),
+                'license_link': wikiutil.getLocalizedPage(context, self.cfg.page_license_page).link_to(context),
             }, '</em></p>')
 
 
-        request.write('''
+        context.write('''
 <input class="button" type="submit" name="button_save" value="%s" onClick="flgChange = false;">
 <input class="button" type="submit" name="button_preview" value="%s" onClick="flgChange = false;">
 ''' % (save_button_text, _('Preview'), ))
 
-        if not (request.cfg.editor_force and request.cfg.editor_default == 'text'):
-            request.write('''
+        if not (context.cfg.editor_force and context.cfg.editor_default == 'text'):
+            context.write('''
 <input id="switch2gui" style="display: none;" class="button" type="submit" name="button_switch" value="%s">
 ''' % (_('GUI Mode'), ))
 
         if loadable_draft:
-            request.write('''
+            context.write('''
 <input class="button" type="submit" name="button_load_draft" value="%s" onClick="flgChange = false;">
 <input type="hidden" name="draft_ts" value="%d">
 <input type="hidden" name="draft_rev" value="%d">
 ''' % (_('Load Draft'), draft_timestamp, draft_rev))
 
-        request.write('''
+        context.write('''
 %s
 <input class="button" type="submit" name="button_cancel" value="%s">
 <input type="hidden" name="editor" value="text">
@@ -400,7 +400,7 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
 
         # Trivial Change-checkbox to the top of the page, shows up only if user has JavaScript enabled. It's "linked" with the bottom's box (checking one checks both)
         if self.cfg.mail_enabled:
-            request.write('''
+            context.write('''
 <script type="text/javascript">
     <!--
     function toggle_trivial(CheckedBox)
@@ -419,12 +419,12 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
             })
 
         from MoinMoin.security.textcha import TextCha
-        request.write(TextCha(request).render())
+        context.write(TextCha(context).render())
 
         # Add textarea with page text
         self.sendconfirmleaving()
 
-        lang = self.pi.get('language', request.cfg.language_default)
+        lang = self.pi.get('language', context.cfg.language_default)
 
         if not text_rows:
             # if no specific value is given for editor height, but 0, we
@@ -435,7 +435,7 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
             current_rows = len(raw_body.split('\n'))
             text_rows = max(10, int(current_rows * 1.5))
 
-        request.write(
+        context.write(
             u'''\
 <textarea id="editor-textarea" name="savetext" lang="%(lang)s" dir="%(dir)s" rows="%(rows)d" cols="80"
           onChange="flgChange = true;" onKeyPress="flgChange = true;">\
@@ -447,26 +447,26 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
             'text': wikiutil.escape(raw_body)
         })
 
-        request.write("<p>")
-        request.write(_("Comment:"),
+        context.write("<p>")
+        context.write(_("Comment:"),
             ' <input id="editor-comment" type="text" name="comment" value="%s" size="80" maxlength="200"'
             ' onChange="flgChange = true;" onKeyPress="flgChange = true;">' % (
                 wikiutil.escape(kw.get('comment', ''), 1), ))
-        request.write("</p>")
+        context.write("</p>")
 
         # Category selection
         filterfn = self.cfg.cache.page_category_regexact.search
-        cat_pages = request.rootpage.getPageList(filter=filterfn)
+        cat_pages = context.rootpage.getPageList(filter=filterfn)
         cat_pages.sort()
         cat_pages = [wikiutil.pagelinkmarkup(p) for p in cat_pages]
         cat_pages.insert(0, ('', _('<No addition>')))
-        request.write("<p>")
-        request.write(_('Add to: %(category)s') % {
+        context.write("<p>")
+        context.write(_('Add to: %(category)s') % {
             'category': str(web.makeSelection('category', cat_pages)),
         })
 
         if self.cfg.mail_enabled:
-            request.write('''
+            context.write('''
 &nbsp;
 
 <input type="checkbox" name="trivial" id="chktrivial" value="1" %(checked)s onclick="toggle_trivial(this)">
@@ -477,7 +477,7 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
                 'label': _("Trivial change"),
                 })
 
-        request.write('''
+        context.write('''
 &nbsp;
 <input type="checkbox" name="rstrip" id="chkrstrip" value="1" %(checked)s>
 <label for="chkrstrip">%(label)s</label>
@@ -485,27 +485,27 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
             'checked': ('', 'checked')[form.get('rstrip', '0') == '1'],
             'label': _('Remove trailing whitespace from each line')
             })
-        request.write("</p>")
+        context.write("</p>")
 
         badwords_re = None
         if preview is not None:
             if 'button_spellcheck' in form or 'button_newwords' in form:
-                badwords, badwords_re, msg = SpellCheck.checkSpelling(self, request, own_form=0)
-                request.write("<p>%s</p>" % msg)
-        request.write('</fieldset>')
-        request.write("</form>")
+                badwords, badwords_re, msg = SpellCheck.checkSpelling(self, context, own_form=0)
+                context.write("<p>%s</p>" % msg)
+        context.write('</fieldset>')
+        context.write("</form>")
 
         # QuickHelp originally by Georg Mischler <schorsch@lightingwiki.com>
-        markup = self.pi['format'] or request.cfg.default_markup
+        markup = self.pi['format'] or context.cfg.default_markup
         try:
-            parser = wikiutil.searchAndImportPlugin(self.request.cfg, "parser", markup)
+            parser = wikiutil.searchAndImportPlugin(self.context.cfg, "parser", markup)
         except wikiutil.PluginMissingError:
-            parser = wikiutil.searchAndImportPlugin(self.request.cfg, "parser", "plain")
+            parser = wikiutil.searchAndImportPlugin(self.context.cfg, "parser", "plain")
         quickhelp = getattr(parser, 'quickhelp', None)
         if quickhelp:
-            request.write(request.formatter.div(1, id="editor-help"))
-            request.write(_(quickhelp, wiki=True))
-            request.write(request.formatter.div(0))
+            context.write(context.formatter.div(1, id="editor-help"))
+            context.write(_(quickhelp, wiki=True))
+            context.write(context.formatter.div(0))
 
         if preview is not None:
             if staytop:
@@ -514,9 +514,9 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
                 content_id = 'preview'
             self.send_page(content_id=content_id, content_only=1, hilite_re=badwords_re)
 
-        request.write(request.formatter.endContent())
-        request.theme.send_footer(self.page_name)
-        request.theme.send_closing_html()
+        context.write(context.formatter.endContent())
+        context.theme.send_footer(self.page_name)
+        context.theme.send_closing_html()
 
     def sendCancel(self, newtext, rev):
         """ User clicked on Cancel button.
@@ -525,17 +525,17 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
         @param newtext: the edited text (which has been cancelled)
         @param rev: not used!?
         """
-        request = self.request
+        context = self.context
         _ = self._
         self._save_draft(newtext, rev) # shall we really save a draft on CANCEL?
         self.lock.release()
 
-        backto = request.request.values.get('backto')
+        backto = context.request.values.get('backto')
         if backto:
-            pg = Page(request, backto)
-            request.response.http_redirect(pg.url(request))
+            pg = Page(context, backto)
+            context.response.http_redirect(pg.url(context))
         else:
-            request.theme.add_msg(_('Edit was cancelled.'), "error")
+            context.theme.add_msg(_('Edit was cancelled.'), "error")
             self.send_page()
 
     def copyPage(self, newpagename, comment=u''):
@@ -545,13 +545,13 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
         @rtype: unicode
         @return: success flag, error message
         """
-        request = self.request
+        request = self.context
         _ = self._
 
         if not newpagename:
             return False, _("You can't copy to an empty pagename.")
 
-        if not self.request.user.may.write(newpagename):
+        if not self.context.user.may.write(newpagename):
             log_attempt('copy/no permissions', False, request, pagename=self.page_name)
             return False, _('You are not allowed to copy this page!')
 
@@ -600,7 +600,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         @rtype: unicode
         @return: success flag, error message
         """
-        request = self.request
+        request = self.context
         _ = self._
 
         if not (request.user.may.delete(self.page_name)
@@ -674,9 +674,9 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         @type revision: int
 
         """
-        _ = self.request.getText
+        _ = self.context.getText
 
-        if not self.request.user.may.revert(self.page_name):
+        if not self.context.user.may.revert(self.page_name):
             # no real message necessary, cannot happen if
             # user doesn't try to exploit us
             raise self.RevertError('not allowed')
@@ -685,17 +685,17 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             raise self.RevertError('cannot revert to current rev')
         else:
             revstr = '%08d' % revision
-            pg = Page(self.request, self.page_name, rev=revision)
+            pg = Page(self.context, self.page_name, rev=revision)
             msg = self.saveText(pg.get_raw_body(), 0, extra=revstr, action="SAVE/REVERT", notify=False, comment=comment)
 
             # Remove cache entry (if exists)
-            pg = Page(self.request, self.page_name)
-            key = self.request.request.form.get('key', 'text_html') # XXX see cleanup code in deletePage
-            caching.CacheEntry(self.request, pg, key, scope='item').remove()
-            caching.CacheEntry(self.request, pg, "pagelinks", scope='item').remove()
+            pg = Page(self.context, self.page_name)
+            key = self.context.request.form.get('key', 'text_html') # XXX see cleanup code in deletePage
+            caching.CacheEntry(self.context, pg, key, scope='item').remove()
+            caching.CacheEntry(self.context, pg, "pagelinks", scope='item').remove()
 
             # Notify observers
-            e = PageRevertedEvent(self.request, self.page_name, revision, revstr)
+            e = PageRevertedEvent(self.context, self.page_name, revision, revstr)
             send_event(e)
 
             return msg
@@ -708,7 +708,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         @rtype: unicode
         @return: success flag, error message
         """
-        request = self.request
+        request = self.context
         _ = self._
         success = True
         if not (request.user.may.write(self.page_name)
@@ -755,7 +755,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         now = time.time()
         # default: UTC
         zone = "Z"
-        u = self.request.user
+        u = self.context.user
 
         # setup the timezone
         if u.valid and u.tz_offset:
@@ -781,7 +781,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         @return: new text of wikipage, variables replaced
         """
         # TODO: Allow addition of variables via wikiconfig or a global wiki dict.
-        request = self.request
+        request = self.context
         now = self._get_local_timestamp()
         u = request.user
         obfuscated_email_address = encodeSpamSafeEmail(u.email)
@@ -849,7 +849,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         @param rev: the revision of the page this draft is based on
         @param kw: no keyword args used currently
         """
-        request = self.request
+        request = self.context
         if not request.user.valid or not self.do_editor_backup:
             return None
 
@@ -877,7 +877,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         @rtype: unicode
         @return: draft text or None
         """
-        request = self.request
+        request = self.context
         if not request.user.valid:
             return None
 
@@ -916,7 +916,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         @rtype: int
         @return: mtime_usec of new page
         """
-        request = self.request
+        context = self.context
         _ = self._
         was_deprecated = self.pi.get('deprecated', False)
 
@@ -944,10 +944,10 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         # The local log should be the standard edit log, not the
         # underlay copy log!
         pagelog = self.getPagePath('edit-log', use_underlay=0, isfile=1)
-        llog = editlog.EditLog(request, filename=pagelog,
+        llog = editlog.EditLog(context, filename=pagelog,
                                uid_override=self.uid_override)
         # Open the global log
-        glog = editlog.EditLog(request, uid_override=self.uid_override)
+        glog = editlog.EditLog(context, uid_override=self.uid_override)
 
         if not os.path.exists(pagedir): # new page, create and init pagedir
             os.mkdir(pagedir)
@@ -1033,17 +1033,17 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             if self.do_revision_backup:
                 # do not globally log edits with no revision backup
                 # if somebody edits a deprecated page, log it in global log, but not local log
-                glog.add(request, mtime_usecs, rev, action, self.page_name, None, extra, comment)
+                glog.add(context, mtime_usecs, rev, action, self.page_name, None, extra, comment)
             if not was_deprecated and self.do_revision_backup:
                 # if we did not create a new revision number, do not locally log it
-                llog.add(request, mtime_usecs, rev, action, self.page_name, None, extra, comment)
+                llog.add(context, mtime_usecs, rev, action, self.page_name, None, extra, comment)
         finally:
             if got_lock:
                 filesys.rename(clfn, cfn)
 
         # add event log entry
-        elog = eventlog.EventLog(request)
-        elog.add(request, 'SAVEPAGE', {'pagename': self.page_name}, 1, mtime_usecs)
+        elog = eventlog.EventLog(context)
+        elog.add(context, 'SAVEPAGE', {'pagename': self.page_name}, 1, mtime_usecs)
 
         return mtime_usecs, rev
 
@@ -1062,7 +1062,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         @rtype: unicode
         @return: error msg
         """
-        request = self.request
+        context = self.context
         _ = self._
         self._save_draft(newtext, rev, **kw)
         action = kw.get('action', 'SAVE')
@@ -1073,16 +1073,16 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         #!!! rev check is not enough since internal operations use "0"
 
         # expand variables, unless it's a template or form page
-        if not wikiutil.isTemplatePage(request, self.page_name):
+        if not wikiutil.isTemplatePage(context, self.page_name):
             newtext = self._expand_variables(newtext)
 
         msg = ""
-        if not request.user.may.save(self, newtext, rev, **kw):
-            log_attempt('save/no permissions', False, request, pagename=self.page_name)
+        if not context.user.may.save(self, newtext, rev, **kw):
+            log_attempt('save/no permissions', False, context, pagename=self.page_name)
             msg = _('You are not allowed to edit this page!')
             raise self.AccessDenied(msg)
         elif not self.isWritable():
-            log_attempt('save/immutable', False, request, pagename=self.page_name)
+            log_attempt('save/immutable', False, context, pagename=self.page_name)
             msg = _('Page is immutable!')
             raise self.Immutable(msg)
         elif not newtext:
@@ -1093,14 +1093,14 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             other = False
             pagelog = self.getPagePath('edit-log', use_underlay=0, isfile=1)
             next_line = None
-            for line in editlog.EditLog(request, pagelog).reverse():
+            for line in editlog.EditLog(context, pagelog).reverse():
                 if int(line.rev) == int(rev):
                     break
-                if not line.is_from_current_user(request):
+                if not line.is_from_current_user(context):
                     other = True
                 next_line = line
-            if next_line and next_line.is_from_current_user(request):
-                saved_page = Page(request, self.page_name, rev=int(next_line.rev))
+            if next_line and next_line.is_from_current_user(context):
+                saved_page = Page(context, self.page_name, rev=int(next_line.rev))
                 if newtext == saved_page.get_raw_body():
                     msg = _("You already saved this page!")
                     return msg
@@ -1122,15 +1122,15 @@ Please review the page and save then. Do not save this page as it is!""")
             # they are not the sames, the user must have admin
             # rights. This is a good place to update acl cache - instead
             # of wating for next request.
-            acl = self.getACL(request)
-            if (not request.user.may.admin(self.page_name) and
-                parseACL(request, newtext).acl != acl.acl and
+            acl = self.getACL(context)
+            if (not context.user.may.admin(self.page_name) and
+                parseACL(context, newtext).acl != acl.acl and
                 action != "SAVE/REVERT"):
-                log_attempt('acl change/no permissions', False, request, pagename=self.page_name)
+                log_attempt('acl change/no permissions', False, context, pagename=self.page_name)
                 msg = _("You can't change ACLs on this page since you have no admin rights on it!")
                 raise self.NoAdmin(msg)
 
-        presave = PagePreSaveEvent(request, self, newtext)
+        presave = PagePreSaveEvent(context, self, newtext)
         results = send_event(presave)
 
         for result in results:
@@ -1159,9 +1159,9 @@ Please review the page and save then. Do not save this page as it is!""")
                 from MoinMoin import events
 
                 if trivial:
-                    e = events.TrivialPageChangedEvent(self.request, self, comment)
+                    e = events.TrivialPageChangedEvent(self.context, self, comment)
                 else:
-                    e = events.PageChangedEvent(self.request, self, comment)
+                    e = events.PageChangedEvent(self.context, self, comment)
                 results = events.send_event(e)
 
                 recipients = set()
@@ -1176,7 +1176,7 @@ Please review the page and save then. Do not save this page as it is!""")
             # Update page trail with the page we just saved.
             # This is needed for NewPage macro with backto because it does not
             # send the page we just saved.
-            request.user.addTrail(self)
+            context.user.addTrail(self)
 
         # remove lock (forcibly if we were allowed to break it by the UI)
         # !!! this is a little fishy, since the lock owner might not notice
@@ -1194,14 +1194,14 @@ class PageLock:
         """
         self.pageobj = pageobj
         self.page_name = pageobj.page_name
-        request = pageobj.request
-        self.request = request
-        self._ = self.request.getText
-        self.cfg = self.request.cfg
+        context = pageobj.context
+        self.context = context
+        self._ = self.context.getText
+        self.cfg = self.context.cfg
 
         # current time and user for later checks
         self.now = int(time.time())
-        self.uid = request.user.valid and request.user.id or request.remote_addr
+        self.uid = context.user.valid and context.user.id or context.remote_addr
 
         # get details of the locking preference, i.e. warning or lock, and timeout
         self.locktype = None
@@ -1233,8 +1233,8 @@ class PageLock:
         _ = self._
         #!!! race conditions, need to lock file during queries & update
         self._readLockFile()
-        bumptime = self.request.user.getFormattedDateTime(self.now + self.timeout)
-        timestamp = self.request.user.getFormattedDateTime(self.timestamp)
+        bumptime = self.context.user.getFormattedDateTime(self.now + self.timeout)
+        timestamp = self.context.user.getFormattedDateTime(self.timestamp)
         owner = self.owner_html
         secs_valid = self.timestamp + self.timeout - self.now
 
@@ -1267,7 +1267,7 @@ class PageLock:
             mins_valid = (secs_valid+59) // 60
             if self.locktype == 'lock':
                 # lock out user
-                timestamp_until = self.request.user.getFormattedDateTime(self.timestamp+secs_valid)
+                timestamp_until = self.context.user.getFormattedDateTime(self.timestamp+secs_valid)
                 result = 0, _(
                     "This page is currently ''locked'' for editing by %(owner)s until %(timestamp)s,"
                     " i.e. for %(mins_valid)d minute(s).",
@@ -1311,13 +1311,13 @@ To leave the editor, press the Cancel button.""", wiki=True) % {
 
         if self.locktype:
             try:
-                entry = next(editlog.EditLog(self.request, filename=self._filename()))
+                entry = next(editlog.EditLog(self.context, filename=self._filename()))
             except StopIteration:
                 entry = None
 
             if entry:
                 self.owner = entry.userid or entry.addr
-                self.owner_html = entry.getEditor(self.request)
+                self.owner_html = entry.getEditor(self.context)
                 self.timestamp = wikiutil.version2timestamp(entry.ed_time_usecs)
 
 
@@ -1325,8 +1325,8 @@ To leave the editor, press the Cancel button.""", wiki=True) % {
         """ Write new lock file. """
         self._deleteLockFile()
         try:
-            editlog.EditLog(self.request, filename=self._filename(), force_ip=True).add(
-               self.request, wikiutil.timestamp2version(self.now), 0, "LOCK", self.page_name)
+            editlog.EditLog(self.context, filename=self._filename(), force_ip=True).add(
+               self.context, wikiutil.timestamp2version(self.now), 0, "LOCK", self.page_name)
         except IOError:
             pass
 

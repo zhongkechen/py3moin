@@ -29,19 +29,15 @@
 
 import hashlib
 import hmac
+import mimetypes
 from datetime import datetime
 
+from MoinMoin import config, caching
 from MoinMoin import log
+from MoinMoin.action import AttachFile
+from MoinMoin.util import filesys
 
 logging = log.getLogger(__name__)
-
-# keep both imports below as they are, order is important:
-import mimetypes
-
-from MoinMoin import config, caching
-from MoinMoin.util import filesys
-from MoinMoin.action import AttachFile
-
 action_name = __name__.split('.')[-1]
 
 # Do NOT get this directly from request.values or user would be able to read any cache!

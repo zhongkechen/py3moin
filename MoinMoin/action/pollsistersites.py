@@ -1,4 +1,3 @@
-
 """
     MoinMoin - "pollsistersites" action
 
@@ -10,12 +9,14 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
-
-import time, urllib.request, urllib.parse, urllib.error
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from MoinMoin import caching
 from MoinMoin.util import timefuncs
+
 
 def execute(pagename, request):
     status = []
@@ -41,7 +42,7 @@ def execute(pagename, request):
                     page_url, page_name = line.split(' ', 1)
                     sisterpages[page_name.decode('utf-8')] = page_url
                 except:
-                    pass # ignore invalid lines
+                    pass  # ignore invalid lines
             try:
                 lastmod = f.info()["Last-Modified"]
             except:
@@ -51,10 +52,10 @@ def execute(pagename, request):
             data['sisterpages'] = sisterpages
             cache.update(data)
             status.append(u"Site: %s Status: Updated. Pages: %d" % (sistername, len(sisterpages)))
-        except IOError as xxx_todo_changeme: # code e.g. 304
-            (title, code, msg, headers) = xxx_todo_changeme.args # code e.g. 304
+        except IOError as xxx_todo_changeme:  # code e.g. 304
+            (title, code, msg, headers) = xxx_todo_changeme.args  # code e.g. 304
             status.append(u"Site: %s Status: Not updated." % sistername)
-        except TypeError: # catch bug in python 2.5: "EnvironmentError expected at most 3 arguments, got 4"
+        except TypeError:  # catch bug in python 2.5: "EnvironmentError expected at most 3 arguments, got 4"
             status.append(u"Site: %s Status: Not updated." % sistername)
 
     request.mimetype = 'text/plain'

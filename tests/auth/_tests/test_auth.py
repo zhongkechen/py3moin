@@ -39,12 +39,12 @@ class AuthTest:
 class TestNoAuth(AuthTest):
     def testNoAuth(self):
         """ run a simple request, no auth, just check if it succeeds """
-        request = self.run_request()
+        context = self.run_request()
 
         # anon user?
-        assert not request.user.valid
+        assert not context.user.valid
 
-        appiter, status, headers = evaluate_request(request.request)
+        appiter, status, headers = evaluate_request(context.request)
         # check if the request resulted in normal status, result headers and content
         assert status[:3] == '200'
         has_ct = has_v = has_cc = False

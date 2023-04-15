@@ -6,7 +6,7 @@
 """
 
 
-def getIntegerInput(request, fieldname, default=None, minval=None, maxval=None):
+def getIntegerInput(context, fieldname, default=None, minval=None, maxval=None):
     """ Get an integer value from a request parameter. If the value
         is out of bounds, it's made to fit into those bounds.
 
@@ -14,7 +14,7 @@ def getIntegerInput(request, fieldname, default=None, minval=None, maxval=None):
         is missing).
     """
     try:
-        result = int(request.request.values[fieldname])
+        result = int(context.request.values[fieldname])
     except (KeyError, ValueError):
         return default
     else:

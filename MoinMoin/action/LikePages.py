@@ -1,4 +1,3 @@
-
 """
     MoinMoin - LikePages action
 
@@ -11,8 +10,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import re
 import difflib
+import re
 
 from MoinMoin import config, wikiutil
 from MoinMoin.Page import Page
@@ -30,13 +29,14 @@ def execute(pagename, request):
 
     # No matches
     if not matches:
-        request.theme.add_msg(_('No pages like "%s"!') % (wikiutil.escape(pagename), ), "error")
+        request.theme.add_msg(_('No pages like "%s"!') % (wikiutil.escape(pagename),), "error")
         Page(request, pagename).send_page()
         return
 
     # One match - display it
     if len(matches) == 1:
-        request.theme.add_msg(_('Exactly one page like "%s" found, redirecting to page.') % (wikiutil.escape(pagename), ), "info")
+        request.theme.add_msg(
+            _('Exactly one page like "%s" found, redirecting to page.') % (wikiutil.escape(pagename),), "info")
         Page(request, list(matches.keys())[0]).send_page()
         return
 
@@ -56,6 +56,7 @@ def execute(pagename, request):
     request.write(request.formatter.endContent())
     request.theme.send_footer(pagename)
     request.theme.send_closing_html()
+
 
 def findMatches(pagename, request, s_re=None, e_re=None):
     """ Find like pages
@@ -100,7 +101,7 @@ def findMatches(pagename, request, s_re=None, e_re=None):
 
     # Filter deleted pages or pages the user can't read from
     # matches. Order is important!
-    for name in list(matches.keys()): # we need .keys() because we modify the dict
+    for name in list(matches.keys()):  # we need .keys() because we modify the dict
         page = Page(request, name)
         if not (page.exists() and request.user.may.read(name)):
             del matches[name]
@@ -205,8 +206,8 @@ def showMatches(pagename, request, start, end, matches, show_count=True):
     _showMatchGroup(request, matches, keys, 8, pagename, show_count)
     _showMatchGroup(request, matches, keys, 4, "%s/..." % pagename, show_count)
     _showMatchGroup(request, matches, keys, 3, "%s...%s" % (start, end), show_count)
-    _showMatchGroup(request, matches, keys, 1, "%s..." % (start, ), show_count)
-    _showMatchGroup(request, matches, keys, 2, "...%s" % (end, ), show_count)
+    _showMatchGroup(request, matches, keys, 1, "%s..." % (start,), show_count)
+    _showMatchGroup(request, matches, keys, 2, "...%s" % (end,), show_count)
 
 
 def _showMatchGroup(request, matches, keys, match, title, show_count=True):
@@ -236,5 +237,3 @@ def _showMatchGroup(request, matches, keys, match, title, show_count=True):
                 request.write(request.formatter.pagelink(0, key, generated=True))
                 request.write(request.formatter.listitem(0))
         request.write(request.formatter.bullet_list(0))
-
-

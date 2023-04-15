@@ -1,4 +1,3 @@
-
 """
     MoinMoin - DeletePage action
 
@@ -9,15 +8,18 @@
     @license: GNU GPL, see COPYING for details.
 """
 import re
+
 from MoinMoin import wikiutil
 from MoinMoin.PageEditor import PageEditor
 from MoinMoin.action import ActionBase
+
 
 class DeletePage(ActionBase):
     """ Delete page action
 
     Note: the action name is the class name
     """
+
     def __init__(self, pagename, request):
         ActionBase.__init__(self, pagename, request)
         self.use_ticket = True
@@ -79,7 +81,7 @@ class DeletePage(ActionBase):
                 'comment_label': _("Optional reason for the deletion"),
                 'buttons_html': buttons_html,
                 'querytext': _('Really delete this page?'),
-                }
+            }
 
             return '''
 <strong>%(querytext)s</strong>
@@ -114,7 +116,7 @@ class DeletePage(ActionBase):
                 'comment_label': _("Optional reason for the deletion"),
                 'buttons_html': buttons_html,
                 'querytext': _('Really delete this page?'),
-                }
+            }
 
             return '''
 <strong>%(querytext)s</strong>
@@ -135,8 +137,6 @@ class DeletePage(ActionBase):
 ''' % d
 
 
-
 def execute(pagename, request):
     """ Glue code for actions """
     DeletePage(pagename, request).render()
-

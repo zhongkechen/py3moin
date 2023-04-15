@@ -1,4 +1,3 @@
-
 """
     MoinMoin - feed some FCKeditor dialogues
 
@@ -139,11 +138,13 @@ function OnChange( sMacro )
 </html>
 ''')
 
+
 def macro_list(request):
     from MoinMoin import macro
     macros = macro.getNames(request.cfg)
     macros.sort()
     return macros
+
 
 def get_macro_help(request):
     """ Read help texts from SystemPage('HelpOnMacros')"""
@@ -154,11 +155,12 @@ def get_macro_help(request):
         r"<<(?P<prototype>(?P<macro>\w*).*)>>" +
         r"\}\}\}\s*\|\|" +
         r"[^|]*\|\|[^|]*\|\|<[^>]*>" +
-        r"\s*(?P<help>.*?)\s*\|\|\s*(?P<example>.*?)\s*(<<[^>]*>>)*\s*\|\|$", re.U|re.M)
+        r"\s*(?P<help>.*?)\s*\|\|\s*(?P<example>.*?)\s*(<<[^>]*>>)*\s*\|\|$", re.U | re.M)
     help = {}
     for match in macro_re.finditer(content):
         help[match.group('macro')] = match
     return help
+
 
 ##############################################################################
 ### Link dialog
@@ -200,6 +202,7 @@ def page_list(request):
 </body>
 </html>
 ''' % "".join(["<option>%s</option>\n" % wikiutil.escape(p) for p in pages]))
+
 
 def link_dialog(request):
     # list of wiki pages
@@ -391,7 +394,8 @@ def attachment_dialog(request):
         <select id="sctAttachments" size="10" style="width:100%%;visibility:hidden;" onchange="OnAttachmentListChange();">
         %s
         </select>
-''' % "\n".join(['<option value="%s">%s</option>' % (wikiutil.escape(attachment, quote=True), wikiutil.escape(attachment, quote=True))
+''' % "\n".join(['<option value="%s">%s</option>' % (
+    wikiutil.escape(attachment, quote=True), wikiutil.escape(attachment, quote=True))
                  for attachment in attachments])
 
     # Translation of dialog texts.
@@ -583,4 +587,3 @@ def execute(pagename, request):
         from MoinMoin.Page import Page
         request.theme.add_msg("Dialog unknown!", "error")
         Page(request, pagename).send_page()
-

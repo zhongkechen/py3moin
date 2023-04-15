@@ -1,4 +1,3 @@
-
 """
     MoinMoin - RenamePage action
 
@@ -10,16 +9,19 @@
     @license: GNU GPL, see COPYING for details.
 """
 import re
+
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
 from MoinMoin.PageEditor import PageEditor
 from MoinMoin.action import ActionBase
+
 
 class RenamePage(ActionBase):
     """ Rename page action
 
     Note: the action name is the class name
     """
+
     def __init__(self, pagename, request):
         ActionBase.__init__(self, pagename, request)
         self.use_ticket = True
@@ -86,7 +88,7 @@ class RenamePage(ActionBase):
                     self.page.saveText('#redirect %s' % new_subpagename, 0)
             msgs = ' '.join([msg for msg in msgs if msg])
 
-        self.newpagename = newpagename # keep there for finish
+        self.newpagename = newpagename  # keep there for finish
         return success, msgs
 
     def do_action_finish(self, success):
@@ -113,10 +115,10 @@ class RenamePage(ActionBase):
                 </dd>
                 </tr>
                 """ % {
-                    'subpage': subpages,
-                    'subpages_checked': ('', 'checked')[self.request.args.get('subpages_checked', '0') == '1'],
-                    'subpage_label': _('Rename all /subpages too?'),
-                 }
+                'subpage': subpages,
+                'subpages_checked': ('', 'checked')[self.request.args.get('subpages_checked', '0') == '1'],
+                'subpage_label': _('Rename all /subpages too?'),
+            }
         else:
             redirect_label = _('Create redirect for renamed page?')
             subpages_html = ""
@@ -136,9 +138,9 @@ class RenamePage(ActionBase):
                     %(redirect_html)s
                 </table>
                 """ % {
-                    "subpages_html": subpages_html,
-                    "redirect_html": redirect_html,
-                }
+                "subpages_html": subpages_html,
+                "redirect_html": redirect_html,
+            }
         else:
             options_html = ""
 
@@ -149,7 +151,7 @@ class RenamePage(ActionBase):
             'comment_label': _("Optional reason for the renaming"),
             'buttons_html': buttons_html,
             'options_html': options_html,
-            }
+        }
 
         return '''
 <strong>%(querytext)s</strong>
@@ -182,4 +184,3 @@ class RenamePage(ActionBase):
 def execute(pagename, request):
     """ Glue code for actions """
     RenamePage(pagename, request).render()
-

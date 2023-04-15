@@ -1,4 +1,3 @@
-
 """
     MoinMoin - "sisterpages" action
 
@@ -14,8 +13,9 @@ import time
 
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
-from MoinMoin.util import timefuncs
 from MoinMoin.logfile import editlog
+from MoinMoin.util import timefuncs
+
 
 def execute(pagename, request):
     log = editlog.EditLog(request)
@@ -43,7 +43,7 @@ def execute(pagename, request):
             request.status_code = 304
     else:
         # generate an Expires header, using 1d cache lifetime of sisterpages list
-        expires = time.time() + 24*3600
+        expires = time.time() + 24 * 3600
 
         request.mimetype = 'text/plain'
         request.expires = expires
