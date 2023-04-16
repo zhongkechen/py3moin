@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Load I18N Text
 
@@ -13,9 +12,9 @@
 
 Dependencies = ["language"]
 
+
 def macro_GetText(macro, text=u''):
     """ Return a translation of args, or args as is """
     translation = macro.request.getText(text)
 
     return macro.formatter.text(translation)
-

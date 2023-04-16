@@ -18,7 +18,6 @@ from MoinMoin.widget import html
 from MoinMoin.auth import CancelLogin, ContinueLogin
 from MoinMoin.auth import MultistageFormLogin, MultistageRedirectLogin
 from MoinMoin.auth import get_multistage_continuation_url
-from werkzeug.urls import url_encode
 
 class OpenIDAuth(BaseAuth):
     login_inputs = ['openid_identifier']
@@ -61,7 +60,7 @@ class OpenIDAuth(BaseAuth):
 
             if not hasattr(u, 'openids'):
                 u.openids = []
-            if not request.session['openid.id'] in u.openids:
+            if request.session['openid.id'] not in u.openids:
                 u.openids.append(request.session['openid.id'])
 
             u.save()
@@ -182,7 +181,7 @@ username and leave the password field blank.""")))
 
     def _handle_name_continuation(self, request):
         _ = request.getText
-        if not 'openid.id' in request.session:
+        if 'openid.id' not in request.session:
             return CancelLogin(_('No OpenID found in session.'))
 
         newname = request.form.get('username', '')
@@ -207,7 +206,7 @@ username and leave the password field blank.""")))
         return MultistageFormLogin(assoc)
 
     def _handle_associate_continuation(self, request):
-        if not 'openid.id' in request.session:
+        if 'openid.id' not in request.session:
             return CancelLogin(_('No OpenID found in session.'))
 
         _ = request.getText
@@ -306,12 +305,8 @@ document.getElementById("openid_message").submit();
                 redirect_url = oidreq.redirectURL(trust_root, return_to)
                 return MultistageRedirectLogin(redirect_url)
             else:
-                form_html = oidreq.formMarkup(trust_root, return_to,
-                    form_tag_attrs={'id': 'openid_message'})
-                mcall = lambda request, form:\
-                    self._openid_form(request, form, form_html)
-                ret = MultistageFormLogin(mcall)
-                return ret
+                form_html = oidreq.formMarkup(trust_root, return_to, form_tag_attrs={'id': 'openid_message'})
+                return MultistageFormLogin(lambda context, form: self._openid_form(context, form, form_html))
 
     def login_hint(self, request):
         _ = request.getText

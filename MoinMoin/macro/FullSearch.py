@@ -1,4 +1,3 @@
-
 """
     MoinMoin - FullSearch Macro
 
@@ -60,7 +59,7 @@ def search_box(type, macro):
             u'<br>',
             u'<input type="checkbox" name="case" value="1">',
             _('Case-sensitive searching'),
-            ]
+        ]
         boxes = u'\n'.join(boxes)
         button = _("Search Text")
 
@@ -76,9 +75,10 @@ def search_box(type, macro):
         boxes,
         u'</div>',
         u'</form>',
-        ]
+    ]
     html = u'\n'.join(html)
     return macro.formatter.rawHTML(html)
+
 
 def execute(macro, needle, titlesearch=False, case=False):
     request = macro.request
@@ -120,10 +120,10 @@ def execute(macro, needle, titlesearch=False, case=False):
                     needle = arg
                 else:
                     err = _(u"More than one needle with "
-                             "search_macro_parse_args config option enabled "
-                             "('%(needle)s' found already, '%(arg)s' occurred)"
-                             ) % {'needle': wikiutil.escape(needle),
-                                  'arg': wikiutil.escape(arg)}
+                            "search_macro_parse_args config option enabled "
+                            "('%(needle)s' found already, '%(arg)s' occurred)"
+                            ) % {'needle': wikiutil.escape(needle),
+                                 'arg': wikiutil.escape(arg)}
 
         if not needle_found:
             needle = ''
@@ -149,15 +149,14 @@ def execute(macro, needle, titlesearch=False, case=False):
                                      case=case, sort='page_name')
 
         ret = results.pageList(request, macro.formatter, paging=False,
-            highlight_titles=highlight_titles, highlight_pages=highlight_pages)
+                               highlight_titles=highlight_titles, highlight_pages=highlight_pages)
 
     except ValueError:
         # same error as in MoinMoin/action/fullsearch.py, keep it that way!
         ret = ''.join([macro.formatter.text(u'<<%s(' % macro.name),
-                      _(u'Your search query {{{"%s"}}} is invalid. Please refer '
-                        'to HelpOnSearching for more information.', wiki=True,
-                        percent=True) % wikiutil.escape(needle),
-                      macro.formatter.text(u')>>')])
+                       _(u'Your search query {{{"%s"}}} is invalid. Please refer '
+                         'to HelpOnSearching for more information.', wiki=True,
+                         percent=True) % wikiutil.escape(needle),
+                       macro.formatter.text(u')>>')])
 
     return ret
-

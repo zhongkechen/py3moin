@@ -1,4 +1,3 @@
-
 """
     MoinMoin - PageList
 
@@ -11,8 +10,9 @@
 """
 
 Dependencies = ["namespace"]
-from MoinMoin import search, wikiutil
+from MoinMoin import wikiutil
 from MoinMoin.macro.FullSearch import execute as fs_execute
+
 
 def execute(macro, args):
     _ = macro._
@@ -22,4 +22,3 @@ def execute(macro, args):
     needle = wikiutil.get_unicode(macro.request, args, 'needle', u'regex:.+')
 
     return fs_execute(macro, needle, titlesearch=True, case=case)
-

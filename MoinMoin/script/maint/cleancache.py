@@ -1,4 +1,3 @@
-
 """
 MoinMoin - cleancache script
 
@@ -10,6 +9,7 @@ MoinMoin - cleancache script
 from MoinMoin import caching, i18n, user
 from MoinMoin.Page import Page
 from MoinMoin.script import MoinScript
+
 
 class PluginScript(MoinScript):
     """\
@@ -60,10 +60,10 @@ General syntax: moin [options] maint cleancache
             caching.CacheEntry(request, arena, key, scope='wiki').remove()
 
         # clean dict and groups related cache
-        arena_scope_list =  [('pagedicts', 'wiki'),
-                             ('pagegroups', 'wiki'),
-                             ('users', 'userdir'),
-        ]
+        arena_scope_list = [('pagedicts', 'wiki'),
+                            ('pagegroups', 'wiki'),
+                            ('users', 'userdir'),
+                            ]
         for arena, scope in arena_scope_list:
             for key in caching.get_cache_list(request, arena, scope):
                 caching.CacheEntry(request, arena, key, scope=scope).remove()

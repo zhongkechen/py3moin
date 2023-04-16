@@ -1,4 +1,3 @@
-
 """
 MoinMoin - cleansessions script
 
@@ -7,11 +6,11 @@ MoinMoin - cleansessions script
 @license: GNU GPL, see COPYING for details.
 """
 
-
-import os, time
+import time
 
 from MoinMoin import user
 from MoinMoin.script import MoinScript
+
 
 class PluginScript(MoinScript):
     """\
@@ -51,12 +50,14 @@ General syntax: moin [options] maint cleansessions [cleansessions-options]
 
         if not self.options.all_sessions:
             now = time.time()
+
             def session_expired(session):
                 try:
                     return session['expires'] < now
                 except KeyError:
                     # this is likely a pre-1.9.1 session file without expiry
-                    return True # consider it expired
+                    return True  # consider it expired
+
             checks.append(session_expired)
 
         if self.options.username:
@@ -70,6 +71,7 @@ General syntax: moin [options] maint cleansessions [cleansessions-options]
                         return session['user.id'] == u.id
                     except KeyError:
                         return False
+
                 checks.append(user_matches)
 
         session_service = request.cfg.session_service
@@ -83,4 +85,3 @@ General syntax: moin [options] maint cleansessions [cleansessions-options]
 
             if killit:
                 session_service.destroy_session(request, session)
-

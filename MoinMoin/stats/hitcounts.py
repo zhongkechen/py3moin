@@ -137,20 +137,20 @@ def get_data(pagename, request, filterpage=None):
     return cache_days, cache_views, cache_edits
 
 
-def text(pagename, request, params=''):
+def text(pagename, context, params=''):
     from MoinMoin.util.dataset import TupleDataset, Column
     from MoinMoin.widget.browser import DataBrowserWidget
-    _ = request.getText
+    _ = context.getText
 
     # check params
     filterpage = None
     if params.startswith('page='):
         filterpage = wikiutil.url_unquote(params[len('page='):])
 
-    if request and request.request.values and 'page' in request.request.values:
-        filterpage = request.request.values['page']
+    if context and context.request.values and 'page' in context.request.values:
+        filterpage = context.request.values['page']
 
-    days, views, edits = get_data(pagename, request, filterpage)
+    days, views, edits = get_data(pagename, context, filterpage)
 
     hits = TupleDataset()
     hits.columns = [Column('day', label=_("Date"), align='left'),
@@ -184,23 +184,23 @@ def text(pagename, request, params=''):
             se = 0.0
             sd = 0.0
 
-    table = DataBrowserWidget(request)
+    table = DataBrowserWidget(context)
     table.setData(hits)
     return table.render(method="GET")
 
 
-def draw(pagename, request):
+def draw(pagename, context):
     import shutil, io
     from MoinMoin.stats.chart import Chart, ChartData
 
-    _ = request.getText
+    _ = context.getText
 
     # check params
     filterpage = None
-    if request and request.request.values and 'page' in request.request.values:
-        filterpage = request.request.values['page']
+    if context and context.request.values and 'page' in context.request.values:
+        filterpage = context.request.values['page']
 
-    days, views, edits = get_data(pagename, request, filterpage)
+    days, views, edits = get_data(pagename, context, filterpage)
 
     import math
 
@@ -220,8 +220,8 @@ def draw(pagename, request):
     c.addData(ChartData(views, color='green'))
     c.addData(ChartData(edits, color='red'))
     chart_title = ''
-    if request.cfg.sitename:
-        chart_title = "%s: " % request.cfg.sitename
+    if context.cfg.sitename:
+        chart_title = "%s: " % context.cfg.sitename
     chart_title = chart_title + _('Page hits and edits')
     if filterpage:
         chart_title = _("%(chart_title)s for %(filterpage)s") % {
@@ -246,12 +246,12 @@ def draw(pagename, request):
         stack_type=c.GDC_STACK_BESIDE
     )
     c.draw(c.GDC_LINE,
-           (request.cfg.chart_options['width'], request.cfg.chart_options['height']),
+           (context.cfg.chart_options['width'], context.cfg.chart_options['height']),
            image, days)
 
-    request.response.content_type = 'image/gif'
-    request.response.content_length = len(image.getvalue())
+    context.response.content_type = 'image/gif'
+    context.response.content_length = len(image.getvalue())
 
     # copy the image
     image.reset()
-    shutil.copyfileobj(image, request, 8192)
+    shutil.copyfileobj(image, context, 8192)

@@ -50,7 +50,7 @@ def show_editors(request, pagename, timestamp):
             continue
 
         editor = line.getInterwikiEditorData(request)
-        if not line.pagename in pages:
+        if line.pagename not in pages:
             pages[line.pagename] = 1
             editors[editor] = editors.get(editor, 0) + 1
 
@@ -100,7 +100,7 @@ def show_pages(request, pagename, editor, timestamp):
         if not request.user.may.read(line.pagename):
             continue
 
-        if not line.pagename in pages:
+        if line.pagename not in pages:
             pages[line.pagename] = 1
             if repr(line.getInterwikiEditorData(request)) == editor:
                 line.time_tuple = request.user.getTime(wikiutil.version2timestamp(line.ed_time_usecs))
@@ -174,7 +174,7 @@ def revert_pages(request, editor, timestamp):
         if not request.user.may.read(line.pagename):
             continue
 
-        if not line.pagename in pages:
+        if line.pagename not in pages:
             pages[line.pagename] = 1
             if repr(line.getInterwikiEditorData(request)) == editor:
                 revertpages.append(line.pagename)
@@ -189,33 +189,33 @@ def revert_pages(request, editor, timestamp):
         request.write("Finished reverting %s.<br>" % wikiutil.escape(pagename))
 
 
-def execute(pagename, request):
-    _ = request.getText
+def execute(pagename, context):
+    _ = context.getText
     # check for superuser
-    if not request.user.isSuperUser():
-        request.theme.add_msg(_('You are not allowed to use this action.'), "error")
-        return Page.Page(request, pagename).send_page()
+    if not context.user.isSuperUser():
+        context.theme.add_msg(_('You are not allowed to use this action.'), "error")
+        return Page.Page(context, pagename).send_page()
 
-    editor = request.request.values.get('editor')
+    editor = context.request.values.get('editor')
     timestamp = time.time() - DAYS * 24 * 3600
-    ok = request.request.form.get('ok', 0)
+    ok = context.request.form.get('ok', 0)
     logging.debug("editor: %r ok: %r" % (editor, ok))
 
-    request.theme.send_title("Despam", pagename=pagename)
+    context.theme.send_title("Despam", pagename=pagename)
     # Start content (important for RTL support)
-    request.write(request.formatter.startContent("content"))
+    context.write(context.formatter.startContent("content"))
 
-    if request.request.method == 'POST' \
+    if context.request.method == 'POST' \
             and ok \
-            and wikiutil.checkTicket(request, request.request.form.get('ticket', '')):
-        revert_pages(request, editor, timestamp)
-        request.write(show_editors(request, pagename, timestamp))
+            and wikiutil.checkTicket(context, context.request.form.get('ticket', '')):
+        revert_pages(context, editor, timestamp)
+        context.write(show_editors(context, pagename, timestamp))
     elif editor:
-        show_pages(request, pagename, editor, timestamp)
+        show_pages(context, pagename, editor, timestamp)
     else:
-        request.write(show_editors(request, pagename, timestamp))
+        context.write(show_editors(context, pagename, timestamp))
 
     # End content and send footer
-    request.write(request.formatter.endContent())
-    request.theme.send_footer(pagename)
-    request.theme.send_closing_html()
+    context.write(context.formatter.endContent())
+    context.theme.send_footer(pagename)
+    context.theme.send_closing_html()

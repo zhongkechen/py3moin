@@ -1,4 +1,3 @@
-
 """
     MoinMoin - StatsChart Macro
 
@@ -11,6 +10,7 @@
 from MoinMoin.util import pysupport
 
 Dependencies = ["time24:00"]
+
 
 def macro_StatsChart(macro, chart_type=''):
     _ = macro.request.getText
@@ -30,4 +30,3 @@ def macro_StatsChart(macro, chart_type=''):
                 formatter.sysmsg(0))
 
     return func(macro.formatter.page.page_name, macro.request)
-

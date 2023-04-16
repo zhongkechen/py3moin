@@ -63,7 +63,7 @@ def _save_teams_acl(u, teams, cfg):
         + "  new teams: " + str(teams))
 
     for t in u.teams:
-        if not t in teams:
+        if t not in teams:
             logging.log(logging.INFO, "remove user from team: " + t)
             team = t.strip().replace("-", "")
             _remove_user_from_team(u, team, cfg)

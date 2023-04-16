@@ -1,10 +1,10 @@
-
 """
     EditedSystemPages - list system pages that has been edited in this wiki.
 
     @copyright: 2004 Nir Soffer <nirs@freeshell.org>
     @license: GNU GPL, see COPYING for details.
 """
+
 
 class EditedSystemPages:
 
@@ -51,4 +51,3 @@ class EditedSystemPages:
 def macro_EditedSystemPages(macro):
     """ Temporary glue code to use with moin current macro system """
     return EditedSystemPages(macro).renderInPage()
-

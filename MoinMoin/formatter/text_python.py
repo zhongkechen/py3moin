@@ -78,7 +78,7 @@ if moincode_timestamp > %d or cfg_mtime is None or cfg_mtime > %d:
         return "".join(source)
 
     def __cache_if_no_id(self, name, *args, **kw):
-        if not 'id' in kw:
+        if 'id' not in kw:
             return getattr(self.formatter, name)(*args, **kw)
         else:
             return self.__insert_code('request.write(%s.%s(*%r, **%r))' %

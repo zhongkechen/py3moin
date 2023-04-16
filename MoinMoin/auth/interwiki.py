@@ -1,4 +1,3 @@
-
 """
     MoinMoin - authentication using a remote wiki
 
@@ -7,15 +6,14 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
-
 import xmlrpc.client
 
 from MoinMoin import log
+from MoinMoin import wikiutil, user
+from MoinMoin.auth import BaseAuth, ContinueLogin
+
 logging = log.getLogger(__name__)
 
-from MoinMoin import wikiutil, user
-from MoinMoin.auth import BaseAuth, ContinueLogin, CancelLogin
 
 class InterwikiAuth(BaseAuth):
     name = 'interwiki'
@@ -35,7 +33,7 @@ class InterwikiAuth(BaseAuth):
             return ContinueLogin(user_obj)
 
         logging.debug("trying to authenticate %r" % username)
-        wikiname, username = username.split(' ', 1) # XXX Hack because ':' is not allowed in name field
+        wikiname, username = username.split(' ', 1)  # XXX Hack because ':' is not allowed in name field
         wikitag, wikiurl, name, err = wikiutil.resolve_interwiki(request, wikiname, username)
 
         logging.debug("resolve wiki returned: %r %r %r %r" % (wikitag, wikiurl, name, err))
@@ -66,7 +64,8 @@ class InterwikiAuth(BaseAuth):
         logging.debug("%r wiki returned a user profile." % wikitag)
 
         # TODO: check remote auth_attribs
-        u = user.User(request, name=name, auth_method=self.name, auth_attribs=('name', 'aliasname', 'password', 'email', ))
+        u = user.User(request, name=name, auth_method=self.name,
+                      auth_attribs=('name', 'aliasname', 'password', 'email',))
         for key, value in list(account_data.items()):
             if key not in request.cfg.user_transient_fields:
                 setattr(u, key, value)
@@ -75,4 +74,3 @@ class InterwikiAuth(BaseAuth):
             u.create_or_update(True)
         logging.debug("successful interwiki auth for %r" % name)
         return ContinueLogin(u)
-

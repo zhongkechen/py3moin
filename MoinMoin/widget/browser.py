@@ -1,4 +1,3 @@
-
 """
     MoinMoin - DataBrowserWidget
 
@@ -9,6 +8,7 @@
 """
 from MoinMoin.widget import base
 from MoinMoin import wikiutil
+
 
 def _compare(idx, text):
     """
@@ -25,6 +25,7 @@ def _compare(idx, text):
         decimal_value = float('Infinity')
         decimal_string = u""
     return (decimal_value, decimal_string, txt)
+
 
 def sort_table(rows, sort_columns=None, reverse=None):
     """
@@ -46,6 +47,7 @@ def sort_table(rows, sort_columns=None, reverse=None):
     for idx in reversed(sort_columns):
         rows = sorted(rows, key=lambda x: _compare(idx, x), reverse=reverse[idx])
     return rows
+
 
 class DataBrowserWidget(base.Widget):
 
@@ -113,7 +115,7 @@ class DataBrowserWidget(base.Widget):
             selected = ' selected'
         else:
             selected = ''
-        assert(isinstance(item, (str, bytes)))
+        assert (isinstance(item, (str, bytes)))
         if ntitem is None:
             ntitem = item
         return '<option value="%s"%s>%s</option>' % (
@@ -138,7 +140,7 @@ class DataBrowserWidget(base.Widget):
             option = row[idx]
             if isinstance(option, tuple):
                 option = option[1]
-            if not option in unique:
+            if option not in unique:
                 unique.append(option)
             row = next(self.data)
 
@@ -199,9 +201,9 @@ class DataBrowserWidget(base.Widget):
                 if col.autofilter:
                     result.append(fmt.linebreak(False))
                     select = '<select %s onchange="dbw_update_search(\'%s\');">%s</select>' % (
-                                      self._name('filter%d' % idx),
-                                      self.data_id,
-                                      self._filteroptions(idx))
+                        self._name('filter%d' % idx),
+                        self.data_id,
+                        self._filteroptions(idx))
                     result.append(fmt.rawHTML(select))
 
                 result.append(fmt.table_cell(0))
@@ -263,8 +265,7 @@ class DataBrowserWidget(base.Widget):
             result.append(fmt.rawHTML('</form>'))
         return ''.join(result)
 
-    format = _format # DEPRECATED, use render()
+    format = _format  # DEPRECATED, use render()
 
-    render = _format # Note: in moin <= 1.7.1 render() used request.write(), this was wrong!
-                     # Now it just returns the result, as the other widgets do.
-
+    render = _format  # Note: in moin <= 1.7.1 render() used request.write(), this was wrong!
+    # Now it just returns the result, as the other widgets do.

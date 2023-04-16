@@ -1,4 +1,3 @@
-
 """
     MoinMoin - video/* file Filter
 
@@ -6,10 +5,10 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+
 def execute(indexobj, filename):
     """ Video data filtering not implemented yet.
 
         TODO: maybe extract some meta information from some popular video formats.
     """
     return u""
-

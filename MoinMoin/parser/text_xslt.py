@@ -1,4 +1,3 @@
-
 """
     MoinMoin - XML Parser
 
@@ -15,14 +14,12 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-# cStringIO cannot be used because it doesn't handle Unicode.
-
-
 import io
 
 from MoinMoin import caching, config, wikiutil, Page
 
 Dependencies = []
+
 
 class Parser:
     """ Send XML file formatted via XSLT. """
@@ -47,7 +44,8 @@ class Parser:
             # can be activated in wikiconfig.py
             from MoinMoin.parser.text import Parser as TextParser
             self.request.write(formatter.sysmsg(1) +
-                               formatter.rawHTML(_('XSLT option disabled, please look at HelpOnConfiguration.', wiki=True)) +
+                               formatter.rawHTML(
+                                   _('XSLT option disabled, please look at HelpOnConfiguration.', wiki=True)) +
                                formatter.sysmsg(0))
             TextParser(self.raw, self.request).format(formatter)
             return
@@ -59,7 +57,8 @@ class Parser:
             assert ft_version.startswith('1.')
         except (ImportError, AssertionError):
             self.request.write(self.request.formatter.sysmsg(1) +
-                               self.request.formatter.text(_('XSLT processing is not available, please install 4suite 1.x.')) +
+                               self.request.formatter.text(
+                                   _('XSLT processing is not available, please install 4suite 1.x.')) +
                                self.request.formatter.sysmsg(0))
         else:
             from Ft.Lib import Uri
@@ -73,10 +72,11 @@ class Parser:
                 # location of SchemeRegisteryResolver has changed since 1.0a4
                 if ft_version >= "1.0a4" or ft_version == "1.0" or ("1.0.1" <= ft_version <= "1.0.9"):
                     # such version numbers suck!
-                    import Ft.Lib.Resolvers # Do not remove! it looks unused, but breaks when removed!!!
+                    import Ft.Lib.Resolvers  # Do not remove! it looks unused, but breaks when removed!!!
 
                 class MoinResolver(Uri.SchemeRegistryResolver):
                     """ supports resolving self.base_uri for actual pages in MoinMoin """
+
                     def __init__(self, handlers, base_scheme):
                         Uri.SchemeRegistryResolver.__init__(self, handlers)
                         self.supportedSchemes.append(base_scheme)
@@ -84,21 +84,21 @@ class Parser:
                 # setting up vars for xslt Processor
                 out_file = io.StringIO()
                 wiki_resolver = MoinResolver(
-                                    handlers={self.base_scheme: self._resolve_page, },
-                                    base_scheme=self.base_scheme)
+                    handlers={self.base_scheme: self._resolve_page, },
+                    base_scheme=self.base_scheme)
                 input_factory = InputSource.InputSourceFactory(resolver=wiki_resolver)
 
                 page_uri = self.base_uri + wikiutil.url_quote(formatter.page.page_name)
                 # 4Suite needs an utf-8 encoded byte string instead of an unicode object
                 raw = self.raw.strip().encode('utf-8')
                 self.processor = Processor()
-                self.append_stylesheet() # hook, for extending this parser
+                self.append_stylesheet()  # hook, for extending this parser
                 self.processor.run(
                     input_factory.fromString(raw, uri=page_uri),
                     outputStream=out_file)
                 # Convert utf-8 encoded byte string into unicode
                 result = out_file.getvalue().decode('utf-8')
-                result = self.parse_result(result) # hook, for extending this parser
+                result = self.parse_result(result)  # hook, for extending this parser
 
             except FtException as msg:
                 etype = "XSLT"
@@ -146,4 +146,3 @@ class Parser:
     def parse_result(self, result):
         """ additional parsing to the resulting XSLT'ed result before saving """
         return result
-

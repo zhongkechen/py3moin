@@ -16,20 +16,20 @@ from MoinMoin import user
 from MoinMoin.Page import Page
 
 
-def show_form(pagename, request):
-    _ = request.getText
-    request.theme.send_title(_("Subscribe users to the page %s") % pagename, pagename=pagename)
+def show_form(pagename, context):
+    _ = context.getText
+    context.theme.send_title(_("Subscribe users to the page %s") % pagename, pagename=pagename)
 
-    request.write("""
+    context.write("""
 <form action="%s" method="POST" enctype="multipart/form-data">
 <input type="hidden" name="action" value="SubscribeUser">
 %s <input type="text" name="users" size="50">
 <input type="submit" value="Subscribe">
 </form>
-""" % (request.request.href(pagename),
+""" % (context.request.href(pagename),
        _("Enter user names (comma separated):")))
-    request.theme.send_footer(pagename)
-    request.theme.send_closing_html()
+    context.theme.send_footer(pagename)
+    context.theme.send_closing_html()
 
 
 def parse_re(usernames):
@@ -56,36 +56,36 @@ def parse_userlist(usernames):
     return parse_re(subscribe), parse_re(unsubscribe)
 
 
-def show_result(pagename, request):
-    _ = request.getText
+def show_result(pagename, context):
+    _ = context.getText
 
-    request.theme.send_title(_("Subscribed for %s:") % pagename, pagename=pagename)
+    context.theme.send_title(_("Subscribed for %s:") % pagename, pagename=pagename)
 
     from MoinMoin.formatter.text_html import Formatter
-    formatter = Formatter(request)
+    formatter = Formatter(context)
 
-    usernames = request.form['users'].split(",")
+    usernames = context.request.form['users'].split(",")
     subscribe, unsubscribe = parse_userlist(usernames)
 
-    result = subscribe_users(request, subscribe, unsubscribe, pagename, formatter)
-    request.write(result)
+    result = subscribe_users(context, subscribe, unsubscribe, pagename, formatter)
+    context.write(result)
 
-    request.theme.send_footer(pagename)
-    request.theme.send_closing_html()
+    context.theme.send_footer(pagename)
+    context.theme.send_closing_html()
 
 
-def subscribe_users(request, subscribe, unsubscribe, pagename, formatter):
-    _ = request.getText
+def subscribe_users(context, subscribe, unsubscribe, pagename, formatter):
+    _ = context.getText
 
-    if not Page(request, pagename).exists():
+    if not Page(context, pagename).exists():
         return u"Page does not exist."
 
     result = []
     did_match = {}
 
     # get user object - only with IDs!
-    for userid in user.getUserList(request):
-        userobj = user.User(request, userid)
+    for userid in user.getUserList(context):
+        userobj = user.User(context, userid)
         name = userobj.name
 
         matched = subscribed = False
@@ -109,7 +109,7 @@ def subscribe_users(request, subscribe, unsubscribe, pagename, formatter):
         if matched:
             result.extend([formatter.smiley(subscribed and '{*}' or '{o}'),
                            formatter.text(" "),
-                           formatter.url(1, Page(request, name).url(request)),
+                           formatter.url(1, Page(context, name).url(context)),
                            formatter.text(name),
                            formatter.url(0),
                            formatter.linebreak(preformatted=0),
@@ -123,16 +123,16 @@ def subscribe_users(request, subscribe, unsubscribe, pagename, formatter):
     return ''.join(result)
 
 
-def execute(pagename, request):
-    _ = request.getText
-    if not request.user.may.admin(pagename):
-        thispage = Page(request, pagename)
-        request.theme.add_msg(_("You are not allowed to perform this action."), "error")
+def execute(pagename, context):
+    _ = context.getText
+    if not context.user.may.admin(pagename):
+        thispage = Page(context, pagename)
+        context.theme.add_msg(_("You are not allowed to perform this action."), "error")
         return thispage.send_page()
-    elif 'users' not in request.request.form:
-        show_form(pagename, request)
+    elif 'users' not in context.request.form:
+        show_form(pagename, context)
     else:
-        show_result(pagename, request)
+        show_result(pagename, context)
 
 
 if __name__ == '__main__':

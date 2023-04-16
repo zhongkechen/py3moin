@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Wiki XMLRPC v1 and v2 Interface + plugin extensions
 
@@ -23,37 +22,36 @@
     @license: GNU GPL, see COPYING for details
 """
 
+import os
+import sys
+import time
+import xmlrpc.client
 
+from MoinMoin import auth, config, user, wikiutil
+from MoinMoin import log
+from MoinMoin.Page import Page
+from MoinMoin.PageEditor import PageEditor
+from MoinMoin.action import AttachFile
+from MoinMoin.logfile import editlog
 from MoinMoin.util import pysupport
 
 modules = pysupport.getPackageModules(__file__)
-
-import os, sys, time, xmlrpc.client
-
-from MoinMoin import log
 logging = log.getLogger(__name__)
-
-from MoinMoin import auth, config, user, wikiutil
-from MoinMoin.Page import Page
-from MoinMoin.PageEditor import PageEditor
-from MoinMoin.logfile import editlog
-from MoinMoin.action import AttachFile
-from MoinMoin import caching
-
-
 logging_tearline = '- XMLRPC %s ' + '-' * 40
+
 
 class XmlRpcBase:
     """
     XMLRPC base class with common functionality of wiki xmlrpc v1 and v2
     """
+
     def __init__(self, request):
         """
         Initialize an XmlRpcBase object.
         @param request: the request object
         """
         self.request = request
-        self.version = None # this has to be defined in derived class
+        self.version = None  # this has to be defined in derived class
         self.cfg = request.cfg
 
     #############################################################################
@@ -88,7 +86,7 @@ class XmlRpcBase:
         @rtype: unicode
         @return: text
         """
-        text = text.data # this is a already base64-decoded 8bit string
+        text = text.data  # this is a already base64-decoded 8bit string
         text = str(text, 'utf-8')
         return text
 
@@ -116,17 +114,13 @@ class XmlRpcBase:
         """
         import traceback
 
-        return "%s: %s\n%s" % (
-            sys.exc_info()[0],
-            sys.exc_info()[1],
-            '\n'.join(traceback.format_tb(sys.exc_info()[2])),
-        )
+        return "%s: %s\n%s" % (sys.exc_info()[0], sys.exc_info()[1], '\n'.join(traceback.format_tb(sys.exc_info()[2])),)
 
     def process(self):
         """
         xmlrpc v1 and v2 dispatcher
         """
-        request = self.request
+        context = self.request
         try:
             if 'xmlrpc' in self.request.cfg.actions_excluded:
                 # we do not handle xmlrpc v1 and v2 differently
@@ -134,10 +128,10 @@ class XmlRpcBase:
             else:
                 # overwrite any user there might be, if you need a valid user for
                 # xmlrpc, you have to use multicall and getAuthToken / applyAuthToken
-                if request.cfg.xmlrpc_overwrite_user:
-                    request.user = user.User(request, auth_method='xmlrpc:invalid')
+                if context.cfg.xmlrpc_overwrite_user:
+                    context.user = user.User(context, auth_method='xmlrpc:invalid')
 
-                data = request.read()
+                data = context.read()
 
                 try:
                     params, method = xmlrpc.client.loads(data)
@@ -167,14 +161,13 @@ class XmlRpcBase:
                 response = xmlrpc.client.dumps(response)
             else:
                 # wrap response in a singleton tuple
-                response = (response, )
+                response = (response,)
                 # serialize it
                 response = xmlrpc.client.dumps(response, methodresponse=1, allow_none=True)
 
-        request = request.request
-        request.content_type = 'text/xml'
-        request.data = response
-        return request
+        context.response.content_type = 'text/xml'
+        context.response.data = response
+        return context
 
     def dispatch(self, method, params):
         """
@@ -191,7 +184,7 @@ class XmlRpcBase:
                                            method, 'execute')
             except wikiutil.PluginMissingError:
                 response = xmlrpc.client.Fault(1, "No such method: %s." %
-                                           method)
+                                               method)
             else:
                 response = fn(self, *params)
         else:
@@ -242,12 +235,12 @@ class XmlRpcBase:
                     results.append(
                         {'faultCode': result.faultCode,
                          'faultString': result.faultString}
-                        )
+                    )
             except:
                 results.append(
                     {'faultCode': 1,
                      'faultString': "%s:%s" % (sys.exc_info()[0], sys.exc_info()[1])}
-                    )
+                )
 
         return results
 
@@ -274,7 +267,6 @@ class XmlRpcBase:
 
         # the official WikiRPC interface is implemented by the extended method as well
         return self.xmlrpc_getAllPagesEx()
-
 
     def xmlrpc_getAllPagesEx(self, opts=None):
         """
@@ -381,7 +373,7 @@ class XmlRpcBase:
             return_item = {'name': pagename_str,
                            'lastModified': lastModified_date,
                            'author': author_str,
-                           'version': int(log.rev) }
+                           'version': int(log.rev)}
             return_items.append(return_item)
 
         return return_items
@@ -427,10 +419,10 @@ class XmlRpcBase:
         if not edit_info:
             return self.noLogEntryFault()
 
-        mtime = wikiutil.version2timestamp(int(edit_info['timestamp'])) # must be long for py 2.2.x
+        mtime = wikiutil.version2timestamp(int(edit_info['timestamp']))  # must be long for py 2.2.x
         gmtuple = tuple(time.gmtime(mtime))
 
-        version = rev # our new rev numbers: 1,2,3,4,....
+        version = rev  # our new rev numbers: 1,2,3,4,....
 
         #######################################################################
         # BACKWARDS COMPATIBILITY CODE - remove when 1.2.x is regarded stone age
@@ -448,7 +440,7 @@ class XmlRpcBase:
             'lastModified': xmlrpc.client.DateTime(gmtuple),
             'author': self._outstr(edit_info['editor']),
             'version': version,
-            }
+        }
 
     def xmlrpc_getProcessingInstruction(self, pagename, pi):
         """
@@ -579,7 +571,7 @@ class XmlRpcBase:
 
         links_out = []
         for link in page.getPageLinks(self.request):
-            links_out.append({'name': self._outstr(link), 'type': 0 })
+            links_out.append({'name': self._outstr(link), 'type': 0})
         return links_out
 
     def xmlrpc_putPage(self, pagename, pagetext):
@@ -639,7 +631,7 @@ class XmlRpcBase:
         try:
             editor.renamePage(newpagename)
         except PageEditor.SaveError as error:
-            return xmlrpc.client.Fault(1, "Rename failed: %s" % (str(error), ))
+            return xmlrpc.client.Fault(1, "Rename failed: %s" % (str(error),))
 
         return xmlrpc.client.Boolean(1)
 
@@ -667,7 +659,7 @@ class XmlRpcBase:
         try:
             editor.revertPage(rev)
         except PageEditor.SaveError as error:
-            return xmlrpc.client.Fault(1, "Revert failed: %s" % (str(error), ))
+            return xmlrpc.client.Fault(1, "Revert failed: %s" % (str(error),))
 
         return xmlrpc.client.Boolean(1)
 
@@ -721,7 +713,6 @@ class XmlRpcBase:
         """
         from MoinMoin import version
         return (version.project, version.release, version.revision)
-
 
     # user profile data transfer
 
@@ -797,14 +788,14 @@ class XmlRpcBase:
         request.session = request.cfg.session_service.get_session(request)
         logging.debug("getJabberAuthToken: got session %r" % request.session)
 
-        u = user.get_by_jabber_id(request, jid) # XXX is someone talking to use from a jid we have stored in
-                                                # XXX some user profile enough to authenticate him as that user?
+        u = user.get_by_jabber_id(request, jid)  # XXX is someone talking to use from a jid we have stored in
+        # XXX some user profile enough to authenticate him as that user?
         logging.debug("getJabberAuthToken: got user %r" % u)
 
         if u and u.valid:
-            u.auth_method = 'moin' # XXX fake 'moin' login so the check for known login methods succeeds
-                                   # XXX if not patched, u.auth_method is 'internal', but that is not accepted either
-                                   # TODO this should be done more cleanly, somehow
+            u.auth_method = 'moin'  # XXX fake 'moin' login so the check for known login methods succeeds
+            # XXX if not patched, u.auth_method is 'internal', but that is not accepted either
+            # TODO this should be done more cleanly, somehow
             request.user = u
             request.cfg.session_service.finalize(request, request.session)
             logging.debug("getJabberAuthToken: returning sid %r" % request.session.sid)
@@ -831,7 +822,6 @@ class XmlRpcBase:
         else:
             return xmlrpc.client.Fault("INVALID", "Invalid token.")
 
-
     def xmlrpc_deleteAuthToken(self, auth_token):
         """
         Delete the given auth token.
@@ -844,7 +834,6 @@ class XmlRpcBase:
         request.cfg.session_service.destroy_session(request, request.session)
 
         return "SUCCESS"
-
 
     # methods for wiki synchronization
 
@@ -936,7 +925,8 @@ class XmlRpcBase:
             tags = TagStore(newpage)
             last_tag = tags.get_last_tag()
             if last_tag is not None and last_tag.normalised_name != n_name:
-                return xmlrpc.client.Fault("INVALID_TAG", "The used tag is incorrect because the normalised name does not match.")
+                return xmlrpc.client.Fault("INVALID_TAG",
+                                           "The used tag is incorrect because the normalised name does not match.")
 
         newcontents = newcontents()
         conflict = wikiutil.containsConflictMarker(newcontents)
@@ -955,7 +945,8 @@ class XmlRpcBase:
         else:
             return [self._outstr(name), iwid]
 
-    def xmlrpc_mergeDiff(self, pagename, diff, local_rev, delta_remote_rev, last_remote_rev, interwiki_name, normalised_name):
+    def xmlrpc_mergeDiff(self, pagename, diff, local_rev, delta_remote_rev, last_remote_rev, interwiki_name,
+                         normalised_name):
         """
         Merges a diff sent by the remote machine and returns the number of the new revision.
         Additionally, this method tags the new revision.
@@ -1000,11 +991,11 @@ class XmlRpcBase:
         if not currentpage.exists() and diff is None:
             return xmlrpc.client.Fault("NOT_EXIST", "The page does not exist and no diff was supplied.")
 
-        if diff is None: # delete the page
+        if diff is None:  # delete the page
             try:
                 currentpage.deletePage(comment)
             except PageEditor.AccessDenied as xxx_todo_changeme:
-                (msg, ) = xxx_todo_changeme.args
+                (msg,) = xxx_todo_changeme.args
                 return xmlrpc.client.Fault("NOT_ALLOWED", msg)
             return currentpage.get_real_rev()
 
@@ -1013,12 +1004,12 @@ class XmlRpcBase:
 
         # generate the new page revision by applying the diff
         newcontents = patch(basepage.get_raw_body_str(), decompress(str(diff)))
-        #print "Diff against %r" % basepage.get_raw_body_str()
+        # print "Diff against %r" % basepage.get_raw_body_str()
 
         # write page
         try:
             currentpage.saveText(newcontents.decode("utf-8"), last_remote_rev or 0, comment=comment)
-        except PageEditor.Unchanged: # could happen in case of both wiki's pages being equal
+        except PageEditor.Unchanged:  # could happen in case of both wiki's pages being equal
             pass
         except PageEditor.EditConflict:
             return LASTREV_INVALID
@@ -1026,12 +1017,12 @@ class XmlRpcBase:
         current_rev = currentpage.get_real_rev()
 
         tags = TagStore(currentpage)
-        tags.add(remote_wiki=interwiki_name, remote_rev=local_rev, current_rev=current_rev, direction=BOTH, normalised_name=normalised_name)
+        tags.add(remote_wiki=interwiki_name, remote_rev=local_rev, current_rev=current_rev, direction=BOTH,
+                 normalised_name=normalised_name)
 
         # XXX unlock page
 
         return current_rev
-
 
     # XXX BEGIN WARNING XXX
     # All xmlrpc_*Attachment* functions have to be considered as UNSTABLE API -
@@ -1150,7 +1141,7 @@ class XmlRpc1(XmlRpcBase):
         @rtype: unicode
         @return: text
         """
-        return wikiutil.url_unquote(text) # config.charset must be utf-8
+        return wikiutil.url_unquote(text)  # config.charset must be utf-8
 
     def _outstr(self, text):
         """
@@ -1160,7 +1151,7 @@ class XmlRpc1(XmlRpcBase):
         @rtype: str
         @return: text encoded in utf-8 and quoted
         """
-        return wikiutil.url_quote(text) # config.charset must be utf-8
+        return wikiutil.url_quote(text)  # config.charset must be utf-8
 
 
 class XmlRpc2(XmlRpcBase):
@@ -1199,6 +1190,6 @@ class XmlRpc2(XmlRpcBase):
 def xmlrpc(request):
     return XmlRpc1(request).process()
 
+
 def xmlrpc2(request):
     return XmlRpc2(request).process()
-

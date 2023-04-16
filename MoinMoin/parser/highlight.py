@@ -1,4 +1,3 @@
-
 """
     MoinMoin - highlighting parser using the Pygments highlighting library
 
@@ -9,22 +8,23 @@ import hashlib
 import re
 
 import pygments
-import pygments.util
-import pygments.lexers
 import pygments.formatter
+import pygments.lexers
+import pygments.util
 from pygments.token import Token
 
 from MoinMoin import config, wikiutil
-from MoinMoin.parser import parse_start_step
 from MoinMoin.Page import Page
+from MoinMoin.parser import parse_start_step
 
-Dependencies = ['user'] # the "Toggle line numbers link" depends on user's language
+Dependencies = ['user']  # the "Toggle line numbers link" depends on user's language
 
 
 def extensions_from_lexer_filenames(filenames):
     # pygment's lexer.filenames is like ['*.py', 'Python'], but we only want
     # the filename extensions list (like ['.py', ]):
     return [filename[1:] for filename in filenames if filename.startswith('*.')]
+
 
 def extensions_for_all_lexers():
     """
@@ -119,7 +119,7 @@ class PygmentsFormatter(pygments.formatter.Formatter):
                     line_parts.append(fmt.text(line))
                     if class_:
                         line_parts.append(fmt.code_token(0, class_))
-        if line_parts and line_parts != [u'']: # Don't output an empty line at the end.
+        if line_parts and line_parts != [u'']:  # Don't output an empty line at the end.
             self.add_next_line(line_parts)
 
 
@@ -174,17 +174,18 @@ class Parser:
             except pygments.util.ClassNotFound:
                 f = self.request.formatter
                 url = ''.join([
-                               f.url(1, href=Page(self.request, _("HelpOnParsers")).url(self.request, escape=0)),
-                               _("HelpOnParsers"),
-                               f.url(0)])
-                msg = _("Syntax highlighting not supported for '%(syntax)s', see %(highlight_help_page)s.") % {"syntax": wikiutil.escape(self.syntax),
-                                                                                                               "highlight_help_page": url
-                                                                                                              }
+                    f.url(1, href=Page(self.request, _("HelpOnParsers")).url(self.request, escape=0)),
+                    _("HelpOnParsers"),
+                    f.url(0)])
+                msg = _("Syntax highlighting not supported for '%(syntax)s', see %(highlight_help_page)s.") % {
+                    "syntax": wikiutil.escape(self.syntax),
+                    "highlight_help_page": url
+                    }
                 lexer = pygments.lexers.TextLexer()
 
-        fmt.result.append(formatter.code_area(1, self._code_id, self.syntax, self.show_nums, self.num_start, self.num_step, msg))
+        fmt.result.append(
+            formatter.code_area(1, self._code_id, self.syntax, self.show_nums, self.num_start, self.num_step, msg))
         pygments.highlight(self.raw, lexer, fmt)
         fmt.result.append(formatter.code_area(0, self._code_id))
         fmt.result.append(formatter.div(0))
         self.request.write("".join(fmt.result))
-

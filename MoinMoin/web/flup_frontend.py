@@ -148,12 +148,12 @@ else:
         def __init__(self):
             logging.warning("No flup-package installed, only basic CGI "
                             "support is available.")
-            super(CGIFrontEnd, self).__init__()
+            super().__init__()
 
         def run(self, args=None):
             if 'GATEWAY_INTERFACE' in os.environ:
                 sys.argv = []
-            super(CGIFrontEnd, self).run(args)
+            super().run(args)
 
         def run_server(self, application, options):
             from MoinMoin.web._fallback_cgi import WSGIServer

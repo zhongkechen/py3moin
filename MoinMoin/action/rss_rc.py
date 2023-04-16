@@ -58,18 +58,18 @@ def is_single_page_match(page_pattern):
         return True
 
 
-def execute(pagename, request):
+def execute(pagename, context):
     """ Send recent changes as an RSS document
     """
     if not wikixml.ok:
-        request.mimetype = 'text/plain'
-        request.write("rss_rc action is not supported because of missing pyxml module.")
+        context.mimetype = 'text/plain'
+        context.write("rss_rc action is not supported because of missing pyxml module.")
         return
-    if request.isSpiderAgent:  # reduce bot cpu usage
+    if context.isSpiderAgent:  # reduce bot cpu usage
         return ''
 
-    cfg = request.cfg
-    _ = request.getText
+    cfg = context.cfg
+    _ = context.getText
 
     # get params
     def_max_items = max_items = cfg.rss_items_default
@@ -83,34 +83,34 @@ def execute(pagename, request):
     page_pattern = cfg.rss_page_filter_pattern
 
     try:
-        max_items = min(int(request.request.values.get('items', max_items)),
+        max_items = min(int(context.request.values.get('items', max_items)),
                         items_limit)
     except ValueError:
         pass
     try:
-        unique = int(request.request.values.get('unique', unique))
+        unique = int(context.request.values.get('unique', unique))
     except ValueError:
         pass
     try:
-        diffs = int(request.request.values.get('diffs', diffs))
+        diffs = int(context.request.values.get('diffs', diffs))
     except ValueError:
         pass
-    ## ddiffs inserted by Ralf Zosel <ralf@zosel.com>, 04.12.2003
+    # ddiffs inserted by Ralf Zosel <ralf@zosel.com>, 04.12.2003
     try:
-        ddiffs = int(request.request.values.get('ddiffs', ddiffs))
+        ddiffs = int(context.request.values.get('ddiffs', ddiffs))
     except ValueError:
         pass
     try:
-        max_lines = min(int(request.request.values.get('lines', max_lines)),
+        max_lines = min(int(context.request.values.get('lines', max_lines)),
                         lines_limit)
     except ValueError:
         pass
     try:
-        show_att = int(request.request.values.get('show_att', show_att))
+        show_att = int(context.request.values.get('show_att', show_att))
     except ValueError:
         pass
     try:
-        page_pattern = request.request.values.get('page', page_pattern)
+        page_pattern = context.request.values.get('page', page_pattern)
     except ValueError:
         pass
 
@@ -118,19 +118,19 @@ def execute(pagename, request):
     # of that page is much faster than the global one - esp. if the page was
     # NOT recently changed and the global edit-log is rather big.
     kw = dict(rootpagename=page_pattern) if is_single_page_match(page_pattern) else {}
-    log = editlog.EditLog(request, **kw)
+    log = editlog.EditLog(context, **kw)
     logdata = []
     counter = 0
     pages = {}
     lastmod = 0
     for line in log.reverse():
-        if not request.user.may.read(line.pagename):
+        if not context.user.may.read(line.pagename):
             continue
         if ((not show_att and not line.action.startswith('SAVE')) or
                 ((line.pagename in pages) and unique) or
                 not match_page(line.pagename, page_pattern)):
             continue
-        line.editor = line.getInterwikiEditorData(request)
+        line.editor = line.getInterwikiEditorData(context)
         line.time = timefuncs.tmtuple(wikiutil.version2timestamp(line.ed_time_usecs))  # UTC
         logdata.append(line)
         pages[line.pagename] = None
@@ -149,34 +149,34 @@ def execute(pagename, request):
 
     # for 304, we look at if-modified-since and if-none-match headers,
     # one of them must match and the other is either not there or must match.
-    if request.request.if_modified_since == timestamp:
-        if request.request.if_none_match:
-            if request.request.if_none_match == etag:
-                request.response.status_code = 304
+    if context.request.if_modified_since == timestamp:
+        if context.request.if_none_match:
+            if context.request.if_none_match == etag:
+                context.response.status_code = 304
         else:
-            request.response.status_code = 304
-    elif request.request.if_none_match == etag:
-        if request.request.if_modified_since:
-            if request.request.if_modified_since == timestamp:
-                request.response.status_code = 304
+            context.response.status_code = 304
+    elif context.request.if_none_match == etag:
+        if context.request.if_modified_since:
+            if context.request.if_modified_since == timestamp:
+                context.response.status_code = 304
         else:
-            request.response.status_code = 304
+            context.response.status_code = 304
     else:
         # generate an Expires header, using whatever setting the admin
         # defined for suggested cache lifetime of the RecentChanges RSS doc
         expires = time.time() + cfg.rss_cache
 
-        request.response.mimetype = 'application/rss+xml'
-        request.response.expires = expires
-        request.response.last_modified = lastmod
-        request.response.headers['Etag'] = etag
+        context.response.mimetype = 'application/rss+xml'
+        context.response.expires = expires
+        context.response.last_modified = lastmod
+        context.response.headers['Etag'] = etag
 
         # send the generated XML document
-        baseurl = request.request.url_root
+        baseurl = context.request.url_root
 
         logo = re.search(r'src="([^"]*)"', cfg.logo_string)
         if logo:
-            logo = request.getQualifiedURL(logo.group(1))
+            logo = context.getQualifiedURL(logo.group(1))
 
         # prepare output
         out = io.StringIO()
@@ -217,11 +217,11 @@ def execute(pagename, request):
 
         # emit channel description
         handler.startNode('channel', {
-            (handler.xmlns['rdf'], 'about'): request.request.url_root,
+            (handler.xmlns['rdf'], 'about'): context.request.url_root,
         })
         handler.simpleNode('title', cfg.sitename)
-        page = Page(request, pagename)
-        handler.simpleNode('link', full_url(request, page))
+        page = Page(context, pagename)
+        handler.simpleNode('link', full_url(context, page))
         handler.simpleNode('description', u'RecentChanges at %s' % cfg.sitename)
         if logo:
             handler.simpleNode('image', None, {
@@ -234,8 +234,8 @@ def execute(pagename, request):
         handler.startNode(('rdf', 'Seq'))
         for item in logdata:
             anchor = "%04d%02d%02d%02d%02d%02d" % item.time[:6]
-            page = Page(request, item.pagename)
-            link = full_url(request, page, anchor=anchor)
+            page = Page(context, item.pagename)
+            link = full_url(context, page, anchor=anchor)
             handler.simpleNode(('rdf', 'li'), None, attr={(handler.xmlns['rdf'], 'resource'): link, })
         handler.endNode(('rdf', 'Seq'))
         handler.endNode('items')
@@ -260,11 +260,11 @@ def execute(pagename, request):
                 cur_pagename = pagename_map[item.pagename]
             else:
                 cur_pagename = item.pagename
-            page = Page(request, cur_pagename)
+            page = Page(context, cur_pagename)
             action = item.action
             comment = item.comment
             anchor = "%04d%02d%02d%02d%02d%02d" % item.time[:6]
-            rdflink = full_url(request, page, anchor=anchor)
+            rdflink = full_url(context, page, anchor=anchor)
             handler.startNode('item', attr={(handler.xmlns['rdf'], 'about'): rdflink, })
 
             # general attributes
@@ -276,14 +276,14 @@ def execute(pagename, request):
             if action.startswith('ATT'):  # Attachment
                 show_diff = 0
                 filename = wikiutil.url_unquote(item.extra)
-                att_exists = AttachFile.exists(request, cur_pagename, filename)
+                att_exists = AttachFile.exists(context, cur_pagename, filename)
 
                 if action == 'ATTNEW':
                     # Once attachment deleted this link becomes invalid but we
                     # preserve it to prevent appearance of new RSS entries in
                     # RSS readers.
                     if ddiffs:
-                        handler.simpleNode('link', attach_url(request,
+                        handler.simpleNode('link', attach_url(context,
                                                               cur_pagename, filename, do='view'))
 
                     comment = _(u"Upload of attachment '%(filename)s'.") % {
@@ -291,7 +291,7 @@ def execute(pagename, request):
 
                 elif action == 'ATTDEL':
                     if ddiffs:
-                        handler.simpleNode('link', full_url(request, page,
+                        handler.simpleNode('link', full_url(context, page,
                                                             querystr={'action': 'AttachFile'}))
 
                     comment = _(u"Attachment '%(filename)s' deleted.") % {
@@ -299,7 +299,7 @@ def execute(pagename, request):
 
                 elif action == 'ATTDRW':
                     if ddiffs:
-                        handler.simpleNode('link', attach_url(request,
+                        handler.simpleNode('link', attach_url(context,
                                                               cur_pagename, filename, do='view'))
 
                     comment = _(u"Drawing '%(filename)s' saved.") % {
@@ -334,21 +334,21 @@ def execute(pagename, request):
                 if ddiffs:
                     # first revision can't have older revisions to diff with
                     if item_rev == 1:
-                        handler.simpleNode('link', full_url(request, page,
+                        handler.simpleNode('link', full_url(context, page,
                                                             querystr={'action': 'recall',
                                                                       'rev': str(item_rev)}))
                     else:
-                        handler.simpleNode('link', full_url(request, page,
+                        handler.simpleNode('link', full_url(context, page,
                                                             querystr={'action': 'diff',
                                                                       'rev1': str(item_rev),
                                                                       'rev2': str(item_rev - 1)}))
 
                 if show_diff:
                     if item_rev == 1:
-                        lines = Page(request, cur_pagename,
+                        lines = Page(context, cur_pagename,
                                      rev=item_rev).getlines()
                     else:
-                        lines = wikiutil.pagediff(request, cur_pagename,
+                        lines = wikiutil.pagediff(context, cur_pagename,
                                                   item_rev - 1, cur_pagename, item_rev, ignorews=1)
 
                     if len(lines) > max_lines:
@@ -360,7 +360,7 @@ def execute(pagename, request):
                     comment = u'%s\n<pre>\n%s\n</pre>\n' % (comment, lines)
 
                 if not ddiffs:
-                    handler.simpleNode('link', full_url(request, page))
+                    handler.simpleNode('link', full_url(context, page))
 
             if comment:
                 handler.simpleNode('description', comment)
@@ -389,8 +389,8 @@ def execute(pagename, request):
             # wiki extensions
             handler.simpleNode(('wiki', 'version'), "%i" % (item.ed_time_usecs))
             handler.simpleNode(('wiki', 'status'), ('deleted', 'updated')[page.exists()])
-            handler.simpleNode(('wiki', 'diff'), full_url(request, page, querystr={'action': 'diff'}))
-            handler.simpleNode(('wiki', 'history'), full_url(request, page, querystr={'action': 'info'}))
+            handler.simpleNode(('wiki', 'diff'), full_url(context, page, querystr={'action': 'diff'}))
+            handler.simpleNode(('wiki', 'history'), full_url(context, page, querystr={'action': 'info'}))
             # handler.simpleNode(('wiki', 'importance'), ) # ( major | minor )
             # handler.simpleNode(('wiki', 'version'), ) # ( #PCDATA )
 
@@ -399,4 +399,4 @@ def execute(pagename, request):
         # end SAX stream
         handler.endDocument()
 
-        request.write(out.getvalue())
+        context.write(out.getvalue())

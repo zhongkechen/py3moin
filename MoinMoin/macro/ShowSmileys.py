@@ -1,4 +1,3 @@
-
 """
     MoinMoin - List all defined smileys
 
@@ -16,7 +15,8 @@ from MoinMoin.widget.browser import DataBrowserWidget
 
 COLUMNS = 4
 
-Dependencies = ['user'] # different users have different themes and different user prefs (text/gfx)
+Dependencies = ['user']  # different users have different themes and different user prefs (text/gfx)
+
 
 def macro_ShowSmileys(macro):
     _ = macro.request.getText
@@ -38,8 +38,8 @@ def macro_ShowSmileys(macro):
     for idx in range(0, len(smileys), COLUMNS):
         row = []
         for off in range(COLUMNS):
-            if idx+off < len(smileys):
-                markup = smileys[idx+off]
+            if idx + off < len(smileys):
+                markup = smileys[idx + off]
                 row.extend([fmt.code(1) + fmt.text(markup) + fmt.code(0), fmt.smiley(markup), '', ])
             else:
                 row.extend(['&nbsp;'] * 3)
@@ -52,4 +52,3 @@ def macro_ShowSmileys(macro):
         return browser.render(method="GET")
 
     return ''
-

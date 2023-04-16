@@ -60,7 +60,7 @@ class Settings(UserPrefBase):
         form = self.request.request.form
         request = self.request
 
-        if not 'name' in request.user.auth_attribs:
+        if 'name' not in request.user.auth_attribs:
             # Require non-empty name
             new_name = wikiutil.clean_input(form.get('name', request.user.name)).strip()
 
@@ -121,7 +121,7 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
             # done checking the JID, set it
             request.user.jid = new_jid
 
-        if not 'aliasname' in request.user.auth_attribs:
+        if 'aliasname' not in request.user.auth_attribs:
             # aliasname
             request.user.aliasname = wikiutil.clean_input(form.get('aliasname', '')).strip()
 
@@ -215,16 +215,16 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
         return result
 
     def handle_form(self):
-        request = self.request
-        form = request.request.form
+        context = self.request
+        form = context.request.form
 
         if 'cancel' in form:
             return
 
-        if request.request.method != 'POST':
+        if context.request.method != 'POST':
             return
 
-        if not wikiutil.checkTicket(request, form['ticket']):
+        if not wikiutil.checkTicket(context, form['ticket']):
             return
 
         if 'save' in form: # Save user profile
@@ -331,7 +331,7 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
                 uf_disable.append(attr)
             for key, label, type, length, textafter in self.cfg.user_form_fields:
                 default = self.cfg.user_form_defaults[key]
-                if not key in uf_remove:
+                if key not in uf_remove:
                     if key in uf_disable:
                         self.make_row(_(label),
                                   [html.INPUT(type=type, size=length, name=key, disabled="disabled",
@@ -340,16 +340,16 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
                         self.make_row(_(label),
                                   [html.INPUT(type=type, size=length, name=key, value=getattr(request.user, key)), ' ', _(textafter), ])
 
-            if not self.cfg.theme_force and not "theme_name" in self.cfg.user_form_remove:
+            if not self.cfg.theme_force and "theme_name" not in self.cfg.user_form_remove:
                 self.make_row(_('Preferred theme'), [self._theme_select()])
 
             if not self.cfg.editor_force:
-                if not "editor_default" in self.cfg.user_form_remove:
+                if "editor_default" not in self.cfg.user_form_remove:
                     self.make_row(_('Editor Preference'), [self._editor_default_select()])
-                if not "editor_ui" in self.cfg.user_form_remove:
+                if "editor_ui" not in self.cfg.user_form_remove:
                     self.make_row(_('Editor shown on UI'), [self._editor_ui_select()])
 
-            if not "tz_offset" in self.cfg.user_form_remove:
+            if "tz_offset" not in self.cfg.user_form_remove:
                 self.make_row(_('Time zone'), [
                     _('Your time is'), ' ',
                     self._tz_select(),
@@ -359,10 +359,10 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
                     ' (UTC)',
                 ])
 
-            if not "datetime_fmt" in self.cfg.user_form_remove:
+            if "datetime_fmt" not in self.cfg.user_form_remove:
                 self.make_row(_('Date format'), [self._dtfmt_select()])
 
-            if not "language" in self.cfg.user_form_remove:
+            if "language" not in self.cfg.user_form_remove:
                 self.make_row(_('Preferred language'), [self._lang_select()])
 
             # boolean user options
@@ -370,7 +370,7 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
             checkbox_fields = self.cfg.user_checkbox_fields
             checkbox_fields.sort(key=lambda  b: b[1](_))
             for key, label in checkbox_fields:
-                if not key in self.cfg.user_checkbox_remove:
+                if key not in self.cfg.user_checkbox_remove:
                     bool_options.extend([
                         html.INPUT(type="checkbox", name=key, value="1",
                             checked=getattr(request.user, key, 0),
@@ -393,7 +393,7 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
         # Add buttons
         button_cell = []
         for name, label in buttons:
-            if not name in self.cfg.user_form_remove:
+            if name not in self.cfg.user_form_remove:
                 button_cell.extend([
                     html.INPUT(type="submit", name=name, value=label),
                     ' ',

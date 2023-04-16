@@ -1,4 +1,3 @@
-
 """
 MoinMoin - makecache script
 
@@ -44,4 +43,3 @@ General syntax: moin [options] maint makecache
             page = Page(request, pagename)
             request.page = page
             p = page.getPageLinks(request)
-

@@ -139,7 +139,7 @@ class SecurityPolicy(Permissions):
 
     def save(self, editor, newtext, rev, **kw):
         BLACKLISTPAGES = ["BadContent", "LocalBadContent"]
-        if not editor.page_name in BLACKLISTPAGES:
+        if editor.page_name not in BLACKLISTPAGES:
             request = editor.request
 
             # Start timing of antispam operation

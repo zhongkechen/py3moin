@@ -1,4 +1,3 @@
-
 """
     MoinMoin - User Accounts
 
@@ -28,20 +27,18 @@ import os
 import time
 from copy import deepcopy
 
+from MoinMoin import config, caching, wikiutil, i18n, events
+from MoinMoin import log
 from MoinMoin.support import md5crypt
+from MoinMoin.util import timefuncs, random_string
+from MoinMoin.wikiutil import url_quote_plus, safe_str_cmp
 
 try:
     import crypt
 except ImportError:
     crypt = None
 
-from MoinMoin import log
 logging = log.getLogger(__name__)
-
-from MoinMoin import config, caching, wikiutil, i18n, events
-from MoinMoin.util import timefuncs, random_string
-from MoinMoin.wikiutil import url_quote_plus, safe_str_cmp
-
 # for efficient lookup <attr> -> userid, we keep an index of this in the cache.
 # the attribute names in here should be uniquely identifying a user.
 CACHED_USER_ATTRS = ['name', 'email', 'jid', 'openids', ]
@@ -60,6 +57,7 @@ def getUserList(request):
     userlist = [f for f in files if user_re.match(f)]
     return userlist
 
+
 def get_by_filter(request, filter_func):
     """ Searches for a user with a given filter function
 
@@ -70,17 +68,20 @@ def get_by_filter(request, filter_func):
         if filter_func(theuser):
             return theuser
 
+
 def get_by_email_address(request, email_address):
     """ Searches for an user with a particular e-mail address and returns it. """
     uid = _getUserIdByKey(request, 'email', email_address, case=False)
     if uid is not None:
         return User(request, uid)
 
+
 def get_by_jabber_id(request, jabber_id):
     """ Searches for an user with a perticular jabber id and returns it. """
     uid = _getUserIdByKey(request, 'jid', jabber_id, case=False)
     if uid is not None:
         return User(request, uid)
+
 
 def _getUserIdByKey(request, key, search, case=True):
     """ Get the user ID for a specified key/value pair.
@@ -299,11 +300,14 @@ def encodePassword(cfg, pwd, salt: bytes = None, scheme=None):
 class Fault(Exception):
     """something went wrong"""
 
+
 class NoSuchUser(Fault):
     """raised if no such user exists"""
 
+
 class UserHasNoEMail(Fault):
     """raised if user has no e-mail address in his profile"""
+
 
 class MailFailed(Fault):
     """raised if e-mail sending failed"""
@@ -352,9 +356,9 @@ def normalizeName(name):
     @rtype: unicode
     @return: user name that can be used in acl lines
     """
-    username_allowedchars = "'@.-_" # ' for names like O'Brian or email addresses.
-                                    # "," and ":" must not be allowed (ACL delimiters).
-                                    # We also allow _ in usernames for nicer URLs.
+    username_allowedchars = "'@.-_"  # ' for names like O'Brian or email addresses.
+    # "," and ":" must not be allowed (ACL delimiters).
+    # We also allow _ in usernames for nicer URLs.
     # Strip non alpha numeric characters (except username_allowedchars), keep white space
     name = ''.join([c for c in name if c.isalnum() or c.isspace() or c in username_allowedchars])
 
@@ -393,6 +397,7 @@ def encodeList(items):
     line = '\t'.join(line)
     return line
 
+
 def decodeList(line):
     """ Decode list of items from user data file
 
@@ -407,6 +412,7 @@ def decodeList(line):
             continue
         items.append(item)
     return items
+
 
 def encodeDict(items):
     """ Encode dict of items in user data file
@@ -424,6 +430,7 @@ def encodeDict(items):
         line.append(item)
     line = '\t'.join(line)
     return line
+
 
 def decodeDict(line):
     """ Decode dict of key:value pairs from user data file
@@ -469,14 +476,14 @@ class User:
         self.auth_username = auth_username
         self.auth_method = kw.get('auth_method', 'internal')
         self.auth_attribs = kw.get('auth_attribs', ())
-        self.bookmarks = {} # interwikiname: bookmark
+        self.bookmarks = {}  # interwikiname: bookmark
 
         # create some vars automatically
         self.__dict__.update(self._cfg.user_form_defaults)
 
         if name:
             self.name = name
-        elif auth_username: # this is needed for user autocreate
+        elif auth_username:  # this is needed for user autocreate
             self.name = auth_username
 
         # create checkbox fields (with default 0)
@@ -488,10 +495,10 @@ class User:
         if password:
             self.enc_password = encodePassword(self._cfg, password)
 
-        #self.edit_cols = 80
+        # self.edit_cols = 80
         self.tz_offset = int(float(self._cfg.tz_offset) * 3600)
         self.language = ""
-        self.real_language = "" # In case user uses "Browser setting". For language-statistics
+        self.real_language = ""  # In case user uses "Browser setting". For language-statistics
         self._stored = False
         self.date_fmt = ""
         self.datetime_fmt = ""
@@ -533,7 +540,7 @@ class User:
             from MoinMoin.security import Default
             self.may = Default(self)
 
-        if self.language and not self.language in i18n.wikiLanguages():
+        if self.language and self.language not in i18n.wikiLanguages():
             self.language = 'en'
 
     def __repr__(self):
@@ -543,7 +550,7 @@ class User:
 
     def make_id(self):
         """ make a new unique user id """
-        #!!! this should probably be a hash of REMOTE_ADDR, HTTP_USER_AGENT
+        # !!! this should probably be a hash of REMOTE_ADDR, HTTP_USER_AGENT
         # and some other things identifying remote users, then we could also
         # use it reliably in edit locking
         from random import randint
@@ -554,8 +561,8 @@ class User:
 
         @param changed: bool, set this to True if you updated the user profile values
         """
-        if not self.valid and not self.disabled or changed: # do we need to save/update?
-            self.save() # yes, create/update user profile
+        if not self.valid and not self.disabled or changed:  # do we need to save/update?
+            self.save()  # yes, create/update user profile
 
     def __filename(self):
         """ Get filename of the user's file on disk
@@ -699,14 +706,17 @@ class User:
                 if scheme == '{PASSLIB}':
                     # a password hash to be checked by passlib library code
                     if not self._cfg.passlib_support:
-                        logging.error('in user profile %r, password hash with {PASSLIB} scheme encountered, but passlib_support is False' % (self.id, ))
+                        logging.error(
+                            'in user profile %r, password hash with {PASSLIB} scheme encountered, but passlib_support is False' % (
+                                self.id,))
                     else:
                         pwd_context = self._cfg.cache.pwd_context
                         try:
                             password_correct = pwd_context.verify(password, d)
                         except ValueError as err:
                             # can happen for unknown scheme
-                            logging.error('in user profile %r, verifying the passlib pw hash crashed [%s]' % (self.id, str(err)))
+                            logging.error(
+                                'in user profile %r, verifying the passlib pw hash crashed [%s]' % (self.id, str(err)))
                         if password_correct:
                             # check if we need to recompute the hash. this is needed if either the
                             # passlib hash scheme / hash params changed or if we shall change to a
@@ -744,7 +754,8 @@ class User:
                         enc = crypt.crypt(password, salt).encode("utf8")
 
                     else:
-                        logging.error('in user profile %r, password hash with unknown scheme encountered: %r' % (self.id, scheme))
+                        logging.error(
+                            'in user profile %r, password hash with unknown scheme encountered: %r' % (self.id, scheme))
                         raise NotImplementedError
 
                     if safe_str_cmp(epwd, scheme.encode("ascii") + enc):
@@ -761,7 +772,7 @@ class User:
     def persistent_items(self):
         """ items we want to store into the user profile """
         return [(key, value) for key, value in list(vars(self).items())
-                    if key not in self._cfg.user_transient_fields and key[0] != '_']
+                if key not in self._cfg.user_transient_fields and key[0] != '_']
 
     def save(self):
         """ Save user account data to user account file on disk.
@@ -797,7 +808,7 @@ class User:
                 key += '{}'
                 value = encodeDict(value)
             line = u"%s=%s" % (key, str(value))
-            line = line.replace('\n', ' ').replace('\r', ' ') # no lineseps
+            line = line.replace('\n', ' ').replace('\r', ' ')  # no lineseps
             data.write(line + '\n')
         data.close()
 
@@ -826,7 +837,6 @@ class User:
         """
         return timefuncs.tmtuple(tm + self.tz_offset)
 
-
     def getFormattedDate(self, tm):
         """ Get formatted date adjusted for user's timezone.
 
@@ -836,7 +846,6 @@ class User:
         """
         date_fmt = self.date_fmt or self._cfg.date_fmt
         return time.strftime(date_fmt, self.getTime(tm))
-
 
     def getFormattedDateTime(self, tm):
         """ Get formatted date and time adjusted for user's timezone.
@@ -1028,7 +1037,8 @@ class User:
 
         scope, arena, key = 'userdir', 'users', 'lookup'
 
-        diskcache = caching.CacheEntry(self._request, arena=arena, key=key, scope=scope, use_pickle=True, do_locking=False)
+        diskcache = caching.CacheEntry(self._request, arena=arena, key=key, scope=scope, use_pickle=True,
+                                       do_locking=False)
         if not diskcache.exists():
             return  # if no cache file exists, just don't do anything
 
@@ -1326,13 +1336,12 @@ Password reset URL: %s?action=recoverpass&name=%s&token=%s
 """)
         # note: text_intro is for custom stuff, we do not have i18n for it anyway
         text = text_intro + '\n' + _(text_msg) + '\n' + _(text_data) % (
-                        self.name,
-                        tok,
-                        self._request.url, # use full url, including current page
-                        url_quote_plus(self.name),
-                        tok, )
+            self.name,
+            tok,
+            self._request.url,  # use full url, including current page
+            url_quote_plus(self.name),
+            tok,)
 
         mailok, msg = sendmail.sendmail(self._request, [self.email], subject,
-                                    text, mail_from=self._cfg.mail_from)
+                                        text, mail_from=self._cfg.mail_from)
         return mailok, msg
-

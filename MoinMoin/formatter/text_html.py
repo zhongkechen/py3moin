@@ -624,7 +624,7 @@ class Formatter(FormatterBase):
             fname = wikiutil.taintfilename(filename)
             if AttachFile.exists(self.request, pagename, fname):
                 target = AttachFile.getAttachUrl(pagename, fname, self.request, do=querystr['do'])
-                if not 'title' in kw:
+                if 'title' not in kw:
                     kw['title'] = "attachment:%s" % url
                 kw['css'] = 'attachment'
             else:
@@ -644,10 +644,10 @@ class Formatter(FormatterBase):
             kw['css'] = 'attachment'
             kw['src'] = AttachFile.getAttachUrl(pagename, fname, self.request, addts=1)
             title = _('Inlined image: %(url)s') % {'url': self.text(url)}
-            if not 'title' in kw:
+            if 'title' not in kw:
                 kw['title'] = title
             # alt is required for images:
-            if not 'alt' in kw:
+            if 'alt' not in kw:
                 kw['alt'] = kw['title']
             return self.image(**kw)
         else:

@@ -1,4 +1,3 @@
-
 """
     MoinMoin - config group lazy backend.
 
@@ -11,6 +10,7 @@
     @copyright: 2009 MoinMoin:DmitrijsMilajevs
     @license: GPL, see COPYING for details
 """
+from abc import ABC
 
 from MoinMoin.datastruct.backends import LazyGroup, LazyGroupsBackend
 
@@ -19,7 +19,7 @@ class ConfigLazyGroup(LazyGroup):
     pass
 
 
-class ConfigLazyGroups(LazyGroupsBackend):
+class ConfigLazyGroups(LazyGroupsBackend, ABC):
 
     def __init__(self, request, groups):
         super(ConfigLazyGroups, self).__init__(request)

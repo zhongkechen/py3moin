@@ -1,10 +1,10 @@
-
 """
 MoinMoin - base classes for datastructs.
 
 @copyright: 2009 MoinMoin:DmitrijsMilajevs
 @license: GPL, see COPYING for details
 """
+from abc import abstractmethod
 
 
 class GroupDoesNotExistError(Exception):
@@ -37,9 +37,11 @@ class BaseGroup:
         self.name = name
         self._backend = backend
 
+    @abstractmethod
     def __contains__(self, member, processed_groups=None):
         raise NotImplementedError()
 
+    @abstractmethod
     def __iter__(self, yielded_members=None, processed_groups=None):
         raise NotImplementedError()
 
@@ -57,12 +59,14 @@ class BaseGroupsBackend:
     def is_group_name(self, member):
         return self.page_group_regex.match(member)
 
+    @abstractmethod
     def __contains__(self, group_name):
         """
         Check if a group called <group_name> is available in this backend.
         """
         raise NotImplementedError()
 
+    @abstractmethod
     def __iter__(self):
         """
         Iterate over moin group names of the groups defined in this backend.
@@ -71,6 +75,7 @@ class BaseGroupsBackend:
         """
         raise NotImplementedError()
 
+    @abstractmethod
     def __getitem__(self, group_name):
         """
         Get a group by its moin group name.
@@ -80,6 +85,7 @@ class BaseGroupsBackend:
     def __repr__(self):
         return "<%s groups=%s>" % (self.__class__, list(self))
 
+    @abstractmethod
     def _retrieve_members(self, group_name):
         raise NotImplementedError()
 
@@ -155,9 +161,11 @@ class LazyGroup(BaseGroup):
 
 class LazyGroupsBackend(BaseGroupsBackend):
 
+    @abstractmethod
     def _iter_group_members(self, group_name):
         raise NotImplementedError()
 
+    @abstractmethod
     def _group_has_member(self, group_name, member):
         raise NotImplementedError()
 
@@ -207,7 +215,8 @@ class GreedyGroup(BaseGroup):
         else:
             groups = self.request.groups
             for group_name in self.member_groups:
-                if group_name not in processed_groups and group_name in groups and groups[group_name].__contains__(member, processed_groups):
+                if group_name not in processed_groups and group_name in groups and groups[group_name].__contains__(
+                        member, processed_groups):
                     return True
 
         return False
@@ -310,18 +319,21 @@ class BaseDictsBackend:
     def is_dict_name(self, name):
         return self.page_dict_regex.match(name)
 
+    @abstractmethod
     def __contains__(self, dict_name):
         """
         Check if a dict called <dict_name> is available in this backend.
         """
         raise NotImplementedError()
 
+    @abstractmethod
     def __getitem__(self, dict_name):
         """
         Get a dict by its moin dict name.
         """
         raise NotImplementedError()
 
+    @abstractmethod
     def _retrieve_items(self, dict_name):
         raise NotImplementedError()
 
@@ -335,4 +347,3 @@ class BaseDictsBackend:
             return self[key]
         except DictDoesNotExistError:
             return default
-

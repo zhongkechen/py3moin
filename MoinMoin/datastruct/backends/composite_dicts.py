@@ -5,11 +5,12 @@ MoinMoin - dict access via various backends.
 @copyright: 2009 DmitrijsMilajevs
 @license: GPL, see COPYING for details
 """
+from abc import ABC
 
 from MoinMoin.datastruct.backends import BaseDictsBackend, DictDoesNotExistError
 
 
-class CompositeDicts(BaseDictsBackend):
+class CompositeDicts(BaseDictsBackend, ABC):
     """
     Manage several dicts backends.
     """

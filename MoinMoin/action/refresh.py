@@ -8,16 +8,16 @@
 from MoinMoin.Page import Page
 
 
-def execute(pagename, request):
+def execute(pagename, context):
     """ Handle refresh action """
     # Without arguments, refresh action will refresh the page text_html cache.
-    arena = request.request.values.get('arena', 'Page.py')
+    arena = context.request.values.get('arena', 'Page.py')
     if arena == 'Page.py':
-        arena = Page(request, pagename)
-    key = request.request.values.get('key', 'text_html')
+        arena = Page(context, pagename)
+    key = context.request.values.get('key', 'text_html')
 
     # Remove cache entry (if exists), and send the page
     from MoinMoin import caching
-    caching.CacheEntry(request, arena, key, scope='item').remove()
-    caching.CacheEntry(request, arena, "pagelinks", scope='item').remove()
-    request.page.send_page()
+    caching.CacheEntry(context, arena, key, scope='item').remove()
+    caching.CacheEntry(context, arena, "pagelinks", scope='item').remove()
+    context.page.send_page()

@@ -139,9 +139,9 @@ class Parser:
 
         num_entry_cols = len(cols) - len(staticcols)
 
-        if not visible is None:
+        if visible is not None:
             for col in cols:
-                if not col in visible:
+                if col not in visible:
                     hiddencols.append(col)
 
         linkparse = [False] * len(cols)

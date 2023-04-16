@@ -347,7 +347,7 @@ def whitespace_around_operator(logical_line):
     Have exactly 1 space left and right of the operator.
     """
     match = not_one_ws_around_operators_match(logical_line)
-    if match and not 'lambda' in logical_line:
+    if match and 'lambda' not in logical_line:
         return match.start(1), "E225 operators shall be surrounded by a single space on each side %s" % logical_line
 
 

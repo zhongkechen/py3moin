@@ -314,7 +314,7 @@ class MoinLocalWiki(RemoteWiki):
         """ Returns all page names that are listed on the page group_list. """
         pages = []
         for group_pagename in group_list:
-            pages.extend(request.groups.get(group_pagename, []))
+            pages.extend(self.request.groups.get(group_pagename, []))
         return [self.createSyncPage(x) for x in pages]
 
     def createSyncPage(self, page_name):

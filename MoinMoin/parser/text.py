@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Plain Text Parser, fallback for text/*
 
@@ -8,6 +7,7 @@
 
 Dependencies = []
 
+
 class Parser:
     """
         Send plain text in a HTML <pre> element.
@@ -16,17 +16,17 @@ class Parser:
     ## specify extensions willing to handle
     ## should be a list of extensions including the leading dot
     ## TODO: remove the leading dot from the extension. This is stupid.
-    #extensions = ['.txt']
+    # extensions = ['.txt']
     ## use '*' instead of the list(!) to specify a default parser
     ## which is used as fallback
     extensions = '*'
     Dependencies = []
 
-    def __init__(self, raw, request, **kw):
+    def __init__(self, raw, context, **kw):
         self.raw = raw
-        self.request = request
-        self.form = request.request.form
-        self._ = request.getText
+        self.request = context
+        self.form = context.request.form
+        self._ = context.getText
         self.start_line = kw.get('start_line', 0)
 
     def format(self, formatter, **kw):

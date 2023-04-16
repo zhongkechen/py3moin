@@ -32,44 +32,44 @@ class Settings(UserPrefBase):
 
     def handle_form(self):
         _ = self._
-        request = self.request
-        form = request.request.form
+        context = self.request
+        form = context.request.form
 
         if 'cancel' in form:
             return
 
-        if request.request.method != 'POST':
+        if context.request.method != 'POST':
             return
 
-        if not wikiutil.checkTicket(request, form['ticket']):
+        if not wikiutil.checkTicket(context, form['ticket']):
             return
 
         user_name = form.get('user_name', '')
         if user_name:
-            uid = user.getUserId(request, user_name)
+            uid = user.getUserId(context, user_name)
             if uid:
-                theuser = user.User(request, uid, auth_method='setuid')
+                theuser = user.User(context, uid, auth_method='setuid')
             else:
                 # Don't allow creating users with invalid names
-                if not user.isValidName(request, user_name):
+                if not user.isValidName(context, user_name):
                     return 'error', _("""Invalid user name {{{'%s'}}}.
 Name may contain any Unicode alpha numeric character, with optional one
 space between words. Group page name is not allowed.""", wiki=True) % wikiutil.escape(user_name)
-                theuser = user.User(request, auth_method='setuid')
+                theuser = user.User(context, auth_method='setuid')
                 theuser.name = user_name
         else:
             uid = form.get('selected_user', '')
             if not uid:
                 return 'error', _("No user selected")
-            theuser = user.User(request, uid, auth_method='setuid')
+            theuser = user.User(context, uid, auth_method='setuid')
             if not theuser or not theuser.exists():
                 return 'error', _("No user selected")
         # set valid to True so superusers can even switch
         # to disable accounts
         theuser.valid = True
-        request._setuid_real_user = request.user
+        context._setuid_real_user = context.user
         # now continue as the other user
-        request.user = theuser
+        context.user = theuser
         if not uid:
             # create new user
             theuser.save()

@@ -415,8 +415,9 @@ class BaseSearch:
                     matches = self._get_match(page=page, uid=uid)
                     logging.debug("self._get_match %r" % matches)
                     if matches:
-                        if not self.historysearch and pagename in revisionCache and revisionCache[pagename][
-                            0] < revision:
+                        if not self.historysearch and \
+                                pagename in revisionCache and \
+                                revisionCache[pagename][0] < revision:
                             hits.remove(revisionCache[pagename][1])
                             del revisionCache[pagename]
                         hits.append((wikiname, page, attachment, matches, revision))

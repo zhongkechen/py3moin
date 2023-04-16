@@ -1,4 +1,3 @@
-
 """
     MoinMoin - migration from 1.6.0alpha (rev 1844: 58ebb64243cc - used a similar markup as 1.5.8, but with quotes for linking stuff with blanks) to 1.6.0 (creole link style)
 
@@ -35,23 +34,21 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
-
-
-
+import codecs
+import glob
 import os.path
 import re
 import time
-import codecs, urllib.request, urllib.parse, urllib.error, glob
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from MoinMoin import config, wikiutil
-from MoinMoin.script.migration.migutil import opj, listdir, copy_file, move_file, copy_dir
-
-import mimetypes # this MUST be after wikiutil import!
-
+from MoinMoin.script.migration.migutil import opj, listdir, copy_file, copy_dir
 from ._conv160a_wiki import convert_wiki
 
-create_rev = True # create a <new> rev with the converted content of <new-1> rev?
+create_rev = True  # create a <new> rev with the converted content of <new-1> rev?
+
 
 def markup_converter(request, pagename, text, renames):
     """ Convert the <text> content of page <pagename>, using <renames> dict
@@ -87,7 +84,7 @@ class EventLog:
             for line in f:
                 lineno += 1
                 line = line.replace('\r', '').replace('\n', '')
-                if not line.strip(): # skip empty lines
+                if not line.strip():  # skip empty lines
                     continue
                 fields = line.split('\t')
                 try:
@@ -97,7 +94,8 @@ class EventLog:
                     data.append((timestamp, action, kvdict))
                 except ValueError as err:
                     # corrupt event log line, log error and skip it
-                    print("Error: invalid event log (%s) line %d, err: %s, SKIPPING THIS LINE!" % (self.fname, lineno, str(err)))
+                    print("Error: invalid event log (%s) line %d, err: %s, SKIPPING THIS LINE!" % (
+                    self.fname, lineno, str(err)))
             f.close()
         except IOError as err:
             # no event-log
@@ -107,8 +105,8 @@ class EventLog:
     def write(self, fname):
         """ write complete event-log to disk """
         if self.data:
-            f = open(fname, 'wb') # write in binary mode, so it stays exactly as we write it, even on windows.
-                                  # the code in MoinMoin.logfile also uses binary mode and writes \n only.
+            f = open(fname, 'wb')  # write in binary mode, so it stays exactly as we write it, even on windows.
+            # the code in MoinMoin.logfile also uses binary mode and writes \n only.
             for timestamp, action, kvdict in self.data:
                 pagename = kvdict.get('pagename')
                 if pagename and ('PAGE', pagename) in self.renames:
@@ -141,7 +139,7 @@ class EditLog:
             for line in f:
                 lineno += 1
                 line = line.replace('\r', '').replace('\n', '')
-                if not line.strip(): # skip empty lines
+                if not line.strip():  # skip empty lines
                     continue
                 fields = line.split('\t') + [''] * 9
                 timestamp, rev, action, pagename, ip, hostname, userid, extra, comment = fields[:9]
@@ -149,11 +147,13 @@ class EditLog:
                     timestamp = int(timestamp)
                     rev = int(rev)
                 except ValueError as err:
-                    print("Error: %r has a damaged timestamp or revision number in log line %d [%s] - skipping this entry" % (
-                        self.fname, lineno, str(err)))
-                    continue # ignore this line, do not terminate - to find all those errors in one go
+                    print(
+                        "Error: %r has a damaged timestamp or revision number in log line %d [%s] - skipping this entry" % (
+                            self.fname, lineno, str(err)))
+                    continue  # ignore this line, do not terminate - to find all those errors in one go
                 pagename = wikiutil.unquoteWikiname(pagename)
-                data[(timestamp, rev, pagename)] = (timestamp, rev, action, pagename, ip, hostname, userid, extra, comment)
+                data[(timestamp, rev, pagename)] = (
+                timestamp, rev, action, pagename, ip, hostname, userid, extra, comment)
             f.close()
         except IOError as err:
             # no edit-log
@@ -165,8 +165,8 @@ class EditLog:
         if self.data:
             editlog = list(self.data.items())
             editlog.sort()
-            f = open(fname, 'wb') # write in binary mode, so it stays exactly as we write it, even on windows.
-                                  # the code in MoinMoin.logfile also uses binary mode and writes \n only.
+            f = open(fname, 'wb')  # write in binary mode, so it stays exactly as we write it, even on windows.
+            # the code in MoinMoin.logfile also uses binary mode and writes \n only.
             max_rev = 0
             for key, fields in editlog:
                 timestamp, rev, action, pagename, ip, hostname, userid, extra, comment = fields
@@ -210,6 +210,7 @@ class EditLog:
 
 class PageRev:
     """ a single revision of a page """
+
     def __init__(self, request, pagename, rev_dir, rev):
         self.request = request
         self.pagename = pagename
@@ -243,6 +244,7 @@ class PageRev:
 
 class Attachment:
     """ a single attachment """
+
     def __init__(self, request, attach_dir, attfile):
         self.request = request
         self.path = opj(attach_dir, attfile)
@@ -257,17 +259,18 @@ class Attachment:
 
 class Page:
     """ represents a page with all related data """
+
     def __init__(self, request, pages_dir, qpagename):
         self.request = request
         self.name = wikiutil.unquoteWikiname(qpagename)
-        self.name_old = self.name # renaming: still original name when self.name has the new name
+        self.name_old = self.name  # renaming: still original name when self.name has the new name
         self.page_dir = opj(pages_dir, qpagename)
-        self.current = None # int current
-        self.editlog = None # dict (see read_editlog)
-        self.revlist = None # list of ints (page text revisions)
-        self.revisions = None # dict int: pagerev obj
-        self.attachments = None # dict of unicode fname: full path
-        self.renames = {} # info for renaming pages/attachments
+        self.current = None  # int current
+        self.editlog = None  # dict (see read_editlog)
+        self.revlist = None  # list of ints (page text revisions)
+        self.revisions = None  # dict int: pagerev obj
+        self.attachments = None  # dict of unicode fname: full path
+        self.renames = {}  # info for renaming pages/attachments
 
     def read(self):
         """ read a page, including revisions, log, attachments from disk """
@@ -346,7 +349,7 @@ class Page:
                     else:
                         self.revisions[rev].copy(rev_dir, self.renames)
             if create_rev and not self.is_deleted:
-                self.revisions[rev].copy(rev_dir, self.renames, convert=True, new_rev=rev+1)
+                self.revisions[rev].copy(rev_dir, self.renames, convert=True, new_rev=rev + 1)
 
         # copy attachments
         if self.attachments is not None:
@@ -369,6 +372,7 @@ class Page:
 
 class User:
     """ represents a user with all related data """
+
     def __init__(self, request, users_dir, uid):
         self.request = request
         self.uid = uid
@@ -384,7 +388,7 @@ class User:
         f = codecs.open(fname, 'r', config.charset)
         for line in f:
             line = line.replace(u'\r', '').replace(u'\n', '')
-            if not line.strip() or line.startswith(u'#'): # skip empty or comment lines
+            if not line.strip() or line.startswith(u'#'):  # skip empty or comment lines
                 continue
             try:
                 key, value = line.split(u'=', 1)
@@ -400,7 +404,7 @@ class User:
             f = open(fname, "r")
             bookmark = f.read()
             f.close()
-            wiki = fname.replace('.bookmark', '').replace(opj(self.users_dir, self.uid+'.'), '')
+            wiki = fname.replace('.bookmark', '').replace(opj(self.users_dir, self.uid + '.'), '')
             self.bookmarks[wiki] = int(bookmark)
         # don't care about trail
 
@@ -421,7 +425,7 @@ class User:
                         if ('PAGE', pagename) in self.renames:
                             pagename = self.renames[('PAGE', pagename)]
                             pages[i] = u'%s:%s' % (interwiki, pagename)
-                key += '[]' # we have lists here
+                key += '[]'  # we have lists here
                 value = u'\t'.join(pages)
                 f.write(u"%s=%s\n" % (key, value))
             else:
@@ -461,9 +465,9 @@ class DataConverter:
         for pn, p in list(self.pages.items()):
             p.read()
             if not p.revisions:
-                continue # we don't care for pages with no revisions (trash)
+                continue  # we don't care for pages with no revisions (trash)
             if pn.endswith('/MoinEditorBackup'):
-                continue # we don't care for old editor backups
+                continue  # we don't care for old editor backups
             self.complete[('PAGE', pn)] = None
             if "_" in pn:
                 # log all pagenames with underscores
@@ -472,11 +476,11 @@ class DataConverter:
                 for fn in p.attachments:
                     try:
                         fn_str = fn.encode('ascii')
-                        log = False # pure ascii filenames are no problem
+                        log = False  # pure ascii filenames are no problem
                     except UnicodeEncodeError:
-                        log = True # this file maybe has a strange representation in wiki markup
+                        log = True  # this file maybe has a strange representation in wiki markup
                     else:
-                        if ' ' in fn_str or '%' in fn_str: # files with blanks need quoting
+                        if ' ' in fn_str or '%' in fn_str:  # files with blanks need quoting
                             log = True
                     self.complete[('FILE', pn, fn)] = None
                     if log:
@@ -486,17 +490,17 @@ class DataConverter:
         self.save_list(self.complete_fname, self.complete)
         self.save_list(self.rename_fname1, self.renames)
 
-    LIST_FIELDSEP = u'|' # in case | makes trouble, one can use \t tab char
+    LIST_FIELDSEP = u'|'  # in case | makes trouble, one can use \t tab char
 
     def save_list(self, fname, what):
         what_sorted = list(what.keys())
         # make sure we have 3-tuples:
-        what_sorted = [(k + (None, ))[:3] for k in what_sorted]
+        what_sorted = [(k + (None,))[:3] for k in what_sorted]
         # we only have python 2.3, thus no cmp keyword for the sort() call,
         # thus we need to do it the more complicated way:
-        what_sorted = [(pn, fn, rtype) for rtype, pn, fn in what_sorted] # shuffle
-        what_sorted.sort() # sort
-        what_sorted = [(rtype, pn, fn) for pn, fn, rtype in what_sorted] # shuffle
+        what_sorted = [(pn, fn, rtype) for rtype, pn, fn in what_sorted]  # shuffle
+        what_sorted.sort()  # sort
+        what_sorted = [(rtype, pn, fn) for pn, fn, rtype in what_sorted]  # shuffle
         f = codecs.open(fname, 'w', 'utf-8')
         for rtype, pn, fn in what_sorted:
             if rtype == 'PAGE':
@@ -514,7 +518,7 @@ class DataConverter:
             if not line:
                 continue
             t = line.split(self.LIST_FIELDSEP)
-            rtype, p1, p2, p3 = (t + [None]*3)[:4]
+            rtype, p1, p2, p3 = (t + [None] * 3)[:4]
             if rtype == u'PAGE':
                 what[(str(rtype), p1)] = p2
             elif rtype == u'FILE':
@@ -524,7 +528,7 @@ class DataConverter:
     def pass2(self):
         """ Second, read the (user edited) rename list and do the renamings everywhere. """
         self.read_src()
-        #self.load_list(self.complete_fname, self.complete)
+        # self.load_list(self.complete_fname, self.complete)
         self.load_list(self.rename_fname2, self.renames)
         self.write_dest()
 
@@ -555,7 +559,7 @@ class DataConverter:
         pages_dir = opj(self.ddata, 'pages')
         for pn, page in list(self.pages.items()):
             if pn.endswith('/MoinEditorBackup'):
-                continue # we don't care for old editor backups
+                continue  # we don't care for old editor backups
             page.copy(pages_dir, self.renames)
 
         # copy users
@@ -576,5 +580,3 @@ class DataConverter:
         os.makedirs(opj(self.ddata, 'user'))
         copy_dir(opj(self.sdata, 'plugin'), opj(self.ddata, 'plugin'))
         copy_file(opj(self.sdata, 'intermap.txt'), opj(self.ddata, 'intermap.txt'))
-
-

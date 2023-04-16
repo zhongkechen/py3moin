@@ -60,7 +60,7 @@ def macro_WikiConfig(macro):
             if cls == multiconfig.ConfigFunctionality:
                 break
             for name in cls.__dict__:
-                if not name in dedup:
+                if name not in dedup:
                     dedup[name] = True
                     yield name, cls.__dict__[name]
 
@@ -74,7 +74,7 @@ def macro_WikiConfig(macro):
     found.sort()
     for vname, value in found:
         vname = f.text(vname)
-        if not vname in settings:
+        if vname not in settings:
             vname = f.emphasis(1) + vname + f.emphasis(0)
         vtxt = '%r' % (value, )
         ret.extend([

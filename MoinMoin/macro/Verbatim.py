@@ -1,4 +1,3 @@
-
 """
     Outputs the text verbatimly.
 
@@ -7,6 +6,7 @@
 """
 
 Dependencies = []
+
 
 def macro_Verbatim(macro, text=u''):
     return macro.formatter.escapedText(text)

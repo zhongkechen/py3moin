@@ -80,10 +80,7 @@ def macro_HighlighterList(macro, columns='|'.join(available_columns),
 
     # sorting
     if sort:
-        lexer_data.sort(cmp=lambda x, y:
-        ((x != y)
-         and cmp(x[sort_column].lower(), y[sort_column].lower())
-         or cmp(x[0].lower(), y[0].lower())))
+        lexer_data.sort(key=lambda x: x[sort_column].lower())
 
     # generating output
     ret = []

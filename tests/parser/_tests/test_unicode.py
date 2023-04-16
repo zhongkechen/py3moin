@@ -38,7 +38,7 @@ class TestParserOutput:
         parser_blacklist = []
 
         # Create a page if it doesn't exist already.
-        if not u'page' in request.formatter.__dict__ or not request.formatter.page:
+        if u'page' not in request.formatter.__dict__ or not request.formatter.page:
             request.formatter.page = Page(request, u'test_parser_unicode_page')
             # this temporarily fixes an error with page-names, should be fixed at a central place some time
             request.page = Page(request, u'test_parser_unicode_page')

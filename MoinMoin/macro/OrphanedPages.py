@@ -1,4 +1,3 @@
-
 """
     MoinMoin - OrphanedPages Macro
 
@@ -8,12 +7,13 @@
 
 Dependencies = ["pages"]
 
+
 def macro_OrphanedPages(macro):
     _ = macro.request.getText
 
-    if macro.request.mode_getpagelinks: # prevent recursion
+    if macro.request.mode_getpagelinks:  # prevent recursion
         return ''
-    if macro.request.isSpiderAgent: # reduce bot cpu usage
+    if macro.request.isSpiderAgent:  # reduce bot cpu usage
         return ''
 
     # delete all linked pages from a dict of all pages
@@ -48,4 +48,3 @@ def macro_OrphanedPages(macro):
         result.append(f.number_list(0))
 
     return ''.join(result)
-

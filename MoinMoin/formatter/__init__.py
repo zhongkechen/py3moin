@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Formatter Package and FormatterBase
 
@@ -10,6 +9,7 @@
 import re
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
 from MoinMoin.util import pysupport
@@ -115,8 +115,10 @@ class FormatterBase:
 
     def attachment_link(self, on, url=None, **kw):
         raise NotImplementedError
+
     def attachment_image(self, url, **kw):
         raise NotImplementedError
+
     def attachment_drawing(self, url, text, **kw):
         raise NotImplementedError
 
@@ -177,6 +179,7 @@ class FormatterBase:
     # generic transclude/include:
     def transclusion(self, on, **kw):
         raise NotImplementedError
+
     def transclusion_param(self, **kw):
         raise NotImplementedError
 
@@ -312,7 +315,7 @@ class FormatterBase:
             return macro_obj.execute(name, args)
         except ImportError as err:
             errmsg = str(err)
-            if not name in errmsg:
+            if name not in errmsg:
                 raise
             if markup:
                 return (self.span(1, title=errmsg) +
@@ -320,6 +323,7 @@ class FormatterBase:
                         self.span(0))
             else:
                 return self.text(errmsg)
+
     def _get_bang_args(self, line):
         if line.startswith('#!'):
             try:

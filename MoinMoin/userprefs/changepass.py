@@ -31,16 +31,16 @@ class Settings(UserPrefBase):
 
     def handle_form(self):
         _ = self._
-        request = self.request
-        form = request.request.form
+        context = self.request
+        form = context.request.form
 
         if 'cancel' in form:
             return
 
-        if request.method != 'POST':
+        if context.method != 'POST':
             return
 
-        if not wikiutil.checkTicket(request, form['ticket']):
+        if not wikiutil.checkTicket(context, form['ticket']):
             return
 
         password = form.get('password1', '')
@@ -52,14 +52,14 @@ class Settings(UserPrefBase):
         if not password:
             return 'error', _("Please specify a password!")
 
-        pw_checker = request.cfg.password_checker
+        pw_checker = context.cfg.password_checker
         if pw_checker:
-            pw_error = pw_checker(request, request.user.name, password)
+            pw_error = pw_checker(context, context.user.name, password)
             if pw_error:
                 return 'error', _("Password not acceptable: %s") % pw_error
 
         try:
-            self.request.user.enc_password = user.encodePassword(request.cfg, password)
+            self.request.user.enc_password = user.encodePassword(context.cfg, password)
             self.request.user.save()
             return 'info', _("Your password has been changed.")
         except UnicodeError as err:

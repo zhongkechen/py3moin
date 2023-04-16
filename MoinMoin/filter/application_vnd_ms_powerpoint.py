@@ -1,4 +1,3 @@
-
 """
     MoinMoin - mspowerpoint filter
 
@@ -10,7 +9,7 @@
 
 from MoinMoin.filter import execfilter
 
+
 def execute(indexobj, filename):
     data = execfilter("catppt -dutf-8 %s", filename)
     return data
-

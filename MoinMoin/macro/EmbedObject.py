@@ -114,7 +114,7 @@ def macro_EmbedObject(macro, target=wikiutil.required_arg(str), pagename=None,
     mime_type = "%s/%s" % (mt.major, mt.minor, )
     dangerous = mime_type in request.cfg.mimetypes_xss_protect
 
-    if not mime_type in request.cfg.mimetypes_embed or dangerous:
+    if mime_type not in request.cfg.mimetypes_embed or dangerous:
         return "%s: %s%s%s" % (fmt.text(
                 _("Current configuration does not allow embedding of the file %(file)s because of its mimetype %(mimetype)s.") % {
                     "mimetype": mime_type,

@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Wiki Utility Functions
 
@@ -7,28 +6,32 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
 import cgi
 import codecs
 import hashlib
 import os
 import re
 import time
-import urllib.request, urllib.parse, urllib.error
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from MoinMoin import config
 from MoinMoin.util import pysupport, lock
+
 
 # Exceptions
 class InvalidFileNameError(Exception):
     """ Called when we find an invalid file name """
     pass
 
+
 # constants for page names
 PARENT_PREFIX = "../"
 PARENT_PREFIX_LEN = len(PARENT_PREFIX)
 CHILD_PREFIX = "/"
 CHILD_PREFIX_LEN = len(CHILD_PREFIX)
+
 
 #############################################################################
 ### Getting data from user/Sending data to user
@@ -101,8 +104,9 @@ def url_quote(s, safe='/', want_unicode=False):
         s = str(s)
     s = urllib.parse.quote(s, safe)
     if want_unicode:
-        s = s.decode(config.charset) # ascii would also work
+        s = s.decode(config.charset)  # ascii would also work
     return s
+
 
 def url_quote_plus(s, safe='/', want_unicode=False):
     """
@@ -121,8 +125,9 @@ def url_quote_plus(s, safe='/', want_unicode=False):
         s = str(s)
     s = urllib.parse.quote_plus(s, safe)
     if want_unicode:
-        s = s.decode(config.charset) # ascii would also work
+        s = s.decode(config.charset)  # ascii would also work
     return s
+
 
 def url_unquote(s, want_unicode=True):
     """
@@ -135,11 +140,12 @@ def url_unquote(s, want_unicode=True):
                          Default is True.
     """
     if isinstance(s, str):
-        s = s.encode(config.charset) # ascii would also work
+        s = s.encode(config.charset)  # ascii would also work
     s = urllib.parse.unquote(s)
     if want_unicode:
         s = s.decode(config.charset)
     return s
+
 
 def parseQueryString(qstr, want_unicode=True):
     """ Parse a querystring "key=value&..." into a dict.
@@ -159,6 +165,7 @@ def parseQueryString(qstr, want_unicode=True):
             values[key] = v
     return values
 
+
 def makeQueryString(qstr=None, want_unicode=False, **kw):
     """ Make a querystring from arguments.
 
@@ -176,7 +183,9 @@ def makeQueryString(qstr=None, want_unicode=False, **kw):
         qstr = {}
     if isinstance(qstr, dict):
         qstr.update(kw)
-        items = ['%s=%s' % (url_quote_plus(key, want_unicode=want_unicode), url_quote_plus(value, want_unicode=want_unicode)) for key, value in list(qstr.items())]
+        items = [
+            '%s=%s' % (url_quote_plus(key, want_unicode=want_unicode), url_quote_plus(value, want_unicode=want_unicode))
+            for key, value in list(qstr.items())]
         qstr = '&'.join(items)
     return qstr
 
@@ -222,6 +231,7 @@ def escape(s, quote=0):
         s = s.replace('"', "&quot;")
     return s
 
+
 def clean_comment(comment):
     """ Clean comment - replace CR, LF, TAB by whitespace, delete control chars
         TODO: move this to config, create on first call then return cached.
@@ -241,6 +251,7 @@ def clean_comment(comment):
     comment = comment.translate(remap_chars)
     return comment
 
+
 def make_breakable(text, maxlen):
     """ make a text breakable by inserting spaces into nonbreakable parts
     """
@@ -254,6 +265,7 @@ def make_breakable(text, maxlen):
         else:
             newtext.append(part)
     return " ".join(newtext)
+
 
 ########################################################################
 ### Storage
@@ -333,7 +345,7 @@ def unquoteWikiname(filename, charsets=[config.charset]):
             raise InvalidFileNameError(filename)
         try:
             for i in range(0, len(group), 2):
-                byte = group[i:i+2]
+                byte = group[i:i + 2]
                 character = chr(int(byte, 16))
                 parts.append(character)
         except ValueError:
@@ -350,11 +362,12 @@ def unquoteWikiname(filename, charsets=[config.charset]):
     # FIXME: This looks wrong, because at this stage "()" can be both errors
     # like open "(" without close ")", or unquoted valid characters in the file name.
     # Filter invalid filenames. Any left (xx) must be invalid
-    #if '(' in wikiname or ')' in wikiname:
+    # if '(' in wikiname or ')' in wikiname:
     #    raise InvalidFileNameError(filename)
 
     wikiname = decodeUserInput(wikiname, charsets)
     return wikiname
+
 
 # time scaling
 def timestamp2version(ts):
@@ -363,7 +376,8 @@ def timestamp2version(ts):
         We don't want to use floats, so we just scale by 1e6 to get
         an integer in usecs.
     """
-    return int(ts*1000000) # has to be long for py 2.2.x
+    return int(ts * 1000000)  # has to be long for py 2.2.x
+
 
 def version2timestamp(v):
     """ Convert version number to UNIX timestamp (float).
@@ -375,13 +389,15 @@ def version2timestamp(v):
 # This is the list of meta attribute names to be treated as integers.
 # IMPORTANT: do not use any meta attribute names with "-" (or any other chars
 # invalid in python attribute names), use e.g. _ instead.
-INTEGER_METAS = ['current', 'revision', # for page storage (moin 2.0)
-                 'data_format_revision', # for data_dir format spec (use by mig scripts)
-                ]
+INTEGER_METAS = ['current', 'revision',  # for page storage (moin 2.0)
+                 'data_format_revision',  # for data_dir format spec (use by mig scripts)
+                 ]
+
 
 class MetaDict(dict):
     """ store meta informations as a dict.
     """
+
     def __init__(self, metafilename, cache_directory):
         """ create a MetaDict from metafilename """
         dict.__init__(self)
@@ -407,7 +423,7 @@ class MetaDict(dict):
 
         try:
             metafile = codecs.open(self.metafilename, "r", "utf-8")
-            meta = metafile.read() # this is much faster than the file's line-by-line iterator
+            meta = metafile.read()  # this is much faster than the file's line-by-line iterator
             metafile.close()
         except IOError:
             meta = u''
@@ -451,14 +467,14 @@ class MetaDict(dict):
         if not self.wlock.acquire(5.0):
             raise EnvironmentError("Could not lock in MetaDict")
         try:
-            self._get_meta() # refresh cache
+            self._get_meta()  # refresh cache
             try:
                 oldvalue = dict.__getitem__(self, key)
             except KeyError:
                 oldvalue = None
             if value != oldvalue:
                 dict.__setitem__(self, key, value)
-                self._put_meta() # sync cache
+                self._put_meta()  # sync cache
         finally:
             self.wlock.release()
 
@@ -467,13 +483,15 @@ class MetaDict(dict):
 
 QUOTE_CHARS = u"'\""
 
+
 def quoteName(name):
     """ put quotes around a given name """
     for quote_char in QUOTE_CHARS:
         if quote_char not in name:
             return u"%s%s%s" % (quote_char, name, quote_char)
     else:
-        return name # XXX we need to be able to escape the quote char for worst case
+        return name  # XXX we need to be able to escape the quote char for worst case
+
 
 def unquoteName(name):
     """ if there are quotes around the name, strip them """
@@ -483,10 +501,12 @@ def unquoteName(name):
     else:
         return name
 
+
 #############################################################################
 ### InterWiki
 #############################################################################
 INTERWIKI_PAGE = "InterWikiMap"
+
 
 def generate_file_list(request):
     """ generates a list of all files. for internal use. """
@@ -525,10 +545,10 @@ def load_wikimap(request):
     try:
         _interwiki_list = request.cfg.cache.interwiki_list
         old_mtime = request.cfg.cache.interwiki_mtime
-        if request.cfg.cache.interwiki_ts + (1*60) < now: # 1 minutes caching time
+        if request.cfg.cache.interwiki_ts + (1 * 60) < now:  # 1 minutes caching time
             max_mtime = get_max_mtime(request.cfg.shared_intermap_files, Page(request, INTERWIKI_PAGE))
             if max_mtime > old_mtime:
-                raise AttributeError # refresh cache
+                raise AttributeError  # refresh cache
             else:
                 request.cfg.cache.interwiki_ts = now
     except AttributeError:
@@ -563,9 +583,11 @@ def load_wikimap(request):
         # save for later
         request.cfg.cache.interwiki_list = _interwiki_list
         request.cfg.cache.interwiki_ts = now
-        request.cfg.cache.interwiki_mtime = get_max_mtime(request.cfg.shared_intermap_files, Page(request, INTERWIKI_PAGE))
+        request.cfg.cache.interwiki_mtime = get_max_mtime(request.cfg.shared_intermap_files,
+                                                          Page(request, INTERWIKI_PAGE))
 
     return _interwiki_list
+
 
 def split_wiki(wikiurl):
     """ Split a wiki url, e.g:
@@ -583,17 +605,17 @@ def split_wiki(wikiurl):
     @return: (wikiname, pagename, linktext)
     """
     try:
-        wikiname, rest = wikiurl.split(":", 1) # e.g. MoinMoin:FrontPage
+        wikiname, rest = wikiurl.split(":", 1)  # e.g. MoinMoin:FrontPage
     except ValueError:
         try:
-            wikiname, rest = wikiurl.split("/", 1) # for what is this used?
+            wikiname, rest = wikiurl.split("/", 1)  # for what is this used?
         except ValueError:
             wikiname, rest = 'Self', wikiurl
     if rest:
         first_char = rest[0]
-        if first_char in QUOTE_CHARS: # quoted pagename
+        if first_char in QUOTE_CHARS:  # quoted pagename
             pagename_linktext = rest[1:].split(first_char, 1)
-        else: # not quoted, split on whitespace
+        else:  # not quoted, split on whitespace
             pagename_linktext = rest.split(None, 1)
     else:
         pagename_linktext = "", ""
@@ -603,6 +625,7 @@ def split_wiki(wikiurl):
         pagename, linktext = pagename_linktext
     linktext = linktext.strip()
     return wikiname, pagename, linktext
+
 
 def resolve_wiki(request, wikiurl):
     """ Resolve an interwiki link.
@@ -618,6 +641,7 @@ def resolve_wiki(request, wikiurl):
         return (wikiname, _interwiki_list[wikiname], pagename, False)
     else:
         return (wikiname, request.script_root, "/InterWiki", True)
+
 
 def join_wiki(wikiurl, wikitail):
     """
@@ -651,7 +675,7 @@ def isSystemPage(request, pagename):
     @return: true if page is a system page
     """
     return (pagename in request.groups.get(u'SystemPagesGroup', []) or
-        isTemplatePage(request, pagename))
+            isTemplatePage(request, pagename))
 
 
 def isTemplatePage(request, pagename):
@@ -692,7 +716,7 @@ def filterCategoryPages(request, pagelist):
     return list(filter(func, pagelist))
 
 
-def getLocalizedPage(request, pagename): # was: getSysPage
+def getLocalizedPage(request, pagename):  # was: getSysPage
     """ Get a system page according to user settings and available translations.
 
     We include some special treatment for the case that <pagename> is the
@@ -787,7 +811,7 @@ def getInterwikiHomePage(request, username=None):
     if username is None and request.user.valid:
         username = request.user.name
     if not username:
-        return None # anon user
+        return None  # anon user
 
     homewiki = request.cfg.user_homewiki
     if homewiki == request.cfg.interwikiname:
@@ -811,13 +835,15 @@ def AbsPageName(request, context, pagename):
         pagename = context + '/' + pagename[CHILD_PREFIX_LEN:]
     return pagename
 
+
 def pagelinkmarkup(pagename):
     """ return markup that can be used as link to page <pagename> """
     from MoinMoin.parser.text_moin_wiki import Parser
     if re.match(Parser.word_rule + "$", pagename):
         return pagename
     else:
-        return u'["%s"]' % pagename # XXX use quoteName(pagename) later
+        return u'["%s"]' % pagename  # XXX use quoteName(pagename) later
+
 
 #############################################################################
 ### mimetype support
@@ -825,20 +851,20 @@ def pagelinkmarkup(pagename):
 import mimetypes
 
 MIMETYPES_MORE = {
- # OpenOffice 2.x & other open document stuff
- '.odt': 'application/vnd.oasis.opendocument.text',
- '.ods': 'application/vnd.oasis.opendocument.spreadsheet',
- '.odp': 'application/vnd.oasis.opendocument.presentation',
- '.odg': 'application/vnd.oasis.opendocument.graphics',
- '.odc': 'application/vnd.oasis.opendocument.chart',
- '.odf': 'application/vnd.oasis.opendocument.formula',
- '.odb': 'application/vnd.oasis.opendocument.database',
- '.odi': 'application/vnd.oasis.opendocument.image',
- '.odm': 'application/vnd.oasis.opendocument.text-master',
- '.ott': 'application/vnd.oasis.opendocument.text-template',
- '.ots': 'application/vnd.oasis.opendocument.spreadsheet-template',
- '.otp': 'application/vnd.oasis.opendocument.presentation-template',
- '.otg': 'application/vnd.oasis.opendocument.graphics-template',
+    # OpenOffice 2.x & other open document stuff
+    '.odt': 'application/vnd.oasis.opendocument.text',
+    '.ods': 'application/vnd.oasis.opendocument.spreadsheet',
+    '.odp': 'application/vnd.oasis.opendocument.presentation',
+    '.odg': 'application/vnd.oasis.opendocument.graphics',
+    '.odc': 'application/vnd.oasis.opendocument.chart',
+    '.odf': 'application/vnd.oasis.opendocument.formula',
+    '.odb': 'application/vnd.oasis.opendocument.database',
+    '.odi': 'application/vnd.oasis.opendocument.image',
+    '.odm': 'application/vnd.oasis.opendocument.text-master',
+    '.ott': 'application/vnd.oasis.opendocument.text-template',
+    '.ots': 'application/vnd.oasis.opendocument.spreadsheet-template',
+    '.otp': 'application/vnd.oasis.opendocument.presentation-template',
+    '.otg': 'application/vnd.oasis.opendocument.graphics-template',
 }
 [mimetypes.add_type(mimetype, ext, True) for ext, mimetype in list(MIMETYPES_MORE.items())]
 
@@ -850,7 +876,7 @@ MIMETYPES_sanitize_mapping = {
     ('application', 'javascript'): ('text', 'javascript'),
 }
 
-MIMETYPES_spoil_mapping = {} # inverse mapping of above
+MIMETYPES_spoil_mapping = {}  # inverse mapping of above
 for key, value in list(MIMETYPES_sanitize_mapping.items()):
     MIMETYPES_spoil_mapping[value] = key
 
@@ -859,9 +885,9 @@ class MimeType:
     """ represents a mimetype like text/plain """
 
     def __init__(self, mimestr=None, filename=None):
-        self.major = self.minor = None # sanitized mime type and subtype
-        self.params = {} # parameters like "charset" or others
-        self.charset = None # this stays None until we know for sure!
+        self.major = self.minor = None  # sanitized mime type and subtype
+        self.params = {}  # parameters like "charset" or others
+        self.charset = None  # this stays None until we know for sure!
         self.raw_mimestr = mimestr
 
         if mimestr:
@@ -884,14 +910,14 @@ class MimeType:
         mimetype, parameters = parameters[0], parameters[1:]
         mimetype = mimetype.split('/')
         if len(mimetype) >= 2:
-            major, minor = mimetype[:2] # we just ignore more than 2 parts
+            major, minor = mimetype[:2]  # we just ignore more than 2 parts
         else:
             major, minor = self.parse_format(mimetype[0])
         self.major = major.lower()
         self.minor = minor.lower()
         for param in parameters:
             key, value = param.split('=')
-            if value[0] == '"' and value[-1] == '"': # remove quotes
+            if value[0] == '"' and value[-1] == '"':  # remove quotes
                 value = value[1:-1]
             self.params[key.lower()] = value
         if 'charset' in self.params:
@@ -907,7 +933,7 @@ class MimeType:
         format = format.lower()
         if format in ('plain', 'csv', 'rst', 'docbook', 'latex', 'tex', 'html', 'css',
                       'xml', 'python', 'perl', 'php', 'ruby', 'javascript',
-                      'cplusplus', 'java', 'pascal', 'diff', 'gettext', 'xslt', ):
+                      'cplusplus', 'java', 'pascal', 'diff', 'gettext', 'xslt',):
             mimetype = 'text', format
         else:
             mapping = {
@@ -980,8 +1006,10 @@ class MimeType:
 class PluginError(Exception):
     """ Base class for plugin errors """
 
+
 class PluginMissingError(PluginError):
     """ Raised when a plugin is not found """
+
 
 class PluginAttributeError(PluginError):
     """ Raised when plugin does not contain an attribtue """
@@ -1019,7 +1047,7 @@ def importWikiPlugin(cfg, kind, name, function="execute"):
 
     See importPlugin docstring.
     """
-    if not name in wikiPlugins(kind, cfg):
+    if name not in wikiPlugins(kind, cfg):
         raise PluginMissingError
     moduleName = '%s.plugin.%s.%s' % (cfg.siteid, kind, name)
     return importNameFromPlugin(moduleName, function)
@@ -1030,7 +1058,7 @@ def importBuiltinPlugin(kind, name, function="execute"):
 
     See importPlugin docstring.
     """
-    if not name in builtinPlugins(kind):
+    if name not in builtinPlugins(kind):
         raise PluginMissingError
     moduleName = 'MoinMoin.%s.%s' % (kind, name)
     return importNameFromPlugin(moduleName, function)
@@ -1095,7 +1123,7 @@ def getPlugins(kind, cfg):
 def searchAndImportPlugin(cfg, type, name, what=None):
     type2classname = {"parser": "Parser",
                       "formatter": "Formatter",
-    }
+                      }
     if what is None:
         what = type2classname[type]
     mt = MimeType(name)
@@ -1190,12 +1218,12 @@ def parseAttributes(request, attrstring, endtoken=None, extension=None):
         # call extension function with the current token, the parser, and the dict
         if extension:
             found_flag, msg = extension(key, parser, attrs)
-            #request.log("%r = extension(%r, parser, %r)" % (msg, key, attrs))
+            # request.log("%r = extension(%r, parser, %r)" % (msg, key, attrs))
             if found_flag:
                 continue
             elif msg:
                 break
-            #else (we found nothing, but also didn't have an error msg) we just continue below:
+            # else (we found nothing, but also didn't have an error msg) we just continue below:
 
         try:
             eq = parser.get_token()
@@ -1215,7 +1243,7 @@ def parseAttributes(request, attrstring, endtoken=None, extension=None):
             msg = _('Expected a value for key "%(token)s"') % {'token': key}
             break
 
-        key = escape(key) # make sure nobody cheats
+        key = escape(key)  # make sure nobody cheats
 
         # safely escape and quote value
         if val[0] in ["'", '"']:
@@ -1271,18 +1299,18 @@ class ParameterParser:
     """
 
     def __init__(self, pattern):
-        #parameter_re = "([^\"',]*(\"[^\"]*\"|'[^']*')?[^\"',]*)[,)]"
+        # parameter_re = "([^\"',]*(\"[^\"]*\"|'[^']*')?[^\"',]*)[,)]"
         name = "(?P<%s>[a-zA-Z_][a-zA-Z0-9_]*)"
         int_re = r"(?P<int>-?\d+)"
         bool_re = r"(?P<bool>(([10])|([Tt]rue)|([Ff]alse)))"
         float_re = r"(?P<float>-?\d+\.\d+([eE][+-]?\d+)?)"
         string_re = (r"(?P<string>('([^']|(\'))*?')|" +
-                                r'("([^"]|(\"))*?"))')
+                     r'("([^"]|(\"))*?"))')
         name_re = name % "name"
         name_param_re = name % "name_param"
 
         param_re = r"\s*(\s*%s\s*=\s*)?(%s|%s|%s|%s|%s)\s*(,|$)" % (
-                   name_re, float_re, int_re, bool_re, string_re, name_param_re)
+            name_re, float_re, int_re, bool_re, string_re, name_param_re)
         self.param_re = re.compile(param_re, re.U)
         self._parse_pattern(pattern)
 
@@ -1315,7 +1343,7 @@ class ParameterParser:
         """
         (4, 2)
         """
-        #Default list to "None"s
+        # Default list to "None"s
         parameter_list = [None] * len(self.param_list)
         parameter_dict = {}
         check_list = [0] * len(self.param_list)
@@ -1333,7 +1361,8 @@ class ParameterParser:
                 value = int(match.group("int"))
                 type = 'i'
             elif match.group("bool"):
-                value = (match.group("bool") == "1") or (match.group("bool") == "True") or (match.group("bool") == "true")
+                value = (match.group("bool") == "1") or (match.group("bool") == "True") or (
+                            match.group("bool") == "true")
                 type = 'b'
             elif match.group("float"):
                 value = float(match.group("float"))
@@ -1353,8 +1382,8 @@ class ParameterParser:
                     raise ValueError("Unknown parameter name '%s'" % match.group("name"))
                 nr = self.param_dict[match.group("name")]
                 if check_list[nr]:
-                    #raise ValueError, "Parameter specified twice"
-                    #TODO: Something saner that raising an exception. This is pretty good, since it ignores it.
+                    # raise ValueError, "Parameter specified twice"
+                    # TODO: Something saner that raising an exception. This is pretty good, since it ignores it.
                     pass
                 else:
                     check_list[nr] = 1
@@ -1367,10 +1396,10 @@ class ParameterParser:
                 nr = i
                 parameter_list[nr] = value
 
-            #Let's populate and map our dictionary to what's been found
+            # Let's populate and map our dictionary to what's been found
             for name in list(self.param_dict.keys()):
                 tmp = self.param_dict[name]
-                parameter_dict[name]=parameter_list[tmp]
+                parameter_dict[name] = parameter_list[tmp]
 
             i += 1
 
@@ -1420,6 +1449,7 @@ if __name__=="__main__":
     main()
 """
 
+
 #############################################################################
 ### Misc
 #############################################################################
@@ -1468,13 +1498,14 @@ def getUnicodeIndexGroup(name):
     @return: group letter or None
     """
     c = name[0]
-    if u'\uAC00' <= c <= u'\uD7AF': # Hangul Syllables
+    if u'\uAC00' <= c <= u'\uD7AF':  # Hangul Syllables
         return chr(0xac00 + ((int(ord(c) - 0xac00) // 588)) * 588)
     else:
-        return c.upper() # we put lower and upper case words into the same index group
+        return c.upper()  # we put lower and upper case words into the same index group
 
 
-def isStrictWikiname(name, word_re=re.compile(r"^(?:[%(u)s][%(l)s]+){2,}$" % {'u': config.chars_upper, 'l': config.chars_lower})):
+def isStrictWikiname(name, word_re=re.compile(
+    r"^(?:[%(u)s][%(l)s]+){2,}$" % {'u': config.chars_upper, 'l': config.chars_lower})):
     """
     Check whether this is NOT an extended name.
 
@@ -1516,13 +1547,13 @@ def link_tag(request, params, text=None, formatter=None, on=None, **kw):
         formatter = request.html_formatter
     if 'css_class' in kw:
         css_class = kw['css_class']
-        del kw['css_class'] # one time is enough
+        del kw['css_class']  # one time is enough
     else:
         css_class = None
     id = kw.get('id', None)
     name = kw.get('name', None)
     if text is None:
-        text = params # default
+        text = params  # default
     if formatter:
         url = "%s/%s" % (request.script_root, params)
         # formatter.url will escape the url part
@@ -1530,9 +1561,9 @@ def link_tag(request, params, text=None, formatter=None, on=None, **kw):
             tag = formatter.url(on, url, css_class, **kw)
         else:
             tag = (formatter.url(1, url, css_class, **kw) +
-                formatter.rawHTML(text) +
-                formatter.url(0))
-    else: # this shouldn't be used any more:
+                   formatter.rawHTML(text) +
+                   formatter.url(0))
+    else:  # this shouldn't be used any more:
         if on is not None and not on:
             tag = '</a>'
         else:
@@ -1546,12 +1577,15 @@ def link_tag(request, params, text=None, formatter=None, on=None, **kw):
             tag = '<a%s href="%s/%s">' % (attrs, request.script_root, params)
             if not on:
                 tag = "%s%s</a>" % (tag, text)
-        request.log("Warning: wikiutil.link_tag called without formatter and without request.html_formatter. tag=%r" % (tag, ))
+        request.log(
+            "Warning: wikiutil.link_tag called without formatter and without request.html_formatter. tag=%r" % (tag,))
     return tag
+
 
 def containsConflictMarker(text):
     """ Returns true if there is a conflict marker in the text. """
     return "/!\\ '''Edit conflict" in text
+
 
 def pagediff(request, pagename1, rev1, pagename2, rev2, **kw):
     """
@@ -1631,7 +1665,7 @@ def getProcessingInstructions(text):
         if line.startswith('#'):
             for pi in ("format", "refresh", "redirect", "deprecated", "pragma", "form", "acl", "language"):
                 if line[1:].lower().startswith(pi):
-                    kw[pi] = line[len(pi)+1:].strip()
+                    kw[pi] = line[len(pi) + 1:].strip()
                     break
     return kw
 
@@ -1648,4 +1682,3 @@ def getParser(request, text):
 
     Parser = searchAndImportPlugin(request.cfg, "parser", pi_format)
     return Parser
-

@@ -1390,7 +1390,7 @@ class convert_tree(visitor):
                 desc = '|' + desc
 
             # Exlude 'type' attribute cause it generates a 'key already present' error.
-            params = ','.join(['%s="%s"' % (k, v) for k, v in list(attrs.items()) if not k in ('type', )])
+            params = ','.join(['%s="%s"' % (k, v) for k, v in list(attrs.items()) if k not in ('type', )])
             if params:
                 params = '|' + params
                 if not desc:

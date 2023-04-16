@@ -1,4 +1,3 @@
-
 """
     MoinMoin - ReStructured Text Parser
 
@@ -19,7 +18,8 @@ from MoinMoin.Page import Page
 from MoinMoin.action import AttachFile
 from MoinMoin import wikiutil
 
-Dependencies = [] # this parser just depends on the raw text
+Dependencies = []  # this parser just depends on the raw text
+
 
 # --- make docutils safe by overriding all module-scoped names related to IO ---
 
@@ -27,16 +27,20 @@ Dependencies = [] # this parser just depends on the raw text
 # they requested an unsupported feature of Docutils in MoinMoin.
 def dummyOpen(x, y=None, z=None): return
 
+
 class dummyIO(io.StringIO):
     def __init__(self, destination=None, destination_path=None,
                  encoding=None, error_handler='', autoclose=1,
                  handle_io_errors=1, source_path=None):
         io.StringIO.__init__(self)
 
+
 class dummyUrllib2:
     def urlopen(a):
         return io.StringIO()
+
     urlopen = staticmethod(urlopen)
+
 
 # # # All docutils imports must be contained below here
 try:
@@ -46,16 +50,17 @@ try:
     from docutils.nodes import reference
     from docutils.parsers import rst
     from docutils.parsers.rst import directives, roles
-# # # All docutils imports must be contained above here
 
-    ErrorParser = None # used in the case of missing docutils
+    # # # All docutils imports must be contained above here
+
+    ErrorParser = None  # used in the case of missing docutils
     docutils.io.FileOutput = docutils.io.FileInput = dummyIO
 except ImportError:
     # we need to workaround this totally broken plugin interface that does
     # not allow us to raise exceptions
     class ErrorParser:
         caching = 0
-        Dependencies = Dependencies # copy dependencies from module-scope
+        Dependencies = Dependencies  # copy dependencies from module-scope
 
         def __init__(self, raw, request, **kw):
             self.raw = raw
@@ -65,20 +70,24 @@ except ImportError:
             _ = self.request.getText
             from MoinMoin.parser.text import Parser as TextParser
             self.request.write(formatter.sysmsg(1) +
-                               formatter.rawHTML(_('Rendering of reStructured text is not possible, please install Docutils.')) +
+                               formatter.rawHTML(
+                                   _('Rendering of reStructured text is not possible, please install Docutils.')) +
                                formatter.sysmsg(0))
             TextParser(self.raw, self.request).format(formatter)
+
 
     # Create a pseudo docutils environment
     docutils = html4css1 = dummyUrllib2()
     html4css1.HTMLTranslator = html4css1.Writer = object
 
-def safe_import(name, globals = None, locals = None, fromlist = None, level = -1):
+
+def safe_import(name, globals=None, locals=None, fromlist=None, level=-1):
     mod = __import__(name, globals, locals, fromlist, level)
     if mod:
         mod.open = dummyOpen
         mod.urllib2 = dummyUrllib2
     return mod
+
 
 # Go through and change all docutils modules to use a dummyOpen and dummyUrllib2
 # module. Also make sure that any docutils imported modules also get the dummy
@@ -88,6 +97,7 @@ for i in list(sys.modules.keys()):
         sys.modules[i].open = dummyOpen
         sys.modules[i].urllib2 = dummyUrllib2
         sys.modules[i].__import__ = safe_import
+
 
 # --- End of dummy-code --------------------------------------------------------
 
@@ -99,12 +109,12 @@ def html_escape_unicode(node):
             node = node.replace(i, '&#%d;' % (ord(i)))
     return node
 
+
 class MoinWriter(html4css1.Writer):
-
     config_section = 'MoinMoin writer'
-    config_section_dependencies = ('writers', )
+    config_section_dependencies = ('writers',)
 
-    #"""Final translated form of `document`."""
+    # """Final translated form of `document`."""
     output = None
 
     def wiki_resolver(self, node):
@@ -167,12 +177,14 @@ class MoinWriter(html4css1.Writer):
                 setattr(self, attr, getattr(visitor, attr))
         self.output = html_escape_unicode(visitor.astext())
 
+
 # mark quickhelp as translatable
 _ = lambda x: x
 
+
 class Parser:
     caching = 1
-    Dependencies = Dependencies # copy dependencies from module-scope
+    Dependencies = Dependencies  # copy dependencies from module-scope
     extensions = ['.rst', '.rest', ]
     quickhelp = _("""\
 {{{
@@ -230,6 +242,7 @@ Lists: * bullets; 1., a. numbered items.
         html.append(parts['fragment'])
         self.request.write(html_escape_unicode('\n'.join(html)))
 
+
 class RawHTMLList(list):
     """
         RawHTMLList catches all html appended to internal HTMLTranslator lists.
@@ -247,6 +260,7 @@ class RawHTMLList(list):
             if isinstance(text, (str, str)):
                 text = self.formatter.rawHTML(text)
         list.append(self, text)
+
 
 class MoinTranslator(html4css1.HTMLTranslator):
 
@@ -357,7 +371,7 @@ class MoinTranslator(html4css1.HTMLTranslator):
                 prefix, link = refuri.lstrip().split(':', 1)
 
             # First see if MoinMoin should handle completely. Exits through add_wiki_markup.
-            if refuri.startswith('<<') and refuri.endswith('>>'): # moin macro
+            if refuri.startswith('<<') and refuri.endswith('>>'):  # moin macro
                 self.process_wiki_text(refuri)
                 self.wiki_text = self.fixup_wiki_formatting(self.wiki_text)
                 self.add_wiki_markup()
@@ -419,13 +433,13 @@ class MoinTranslator(html4css1.HTMLTranslator):
             TODO: Need to handle figures similarly.
         """
         uri = node['uri'].lstrip()
-        prefix = ''          # assume no prefix
+        prefix = ''  # assume no prefix
         attach_name = uri
         if ':' in uri:
             prefix = uri.split(':', 1)[0]
             attach_name = uri.split(':', 1)[1]
         # if prefix isn't URL, try to display in page
-        if not prefix.lower() in ('file', 'http', 'https', 'ftp'):
+        if prefix.lower() not in ('file', 'http', 'https', 'ftp'):
             if not AttachFile.exists(self.request, self.request.page.page_name, attach_name):
                 # Attachment doesn't exist, MoinMoin should process it
                 if prefix == '':
@@ -442,14 +456,17 @@ class MoinTranslator(html4css1.HTMLTranslator):
 
     def create_wiki_functor(self, moin_func):
         moin_callable = getattr(self.formatter, moin_func)
+
         def visit_func(self, node):
             self.wiki_text = ''
             self.request.write(moin_callable(1))
             self.body.append(self.wiki_text)
+
         def depart_func(self, node):
             self.wiki_text = ''
             self.request.write(moin_callable(0))
             self.body.append(self.wiki_text)
+
         return visit_func, depart_func
 
     def setup_wiki_handlers(self):
@@ -504,6 +521,7 @@ class MoinTranslator(html4css1.HTMLTranslator):
                                                   attr={'class': admotion_class},
                                                   allowed_attrs=[]))
             self.body.append(self.wiki_text)
+
         def depart_func(self, node):
             self.wiki_text = ''
             self.request.write(self.formatter.div(0))
@@ -584,7 +602,7 @@ class MoinDirectives:
             pagename = content[0]
             page = Page(page_name=pagename, request=self.request)
             if not self.request.user.may.read(pagename):
-                lines = [_("**You are not allowed to read the page: %s**") % (pagename, )]
+                lines = [_("**You are not allowed to read the page: %s**") % (pagename,)]
             else:
                 if page.exists():
                     text = page.get_raw_body()
@@ -593,7 +611,7 @@ class MoinDirectives:
                     if lines[0].startswith("#format"):
                         del lines[0]
                 else:
-                    lines = [_("**Could not find the referenced page: %s**") % (pagename, )]
+                    lines = [_("**Could not find the referenced page: %s**") % (pagename,)]
             # Insert the text from the included document and then continue parsing
             state_machine.insert_input(lines, 'MoinDirectives')
         return []
@@ -610,7 +628,7 @@ class MoinDirectives:
     # document tree which is a reference, but through a much better user
     # interface.
     def macro(self, name, arguments, options, content, lineno,
-                content_offset, block_text, state, state_machine):
+              content_offset, block_text, state, state_machine):
         # content contains macro to be called
         if len(content):
             # Allow either with or without brackets
@@ -628,7 +646,8 @@ class MoinDirectives:
     macro.required_arguments = 1
     macro.optional_arguments = 0
 
-if ErrorParser: # fixup in case of missing docutils
+
+if ErrorParser:  # fixup in case of missing docutils
     Parser = ErrorParser
 
 del _

@@ -1,4 +1,3 @@
-
 """
 MoinMoin - display unused or trash page directories in data/pages
 
@@ -6,10 +5,10 @@ MoinMoin - display unused or trash page directories in data/pages
 @license: GNU GPL, see COPYING for details.
 """
 
-
 import os
 
 from MoinMoin.script import MoinScript
+
 
 class PluginScript(MoinScript):
     """\
@@ -79,4 +78,3 @@ General syntax: moin [options] maint cleanpage [cleanpage-options]
                 print("mv '%s' deleted # %s" % (pagedir, status))
             else:
                 print("# %s: '%s'" % (status, pagedir))
-

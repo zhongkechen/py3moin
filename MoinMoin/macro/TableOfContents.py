@@ -1,4 +1,3 @@
-
 """
     MoinMoin - TableOfContents Macro
 
@@ -25,13 +24,13 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from MoinMoin.formatter import FormatterBase
-from MoinMoin.Page import Page
 from MoinMoin import wikiutil
-
+from MoinMoin.Page import Page
+from MoinMoin.formatter import FormatterBase
 
 # cannot be cached because of TOCs in included pages
 Dependencies = ['time']
+
 
 class TOCFormatter(FormatterBase):
     def __init__(self, request, **kw):
@@ -57,7 +56,7 @@ class TOCFormatter(FormatterBase):
     def heading(self, on, depth, **kw):
         id = kw.get('id', None)
         self.in_heading = on
-        if not id is None:
+        if id is not None:
             id = self.request._tocfm_orig_formatter.make_id_unique(id)
         if on:
             self.collected_headings.append([depth, id, u''])
@@ -131,6 +130,7 @@ class TOCFormatter(FormatterBase):
     comment = _anything_return_empty
     transclusion = _anything_return_empty
 
+
 def macro_TableOfContents(macro, maxdepth=int):
     """
 Prints a table of contents.
@@ -173,7 +173,6 @@ Prints a table of contents.
         macro.formatter.text(_('Contents')),
         macro.formatter.paragraph(0),
     ]
-
 
     # find smallest used level and use that as the outer-most indentation,
     # to fix pages like HelpOnMacros that only use h2 and lower levels.

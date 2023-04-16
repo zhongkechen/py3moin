@@ -1,4 +1,3 @@
-
 """
     MoinMoin - logging auth plugin
 
@@ -11,9 +10,11 @@
 """
 
 from MoinMoin import log
-logging = log.getLogger(__name__)
 
 from MoinMoin.auth import BaseAuth, ContinueLogin
+
+logging = log.getLogger(__name__)
+
 
 class AuthLog(BaseAuth):
     """ just log the call, do nothing else """

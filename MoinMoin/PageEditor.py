@@ -600,19 +600,19 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         @rtype: unicode
         @return: success flag, error message
         """
-        request = self.context
+        context = self.context
         _ = self._
 
-        if not (request.user.may.delete(self.page_name)
-                and request.user.may.write(newpagename)):
-            log_attempt('rename/no permissions', False, request, pagename=self.page_name)
+        if not (context.user.may.delete(self.page_name)
+                and context.user.may.write(newpagename)):
+            log_attempt('rename/no permissions', False, context, pagename=self.page_name)
             msg = _('You are not allowed to rename this page!')
             raise self.AccessDenied(msg)
 
         if not newpagename:
             return False, _("You can't rename to an empty pagename.")
 
-        newpage = PageEditor(request, newpagename)
+        newpage = PageEditor(context, newpagename)
 
         pageexists_error = _("""'''A page with the name {{{'%s'}}} already exists.'''
 
@@ -644,17 +644,17 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             # delete pagelinks
             arena = newpage
             key = 'pagelinks'
-            cache = caching.CacheEntry(request, arena, key, scope='item')
+            cache = caching.CacheEntry(context, arena, key, scope='item')
             cache.remove()
 
             # clean the cache
             for formatter_name in self.cfg.caching_formats:
                 arena = newpage
                 key = formatter_name
-                cache = caching.CacheEntry(request, arena, key, scope='item')
+                cache = caching.CacheEntry(context, arena, key, scope='item')
                 cache.remove()
 
-            event = PageRenamedEvent(request, newpage, self, comment)
+            event = PageRenamedEvent(context, newpage, self, comment)
             send_event(event)
 
             return True, None
@@ -781,9 +781,9 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         @return: new text of wikipage, variables replaced
         """
         # TODO: Allow addition of variables via wikiconfig or a global wiki dict.
-        request = self.context
+        context = self.context
         now = self._get_local_timestamp()
-        u = request.user
+        u = context.user
         obfuscated_email_address = encodeSpamSafeEmail(u.email)
         signature = u.signature()
         variables = {
@@ -804,8 +804,8 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             # Users can define their own variables via
             # UserHomepage/MyDict, which override the default variables.
             userDictPage = u.name + "/MyDict"
-            if userDictPage in request.dicts:
-                variables.update(request.dicts[userDictPage])
+            if userDictPage in context.dicts:
+                variables.update(context.dicts[userDictPage])
 
         for name in variables:
             text = text.replace('@%s@' % name, variables[name])
@@ -849,13 +849,13 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         @param rev: the revision of the page this draft is based on
         @param kw: no keyword args used currently
         """
-        request = self.context
-        if not request.user.valid or not self.do_editor_backup:
+        context = self.context
+        if not context.user.valid or not self.do_editor_backup:
             return None
 
         arena = 'drafts'
-        key = request.user.id
-        cache = caching.CacheEntry(request, arena, key, scope='wiki', use_pickle=True)
+        key = context.user.id
+        cache = caching.CacheEntry(context, arena, key, scope='wiki', use_pickle=True)
         if cache.exists():
             cache_data = cache.content()
         else:

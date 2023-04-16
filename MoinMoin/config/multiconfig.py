@@ -352,7 +352,7 @@ class ConfigFunctionality:
             if auth.logout_possible and auth.name:
                 self.auth_can_logout.append(auth.name)
             for input in auth.login_inputs:
-                if not input in self.auth_login_inputs:
+                if input not in self.auth_login_inputs:
                     self.auth_login_inputs.append(input)
         self.auth_have_login = len(self.auth_login_inputs) > 0
         self.auth_methods = found_names
@@ -645,7 +645,7 @@ also the spelling of the directory name.
                     csum = 'p_%s' % hashlib.new('sha1', pdir.encode("utf8")).hexdigest()
                     modname = '%s.%s' % (self.siteid, csum)
                     # If the module is not loaded, try to load it
-                    if not modname in sys.modules:
+                    if modname not in sys.modules:
                         # Find module on disk and try to load - slow!
                         abspath = os.path.abspath(pdir)
                         parent_dir, pname = os.path.split(abspath)

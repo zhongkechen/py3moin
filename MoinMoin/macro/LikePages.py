@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Create list of LikePages
 
@@ -9,6 +8,7 @@
 Dependencies = ['namespace']
 
 from MoinMoin.action import LikePages
+
 
 def macro_LikePages(macro, text=u'(none)'):
     request = macro.request
@@ -27,4 +27,3 @@ def macro_LikePages(macro, text=u'(none)'):
             return request.formatter.text(text)
     # bots get nothing:
     return ''
-

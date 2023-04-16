@@ -456,7 +456,7 @@ class Converter(Parser):
         """ Replace match using type name """
         result = []
         for _type, hit in list(match.groupdict().items()):
-            if hit is not None and not _type in ["hmarker", ]:
+            if hit is not None and _type not in ["hmarker", ]:
                 # Get replace method and replace hit
                 replace = getattr(self, '_' + _type + '_repl')
                 # print _type, hit

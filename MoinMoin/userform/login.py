@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Login form
 
@@ -28,22 +27,21 @@ class Login:
             html.TD().extend(cell),
         ]))
 
-
     def asHTML(self):
         """ Create the complete HTML form code. """
         _ = self._
-        request = self.request
-        action = "%s%s" % (request.request.script_root, request.request.path)
+        context = self.request
+        action = "%s%s" % (context.request.script_root, context.request.path)
         hints = []
-        for authm in request.cfg.auth:
-            hint = authm.login_hint(request)
+        for authm in context.cfg.auth:
+            hint = authm.login_hint(context)
             if hint:
                 hints.append(hint)
         self._form = html.FORM(action=action, name="loginform", id="loginform")
         self._table = html.TABLE(border="0")
 
         # Use the user interface language and direction
-        lang_attr = request.theme.ui_lang_attr()
+        lang_attr = context.theme.ui_lang_attr()
         self._form.append(html.Raw('<div class="userpref"%s>' % lang_attr))
 
         self._form.append(html.INPUT(type="hidden", name="action", value="login"))
@@ -52,7 +50,7 @@ class Login:
             self._form.append(html.P().append(html.Raw(hint)))
         self._form.append(html.Raw("</div>"))
 
-        cfg = request.cfg
+        cfg = context.cfg
         if 'username' in cfg.auth_login_inputs:
             self.make_row(_('Name'), [
                 html.INPUT(
@@ -72,14 +70,14 @@ class Login:
         if 'openid_identifier' in cfg.auth_login_inputs:
             if len(cfg.openidrp_allowed_op) == 1:
                 self.make_row(_('OpenID'), [
-                     html.INPUT(
-                         type="hidden", name="openid_identifier",
-                         value=cfg.openidrp_allowed_op[0]
-                     ),
+                    html.INPUT(
+                        type="hidden", name="openid_identifier",
+                        value=cfg.openidrp_allowed_op[0]
+                    ),
                 ])
             elif len(cfg.openidrp_allowed_op) > 1:
                 op_select = html.SELECT(name="openid_identifier",
-                    id="openididentifier")
+                                        id="openididentifier")
                 for op_uri in cfg.openidrp_allowed_op:
                     op_select.append(html.OPTION(value=op_uri).append(
                         html.Raw(op_uri)))

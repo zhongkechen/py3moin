@@ -186,7 +186,8 @@ def gather_pagedirs(dir_from, is_backupdir=0):
         if os.path.exists(backupdir_from):
             backuplist = listdir(backupdir_from)
             for bfile in backuplist:
-                if not bfile in bleftover: continue
+                if bfile not in bleftover:
+                    continue
                 backup_from = opj(backupdir_from, bfile)
                 bts = int(bfile) # must be long for py 2.2.x
                 for ts in lleftover:

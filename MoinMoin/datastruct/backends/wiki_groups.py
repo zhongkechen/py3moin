@@ -1,4 +1,3 @@
-
 """
 MoinMoin - wiki group backend
 
@@ -99,4 +98,3 @@ class WikiGroups(BaseGroupsBackend):
             del self.request.page
 
         return formatter.members
-

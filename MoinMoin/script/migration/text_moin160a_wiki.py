@@ -1,4 +1,3 @@
-
 """
     MoinMoin - MoinMoin Wiki Markup Parser
 
@@ -13,6 +12,7 @@ from . import wikiutil160a as wikiutil
 from MoinMoin import config, macro
 
 Dependencies = []
+
 
 class Parser:
     """
@@ -34,15 +34,15 @@ class Parser:
     # quoted strings (we require that there is at least one char (that is not the quoting char)
     # inside to not confuse stuff like '''Contact:''' (just a bold Contact:) with interwiki markup
     # OtherWiki:'Page with blanks'
-    sq_string = r"('[^']+?')" # single quoted string
-    dq_string = r"(\"[^\"]+?\")" # double quoted string
-    q_string = r"(%s|%s)" % (sq_string, dq_string) # quoted string
+    sq_string = r"('[^']+?')"  # single quoted string
+    dq_string = r"(\"[^\"]+?\")"  # double quoted string
+    q_string = r"(%s|%s)" % (sq_string, dq_string)  # quoted string
     attachment_schemas = ["attachment", "inline", "drawing"]
     punct_pattern = re.escape(u'''"\'}]|:,.)?!''')
     punct_no_quote_pattern = re.escape(u'''}]|:,.)?!''')
     url_pattern = (u'http|https|ftp|nntp|news|mailto|telnet|wiki|file|irc|' +
-            u'|'.join(attachment_schemas) +
-            (config.url_schemas and u'|' + u'|'.join(config.url_schemas) or ''))
+                   u'|'.join(attachment_schemas) +
+                   (config.url_schemas and u'|' + u'|'.join(config.url_schemas) or ''))
 
     # some common rules
     word_rule = r'(?:(?<![%(u)s%(l)s])|^)%(parent)s(?:%(subpages)s(?:[%(u)s][%(l)s]+){2,})+(?![%(u)s%(l)s]+)' % {
@@ -102,7 +102,7 @@ class Parser:
 (?P<ent_symbolic>&[a-zA-Z]+;)
 (?P<ent>[<>&])
 (?P<wikiname_bracket>\[%(q_string)s.*?\])
-(?P<tt_bt>`.*?`)"""  % {
+(?P<tt_bt>`.*?`)""" % {
 
         'url': url_pattern,
         'punct': punct_pattern,
@@ -123,7 +123,7 @@ class Parser:
     def __init__(self, raw, request, **kw):
         self.raw = raw
         self.request = request
-        self.form = request.form # Macro object uses this
+        self.form = request.form  # Macro object uses this
         self._ = request.getText
         self.cfg = request.cfg
         self.line_anchors = kw.get('line_anchors', True)
@@ -135,8 +135,8 @@ class Parser:
         # either use a single class like "comment" or multiple like "comment/red/dotted"
         self.wrapping_div_class = kw.get('format_args', '').strip().replace('/', ' ')
 
-        self.is_em = 0 # must be int
-        self.is_b = 0 # must be int
+        self.is_em = 0  # must be int
+        self.is_b = 0  # must be int
         self.is_u = False
         self.is_strike = False
         self.is_big = False
@@ -144,9 +144,9 @@ class Parser:
         self.is_remark = False
 
         self.lineno = 0
-        self.in_list = 0 # between <ul/ol/dl> and </ul/ol/dl>
-        self.in_li = 0 # between <li> and </li>
-        self.in_dd = 0 # between <dd> and </dd>
+        self.in_list = 0  # between <ul/ol/dl> and </ul/ol/dl>
+        self.in_li = 0  # between <li> and </li>
+        self.in_dd = 0  # between <dd> and </dd>
 
         # states of the parser concerning being inside/outside of some "pre" section:
         # None == we are not in any kind of pre section (was: 0)
@@ -156,7 +156,7 @@ class Parser:
         self.in_pre = None
 
         self.in_table = 0
-        self.inhibit_p = 0 # if set, do not auto-create a <p>aragraph
+        self.inhibit_p = 0  # if set, do not auto-create a <p>aragraph
         self.titles = request._page_headings
 
         # holds the nesting level (in chars) of open lists
@@ -166,7 +166,7 @@ class Parser:
         self.formatting_rules = self.formatting_rules % {'macronames': u'|'.join(macro.getNames(self.cfg))}
 
     def _close_item(self, result):
-        #result.append("<!-- close item begin -->\n")
+        # result.append("<!-- close item begin -->\n")
         if self.in_table:
             result.append(self.formatter.table(0))
             self.in_table = 0
@@ -180,8 +180,7 @@ class Parser:
             if self.formatter.in_p:
                 result.append(self.formatter.paragraph(0))
             result.append(self.formatter.definition_desc(0))
-        #result.append("<!-- close item end -->\n")
-
+        # result.append("<!-- close item end -->\n")
 
     def interwiki(self, target_and_text, **kw):
         # TODO: maybe support [wiki:Page http://wherever/image.png] ?
@@ -191,16 +190,16 @@ class Parser:
             pagename = self.formatter.page.page_name
         if not text:
             text = pagename
-        #self.request.log("interwiki: split_wiki -> %s.%s.%s" % (wikiname,pagename,text))
+        # self.request.log("interwiki: split_wiki -> %s.%s.%s" % (wikiname,pagename,text))
 
-        if wikiname.lower() == 'self': # [wiki:Self:LocalPage text] or [:LocalPage:text]
+        if wikiname.lower() == 'self':  # [wiki:Self:LocalPage text] or [:LocalPage:text]
             return self._word_repl(pagename, text)
 
         # check for image URL, and possibly return IMG tag
         if not kw.get('pretty_url', 0) and wikiutil.isPicture(pagename):
             dummy, wikiurl, dummy, wikitag_bad = wikiutil.resolve_wiki(self.request, rest)
             href = wikiutil.join_wiki(wikiurl, pagename)
-            #self.request.log("interwiki: join_wiki -> %s.%s.%s" % (wikiurl,pagename,href))
+            # self.request.log("interwiki: join_wiki -> %s.%s.%s" % (wikiurl,pagename,href))
             return self.formatter.image(src=href)
 
         return (self.formatter.interwikilink(1, wikiname, pagename) +
@@ -210,7 +209,7 @@ class Parser:
     def attachment(self, target_and_text, **kw):
         """ This gets called on attachment URLs """
         _ = self._
-        #self.request.log("attachment: target_and_text %s" % target_and_text)
+        # self.request.log("attachment: target_and_text %s" % target_and_text)
         scheme, fname, text = wikiutil.split_wiki(target_and_text)
         if not text:
             text = fname
@@ -308,7 +307,6 @@ class Parser:
         else:
             return self.formatter.emphasis(self.is_em) + self.formatter.strong(self.is_b)
 
-
     def _sup_repl(self, word):
         """Handle superscript."""
         return self.formatter.sup(1) + \
@@ -321,7 +319,6 @@ class Parser:
             self.formatter.text(word[2:-2]) + \
             self.formatter.sub(0)
 
-
     def _rule_repl(self, word):
         """Handle sequences of dashes."""
         result = self._undent() + self._closeP()
@@ -333,7 +330,6 @@ class Parser:
             result = result + self.formatter.rule(size)
         return result
 
-
     def _word_repl(self, word, text=None):
         """Handle WikiNames."""
 
@@ -343,7 +339,9 @@ class Parser:
         if word.startswith(wikiutil.PARENT_PREFIX):
             if not text:
                 text = word
-            word = '/'.join([_f for _f in self.formatter.page.page_name.split('/')[:-1] + [word[wikiutil.PARENT_PREFIX_LEN:]] if _f])
+            word = '/'.join(
+                [_f for _f in self.formatter.page.page_name.split('/')[:-1] + [word[wikiutil.PARENT_PREFIX_LEN:]] if
+                 _f])
 
         if not text:
             # if a simple, self-referencing link, emit it as plain text
@@ -396,17 +394,16 @@ class Parser:
                     self.formatter.text(word) +
                     self.formatter.url(0))
 
-
     def _wikiname_bracket_repl(self, text):
         """Handle special-char wikinames with link text, like:
            ["Jim O'Brian" Jim's home page] or ['Hello "world"!' a page with doublequotes]i
         """
-        word = text[1:-1] # strip brackets
+        word = text[1:-1]  # strip brackets
         first_char = word[0]
         if first_char in wikiutil.QUOTE_CHARS:
             # split on closing quote
             target, linktext = word[1:].split(first_char, 1)
-        else: # not quoted
+        else:  # not quoted
             # split on whitespace
             target, linktext = word.split(None, 1)
         if target:
@@ -415,10 +412,9 @@ class Parser:
         else:
             return self.formatter.text(text)
 
-
     def _url_bracket_repl(self, word):
         """Handle bracketed URLs."""
-        word = word[1:-1] # strip brackets
+        word = word[1:-1]  # strip brackets
 
         # Local extended link? [:page name:link text] XXX DEPRECATED
         if word[0] == ':':
@@ -429,13 +425,13 @@ class Parser:
             return self.interwiki(target_and_text, pretty_url=1)
 
         scheme_and_rest = word.split(":", 1)
-        if len(scheme_and_rest) == 1: # no scheme
+        if len(scheme_and_rest) == 1:  # no scheme
             # Traditional split on space
             words = word.split(None, 1)
             if len(words) == 1:
                 words = words * 2
 
-            if words[0].startswith('#'): # anchor link
+            if words[0].startswith('#'):  # anchor link
                 return (self.formatter.url(1, words[0]) +
                         self.formatter.text(words[1]) +
                         self.formatter.url(0))
@@ -459,18 +455,16 @@ class Parser:
                     self.formatter.text(words[1]) +
                     self.formatter.url(0))
 
-
     def _email_repl(self, word):
         """Handle email addresses (without a leading mailto:)."""
         return (self.formatter.url(1, "mailto:" + word, css='mailto') +
                 self.formatter.text(word) +
                 self.formatter.url(0))
 
-
     def _ent_repl(self, word):
         """Handle SGML entities."""
         return self.formatter.text(word)
-        #return {'&': '&amp;',
+        # return {'&': '&amp;',
         #        '<': '&lt;',
         #        '>': '&gt;'}[word]
 
@@ -533,15 +527,13 @@ class Parser:
         ])
         return ''.join(result)
 
-
     def _indent_level(self):
         """Return current char-wise indent level."""
         return len(self.list_indents) and self.list_indents[-1]
 
-
     def _indent_to(self, new_level, list_type, numtype, numstart):
         """Close and open lists."""
-        openlist = []   # don't make one out of these two statements!
+        openlist = []  # don't make one out of these two statements!
         closelist = []
 
         if self._indent_level() != new_level and self.in_table:
@@ -561,7 +553,7 @@ class Parser:
             del self.list_indents[-1]
             del self.list_types[-1]
 
-            if self.list_types: # we are still in a list
+            if self.list_types:  # we are still in a list
                 if self.list_types[-1] == 'dl':
                     self.in_dd = 1
                 else:
@@ -595,11 +587,10 @@ class Parser:
         self.in_list = self.list_types != []
         return ''.join(closelist) + ''.join(openlist)
 
-
     def _undent(self):
         """Close all open lists."""
         result = []
-        #result.append("<!-- _undent start -->\n")
+        # result.append("<!-- _undent start -->\n")
         self._close_item(result)
         for type in self.list_types[::-1]:
             if type == 'ol':
@@ -608,11 +599,10 @@ class Parser:
                 result.append(self.formatter.definition_list(0))
             else:
                 result.append(self.formatter.bullet_list(0))
-        #result.append("<!-- _undent end -->\n")
+        # result.append("<!-- _undent end -->\n")
         self.list_indents = []
         self.list_types = []
         return ''.join(result)
-
 
     def _tt_repl(self, word):
         """Handle inline code."""
@@ -620,14 +610,12 @@ class Parser:
             self.formatter.text(word[3:-3]) + \
             self.formatter.code(0)
 
-
     def _tt_bt_repl(self, word):
         """Handle backticked inline code."""
         # if len(word) == 2: return "" // removed for FCK editor
         return self.formatter.code(1, css="backtick") + \
             self.formatter.text(word[1:-1]) + \
             self.formatter.code(0)
-
 
     def _getTableAttrs(self, attrdef):
         # skip "|" and initial "<"
@@ -715,7 +703,7 @@ class Parser:
         attr, msg = wikiutil.parseAttributes(self.request, attrdef, '>', table_extension)
         if msg:
             msg = '<strong class="highlight">%s</strong>' % msg
-        #self.request.log("parseAttributes returned %r" % attr)
+        # self.request.log("parseAttributes returned %r" % attr)
         return attr, msg
 
     def _tableZ_repl(self, word):
@@ -751,7 +739,7 @@ class Parser:
             # check for adjacent cell markers
             if word.count("|") > 2:
                 if 'align' not in attrs and \
-                   not ('style' in attrs and 'text-align' in attrs['style'].lower()):
+                        ('style' not in attrs or 'text-align' not in attrs['style'].lower()):
                     # add center alignment if we don't have some alignment already
                     attrs['align'] = '"center"'
                 if 'colspan' not in attrs:
@@ -764,12 +752,11 @@ class Parser:
         else:
             return self.formatter.text(word)
 
-
     def _heading_repl(self, word):
         """Handle section headings."""
         h = word.strip()
         level = 1
-        while h[level:level+1] == '=':
+        while h[level:level + 1] == '=':
             level += 1
         depth = min(5, level)
 
@@ -784,7 +771,8 @@ class Parser:
         if self.titles[pntt] > 1:
             unique_id = '-%d' % self.titles[pntt]
         result = self._closeP()
-        result += self.formatter.heading(1, depth, id="head-"+hashlib.new('sha1', pntt.encode(config.charset)).hexdigest()+unique_id)
+        result += self.formatter.heading(1, depth, id="head-" + hashlib.new('sha1', pntt.encode(
+            config.charset)).hexdigest() + unique_id)
 
         return (result + self.formatter.text(title_text) +
                 self.formatter.heading(0, depth))
@@ -816,7 +804,7 @@ class Parser:
         elif s_word:
             self.in_pre = 'no_parser'
             return self._closeP() + self.formatter.preformatted(1) + \
-                   self.formatter.text(s_word + ' (-)')
+                self.formatter.text(s_word + ' (-)')
         else:
             self.in_pre = 'search_parser'
             return ''
@@ -833,20 +821,18 @@ class Parser:
             return self.formatter.preformatted(0)
         return self.formatter.text(word)
 
-
     def _smiley_repl(self, word):
         """Handle smileys."""
         return self.formatter.smiley(word)
 
     _smileyA_repl = _smiley_repl
 
-
     def _comment_repl(self, word):
         # if we are in a paragraph, we must close it so that normal text following
         # in the line below the comment will reopen a new paragraph.
         if self.formatter.in_p:
             self.formatter.paragraph(0)
-        self.line_is_empty = 1 # markup following comment lines treats them as if they were empty
+        self.line_is_empty = 1  # markup following comment lines treats them as if they were empty
         return self.formatter.comment(word)
 
     def _closeP(self):
@@ -857,7 +843,7 @@ class Parser:
     def _macro_repl(self, word):
         """Handle macros ([[macroname]])."""
         macro_name = word[2:-2]
-        self.inhibit_p = 0 # 1 fixes UserPreferences, 0 fixes paragraph formatting for macros
+        self.inhibit_p = 0  # 1 fixes UserPreferences, 0 fixes paragraph formatting for macros
 
         # check for arguments
         args = None
@@ -925,8 +911,8 @@ class Parser:
             # We should never get here
             import pprint
             raise Exception("Can't handle match " + repr(match)
-                + "\n" + pprint.pformat(match.groupdict())
-                + "\n" + pprint.pformat(match.groups()) )
+                            + "\n" + pprint.pformat(match.groupdict())
+                            + "\n" + pprint.pformat(match.groups()))
 
         return ""
 
@@ -1002,7 +988,7 @@ class Parser:
                 if not found:
                     self.in_processing_instructions = 0
                 else:
-                    continue # do not parse this line
+                    continue  # do not parse this line
             if self.in_pre:
                 # TODO: move this into function
                 # still looking for processing instructions
@@ -1042,8 +1028,8 @@ class Parser:
                     self.parser = None
 
                     # send rest of line through regex machinery
-                    line = line[endpos+3:]
-                    if not line.strip(): # just in the case "}}} " when we only have blanks left...
+                    line = line[endpos + 3:]
+                    if not line.strip():  # just in the case "}}} " when we only have blanks left...
                         continue
             else:
                 # we don't have \n as whitespace any more
@@ -1092,7 +1078,7 @@ class Parser:
                 # Table mode
                 # TODO: move into function?
                 if (not self.in_table and line[indlen:indlen + 2] == "||"
-                    and line.endswith("|| ") and len(line) >= 5 + indlen):
+                        and line.endswith("|| ") and len(line) >= 5 + indlen):
                     # Start table
                     if self.list_types and not self.in_li:
                         self.request.write(self.formatter.listitem(1, style="list-style-type:none"))
@@ -1104,15 +1090,15 @@ class Parser:
                     # paragraph should end before table, always!
                     if self.formatter.in_p:
                         self.request.write(self.formatter.paragraph(0))
-                    attrs, attrerr = self._getTableAttrs(line[indlen+2:])
+                    attrs, attrerr = self._getTableAttrs(line[indlen + 2:])
                     self.request.write(self.formatter.table(1, attrs) + attrerr)
-                    self.in_table = True # self.lineno
+                    self.in_table = True  # self.lineno
                 elif (self.in_table and not
-                      # intra-table comments should not break a table
-                      (line.startswith("##") or
-                       line[indlen:indlen + 2] == "||" and
-                       line.endswith("|| ") and
-                       len(line) >= 5 + indlen)):
+                # intra-table comments should not break a table
+                (line.startswith("##") or
+                 line[indlen:indlen + 2] == "||" and
+                 line.endswith("|| ") and
+                 len(line) >= 5 + indlen)):
 
                     # Close table
                     self.request.write(self.formatter.table(0))

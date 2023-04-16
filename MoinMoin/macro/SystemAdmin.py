@@ -1,4 +1,3 @@
-
 """
     MoinMoin - System Administration
 
@@ -8,10 +7,11 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from MoinMoin.userform import do_user_browser
 from MoinMoin.action.AttachFile import do_admin_browser
+from MoinMoin.userform import do_user_browser
 
 Dependencies = ["time"]
+
 
 def macro_SystemAdmin(macro):
     _ = macro.request.getText
@@ -38,7 +38,7 @@ def macro_SystemAdmin(macro):
             result.append(f.text(label))
             result.append(f.strong(0))
         else:
-            #result.append(wikiutil.link_tag(request, "%s?sysadm=%s" % (macro.formatter.page.page_name, id), label))
+            # result.append(wikiutil.link_tag(request, "%s?sysadm=%s" % (macro.formatter.page.page_name, id), label))
             result.append(f.page.link_to(request, label, querystr={'sysadm': fnid}))
         result.append(f.linebreak())
     result.append(f.linebreak())
@@ -48,4 +48,3 @@ def macro_SystemAdmin(macro):
         result.append(f.rawHTML(_MENU[choice][1](request)))
 
     return ''.join(result)
-

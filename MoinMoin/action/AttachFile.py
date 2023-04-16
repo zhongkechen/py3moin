@@ -106,13 +106,13 @@ def get_action(request, filename, do):
     return action
 
 
-def getAttachUrl(pagename, filename, request, addts=0, do='get'):
+def getAttachUrl(pagename, filename, context, addts=0, do='get'):
     """ Get URL that points to attachment `filename` of page `pagename`.
         For upload url, call with do='upload_form'.
         Returns the URL to do the specified "do" action or None,
         if this action is not supported.
     """
-    action = get_action(request, filename, do)
+    action = get_action(context, filename, do)
     if action:
         args = dict(action=action, do=do, target=filename)
         if do not in ['get', 'view',  # harmless
@@ -124,9 +124,9 @@ def getAttachUrl(pagename, filename, request, addts=0, do='get'):
             # with a macro AttachList) may not be the linked-to action, e.g.
             # "AttachFile". Also, AttachList can list attachments of another page,
             # thus we need to give pagename= also.
-            args['ticket'] = wikiutil.createTicket(request,
+            args['ticket'] = wikiutil.createTicket(context,
                                                    pagename=pagename, action=action_name)
-        url = request.request.href(pagename, **args)
+        url = context.request.href(pagename, **args)
         return url
 
 
@@ -372,27 +372,27 @@ def _addLogEntry(request, action, pagename, filename):
     log.add(request, t, 99999999, action, pagename, request.remote_addr, fname)
 
 
-def _access_file(pagename, request):
+def _access_file(pagename, context):
     """ Check form parameter `target` and return a tuple of
         `(pagename, filename, filepath)` for an existing attachment.
 
         Return `(pagename, None, None)` if an error occurs.
     """
-    _ = request.getText
+    _ = context.getText
 
     error = None
-    if not request.request.values.get('target'):
+    if not context.request.values.get('target'):
         error = _("Filename of attachment not specified!")
     else:
-        filename = wikiutil.taintfilename(request.request.values['target'])
-        fpath = getFilename(request, pagename, filename)
+        filename = wikiutil.taintfilename(context.request.values['target'])
+        fpath = getFilename(context, pagename, filename)
 
         if os.path.isfile(fpath):
-            return (pagename, filename, fpath)
+            return pagename, filename, fpath
         error = _("Attachment '%(filename)s' does not exist!") % {'filename': filename}
 
-    error_msg(pagename, request, error)
-    return (pagename, None, None)
+    error_msg(pagename, context, error)
+    return pagename, None, None
 
 
 def _build_filelist(request, pagename, showheader, readonly, mime_type='*', filterfn=None):
@@ -630,24 +630,24 @@ def send_link_rel(request, pagename):
             wikiutil.escape(url, 1)))
 
 
-def send_uploadform(pagename, request):
+def send_uploadform(pagename, context):
     """ Send the HTML code for the list of already stored attachments and
         the file upload form.
     """
-    _ = request.getText
+    _ = context.getText
 
-    if not request.user.may.read(pagename):
-        request.write('<p>%s</p>' % _('You are not allowed to view this page.'))
+    if not context.user.may.read(pagename):
+        context.write('<p>%s</p>' % _('You are not allowed to view this page.'))
         return
 
-    writeable = request.user.may.write(pagename)
+    writeable = context.user.may.write(pagename)
 
     # First send out the upload new attachment form on top of everything else.
     # This avoids usability issues if you have to scroll down a lot to upload
     # a new file when the page already has lots of attachments:
     if writeable:
-        request.write('<h2>' + _("New Attachment") + '</h2>')
-        request.write("""
+        context.write('<h2>' + _("New Attachment") + '</h2>')
+        context.write("""
 <form action="%(url)s" method="POST" enctype="multipart/form-data">
 <dl>
 <dt>%(upload_label_file)s</dt>
@@ -666,41 +666,41 @@ def send_uploadform(pagename, request):
 </p>
 </form>
 """ % {
-            'url': request.request.href(pagename),
+            'url': context.request.href(pagename),
             'action_name': action_name,
             'upload_label_file': _('File to upload'),
             'upload_label_target': _('Rename to'),
-            'target': wikiutil.escape(request.request.values.get('target', ''), 1),
+            'target': wikiutil.escape(context.request.values.get('target', ''), 1),
             'upload_label_overwrite': _('Overwrite existing attachment of same name'),
-            'overwrite_checked': ('', 'checked')[request.request.form.get('overwrite', '0') == '1'],
+            'overwrite_checked': ('', 'checked')[context.request.form.get('overwrite', '0') == '1'],
             'upload_button': _('Upload'),
-            'textcha': TextCha(request).render(),
-            'ticket': wikiutil.createTicket(request),
+            'textcha': TextCha(context).render(),
+            'ticket': wikiutil.createTicket(context),
         })
 
-    request.write('<h2>' + _("Attached Files") + '</h2>')
-    request.write(_get_filelist(request, pagename))
+    context.write('<h2>' + _("Attached Files") + '</h2>')
+    context.write(_get_filelist(context, pagename))
 
     if not writeable:
-        request.write('<p>%s</p>' % _('You are not allowed to attach a file to this page.'))
+        context.write('<p>%s</p>' % _('You are not allowed to attach a file to this page.'))
 
 
 #############################################################################
 ### Web interface for file upload, viewing and deletion
 #############################################################################
 
-def execute(pagename, request):
+def execute(pagename, context):
     """ Main dispatcher for the 'AttachFile' action. """
-    _ = request.getText
+    _ = context.getText
 
-    do = request.request.values.get('do', 'upload_form')
+    do = context.request.values.get('do', 'upload_form')
     handler = globals().get('_do_%s' % do)
     if handler:
-        msg = handler(pagename, request)
+        msg = handler(pagename, context)
     else:
         msg = _('Unsupported AttachFile sub-action: %s') % do
     if msg:
-        error_msg(pagename, request, msg)
+        error_msg(pagename, context, msg)
 
 
 def _do_upload_form(pagename, request):
@@ -723,21 +723,21 @@ def upload_form(pagename, request, msg=''):
     request.theme.send_closing_html()
 
 
-def _do_upload(pagename, request):
-    _ = request.getText
+def _do_upload(pagename, context):
+    _ = context.getText
 
-    if not wikiutil.checkTicket(request, request.request.form.get('ticket', '')):
+    if not wikiutil.checkTicket(context, context.request.form.get('ticket', '')):
         return _('Please use the interactive user interface to use action %(actionname)s!') % {
             'actionname': 'AttachFile.upload'}
 
     # Currently we only check TextCha for upload (this is what spammers ususally do),
     # but it could be extended to more/all attachment write access
-    if not TextCha(request).check_answer_from_form():
+    if not TextCha(context).check_answer_from_form():
         return _('TextCha: Wrong answer! Go back and try again...')
 
-    form = request.request.form
+    form = context.request.form
 
-    file_upload = request.request.files.get('file')
+    file_upload = context.request.files.get('file')
     if not file_upload:
         # This might happen when trying to upload file names
         # with non-ascii characters on Safari.
@@ -748,10 +748,10 @@ def _do_upload(pagename, request):
     except:
         overwrite = 0
 
-    if not request.user.may.write(pagename):
+    if not context.user.may.write(pagename):
         return _('You are not allowed to attach a file to this page.')
 
-    if overwrite and not request.user.may.delete(pagename):
+    if overwrite and not context.user.may.delete(pagename):
         return _('You are not allowed to overwrite a file attachment of this page.')
 
     target = form.get('target', u'').strip()
@@ -765,7 +765,7 @@ def _do_upload(pagename, request):
 
     # add the attachment
     try:
-        target, bytes = add_attachment(request, pagename, target, file_upload.stream, overwrite=overwrite)
+        target, bytes = add_attachment(context, pagename, target, file_upload.stream, overwrite=overwrite)
         msg = _("Attachment '%(target)s' (remote name '%(filename)s')"
                 " with %(bytes)d bytes saved.") % {
                   'target': target, 'filename': file_upload.filename, 'bytes': bytes}
@@ -774,7 +774,7 @@ def _do_upload(pagename, request):
             'target': target, 'filename': file_upload.filename}
 
     # return attachment list
-    upload_form(pagename, request, msg)
+    upload_form(pagename, context, msg)
 
 
 class ContainerItem:
@@ -1029,20 +1029,20 @@ def _do_box(pagename, request):
         request.send_file(ci.get(filename))
 
 
-def _do_get(pagename, request):
-    _ = request.getText
+def _do_get(pagename, context):
+    _ = context.getText
 
-    pagename, filename, fpath = _access_file(pagename, request)
-    if not request.user.may.read(pagename):
+    pagename, filename, fpath = _access_file(pagename, context)
+    if not context.user.may.read(pagename):
         return _('You are not allowed to get attachments from this page.')
     if not filename:
-        request.status_code = 404
+        context.status_code = 404
         return  # error msg already sent in _access_file
 
     timestamp = datetime.datetime.utcfromtimestamp(os.path.getmtime(fpath))
-    if_modified = request.request.if_modified_since
+    if_modified = context.request.if_modified_since
     if if_modified and if_modified >= timestamp:
-        request.response.status_code = 304
+        context.response.status_code = 304
     else:
         mt = wikiutil.MimeType(filename=filename)
         content_type = mt.content_type()
@@ -1055,20 +1055,20 @@ def _do_get(pagename, request):
         # for dangerous files (like .html), when we are in danger of cross-site-scripting attacks,
         # we just let the user store them to disk ('attachment').
         # For safe files, we directly show them inline (this also works better for IE).
-        dangerous = mime_type in request.cfg.mimetypes_xss_protect
+        dangerous = mime_type in context.cfg.mimetypes_xss_protect
         content_dispo = dangerous and 'attachment' or 'inline'
 
         now = time.time()
-        request.response.headers['Date'] = http_date(now)
-        request.response.headers['Content-Type'] = content_type
-        request.response.headers['Last-Modified'] = http_date(timestamp)
-        request.response.headers['Expires'] = http_date(now - 365 * 24 * 3600)
-        request.response.headers['Content-Length'] = os.path.getsize(fpath)
+        context.response.headers['Date'] = http_date(now)
+        context.response.headers['Content-Type'] = content_type
+        context.response.headers['Last-Modified'] = http_date(timestamp)
+        context.response.headers['Expires'] = http_date(now - 365 * 24 * 3600)
+        context.response.headers['Content-Length'] = os.path.getsize(fpath)
         content_dispo_string = '%s; filename="%s"' % (content_dispo, filename_enc)
-        request.response.headers['Content-Disposition'] = content_dispo_string
+        context.response.headers['Content-Disposition'] = content_dispo_string
 
         # send data
-        request.send_file(open(fpath, 'rb'))
+        context.send_file(open(fpath, 'rb'))
 
 
 def _do_install(pagename, request):

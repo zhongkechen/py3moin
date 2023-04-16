@@ -7,14 +7,14 @@
 """
 import pytest
 
-from MoinMoin.web.request import TestRequest, evaluate_request
 from MoinMoin import wsgiapp
+from MoinMoin.web.request import TestRequest, evaluate_request
 from tests._tests import wikiconfig
 
 
 class AuthTest:
     """ test misc. auth methods """
-    PAGES = ['FrontPage', 'MoinMoin', 'HelpContents', 'WikiSandBox', ] # must all exist!
+    PAGES = ['FrontPage', 'MoinMoin', 'HelpContents', 'WikiSandBox', ]  # must all exist!
 
     def setup_class(cls):
         """ Stuff that should be run to init the state of this test class
@@ -29,7 +29,7 @@ class AuthTest:
 
     def run_request(self, **params):
         request = TestRequest(**params)
-        #XXX: config passing hack
+        # XXX: config passing hack
         request.given_config = getattr(self, 'Config', wikiconfig.Config)
         context = wsgiapp.init(request)
         wsgiapp.run(context)
@@ -64,8 +64,9 @@ class TestNoAuth(AuthTest):
         assert has_ct
         assert has_v
         # XXX BROKEN?:
-        #assert has_cc # cache anon user's content
+        # assert has_cc # cache anon user's content
         assert '</html>' in ''.join(appiter)
+
 
 class TestAnonSession(AuthTest):
     class Config(wikiconfig.Config):
@@ -78,16 +79,15 @@ class TestAnonSession(AuthTest):
         first = True
         for pagename in self.PAGES:
             environ_overrides = {'HTTP_COOKIE': cookie}
-            request = self.run_request(path='/%s' % pagename,
-                                       environ_overrides=environ_overrides)
+            context = self.run_request(path='/%s' % pagename, environ_overrides=environ_overrides)
 
             # anon user?
-            assert not request.user.valid
+            assert not context.user.valid
 
             # Do we have a session?
-            assert request.session is not None
+            assert context.session is not None
 
-            appiter, status, headers = evaluate_request(request.request)
+            appiter, status, headers = evaluate_request(context.request)
             # check if the request resulted in normal status, result headers and content
             assert status[:3] == '200'
             has_ct = has_v = has_cc = False
@@ -108,7 +108,7 @@ class TestAnonSession(AuthTest):
             assert has_ct
             assert has_v
             # XX BROKEN
-            #assert not has_cc # do not cache anon user's (with session!) content
+            # assert not has_cc # do not cache anon user's (with session!) content
             assert '</html>' in ''.join(appiter)
 
             # The trail is only ever saved on the second page display
@@ -120,19 +120,23 @@ class TestAnonSession(AuthTest):
                 first = False
                 continue
 
-            assert not request.session.is_new
+            assert not context.session.is_new
 
             trail_expected.append(str(pagename))
 
             # Requested pagenames get into trail?
-            assert 'trail' in request.session
-            trail = request.session['trail']
+            assert 'trail' in context.session
+            trail = context.session['trail']
             assert trail == trail_expected
 
+
 class TestHttpAuthSession(AuthTest):
-    pytest.skip("We currently have no http auth code in moin. GivenAuth relies on the web server doing the http auth check.", allow_module_level=True)
+    pytest.skip(
+        "We currently have no http auth code in moin. GivenAuth relies on the web server doing the http auth check.",
+        allow_module_level=True)
+
     class Config(wikiconfig.Config):
-        from MoinMoin.auth.http import HttpAuth # does not exist (yet?)
+        from MoinMoin.auth.http import HttpAuth  # does not exist (yet?)
         auth = [HttpAuth(autocreate=True)]
 
     def testHttpAuthSession(self):
@@ -146,21 +150,20 @@ class TestHttpAuthSession(AuthTest):
         for pagename in self.PAGES:
             environ_overrides = {'HTTP_COOKIE': cookie,
                                  'HTTP_AUTHORIZATION': auth_header}
-            request = self.run_request(path='/%s' % pagename,
-                                       environ_overrides=environ_overrides)
+            context = self.run_request(path='/%s' % pagename, environ_overrides=environ_overrides)
 
             # Login worked?
-            assert request.user.valid
-            assert request.user.name == username
+            assert context.user.valid
+            assert context.user.name == username
 
             # Do we have a session?
-            assert request.session is not None
+            assert context.session is not None
 
-            appiter, status, headers = evaluate_request(request.request)
+            appiter, status, headers = evaluate_request(context.request)
             # check if the request resulted in normal status, result headers and content
             assert status[:3] == '200'
             has_ct = has_v = has_cc = False
-            for k, v in request.headers:
+            for k, v in context.headers:
                 if k == 'Content-Type':
                     assert v.startswith('text/html')
                     has_ct = True
@@ -176,7 +179,7 @@ class TestHttpAuthSession(AuthTest):
                     cookie = v
             assert has_ct
             assert has_v
-            assert has_cc # do not cache logged-in user's content
+            assert has_cc  # do not cache logged-in user's content
             assert '</html>' in ''.join(appiter)
 
             # The trail is only ever saved on the second page display
@@ -191,9 +194,10 @@ class TestHttpAuthSession(AuthTest):
             trail_expected.append(str(pagename))
 
             # Requested pagenames get into trail?
-            assert 'trail' in request.session
-            trail = request.session['trail']
+            assert 'trail' in context.session
+            trail = context.session['trail']
             assert trail == trail_expected
+
 
 class TestMoinAuthSession(AuthTest):
     class Config(wikiconfig.Config):
@@ -205,7 +209,7 @@ class TestMoinAuthSession(AuthTest):
         from MoinMoin.user import User
         username = u'MoinAuthTestUser'
         password = u'ßecretß'
-        User(self.request, name=username, password=password).save() # create user
+        User(self.request, name=username, password=password).save()  # create user
         trail_expected = []
         first = True
         for pagename in self.PAGES:
@@ -215,26 +219,26 @@ class TestMoinAuthSession(AuthTest):
                     'password': password,
                     'login': 'login',
                 }
-                request = self.run_request(path='/%s' % pagename,
+                context = self.run_request(path='/%s' % pagename,
                                            query_string='login=login',
                                            method='POST', form_data=formdata)
-            else: # not first page, use session cookie
+            else:  # not first page, use session cookie
                 environ_overrides = {'HTTP_COOKIE': cookie}
-                request = self.run_request(path='/%s' % pagename,
+                context = self.run_request(path='/%s' % pagename,
                                            environ_overrides=environ_overrides)
 
             # Login worked?
-            assert request.user.valid
-            assert request.user.name == username
+            assert context.user.valid
+            assert context.user.name == username
 
             # Do we have a session?
-            assert request.session is not None
+            assert context.session is not None
 
-            appiter, status, headers = evaluate_request(request.request)
+            appiter, status, headers = evaluate_request(context.request)
             # check if the request resulted in normal status, result headers and content
             assert status[:3] == '200'
             has_ct = has_v = has_cc = False
-            for k, v in request.headers:
+            for k, v in context.headers:
                 if k == 'Content-Type':
                     assert v.startswith('text/html')
                     has_ct = True
@@ -250,7 +254,7 @@ class TestMoinAuthSession(AuthTest):
                     cookie = v
             assert has_ct
             assert has_v
-            assert has_cc # do not cache logged-in user's content
+            assert has_cc  # do not cache logged-in user's content
             assert '</html>' in ''.join(appiter)
 
             # The trail is only ever saved on the second page display
@@ -265,7 +269,6 @@ class TestMoinAuthSession(AuthTest):
             trail_expected.append(str(pagename))
 
             # Requested pagenames get into trail?
-            assert 'trail' in request.session
-            trail = request.session['trail']
+            assert 'trail' in context.session
+            trail = context.session['trail']
             assert trail == trail_expected
-

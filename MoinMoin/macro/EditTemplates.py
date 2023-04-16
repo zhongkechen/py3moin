@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Create a list of currentpage?action=edit&template=X links
     for all available templates X. Used by MissingPage.
@@ -8,6 +7,7 @@
 """
 
 Dependencies = ["language"]
+
 
 def macro_EditTemplates(macro):
     result = ''
@@ -29,4 +29,3 @@ def macro_EditTemplates(macro):
             result.append(macro.formatter.bullet_list(0))
         result = ''.join(result)
     return result
-

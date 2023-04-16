@@ -1,4 +1,3 @@
-
 """
 MoinMoin - build xapian search engine's index
 
@@ -69,7 +68,8 @@ General syntax: moin [options] index build [build-options]
         )
         self.parser.add_option(
             "--mode", metavar="MODE", dest="mode",
-            help="either add (unconditionally add), update (conditional update), rebuild (complete 1-stage index rebuild)"
+            help="either add (unconditionally add), update (conditional update), "
+                 "rebuild (complete 1-stage index rebuild)"
                  " or buildnewindex and usenewindex (complete 2-stage index rebuild)"
         )
         self.parser.add_option(
@@ -132,7 +132,6 @@ class PluginScript(IndexScript):
             try:
                 shutil.rmtree(idx_old)
             except OSError as err:
-                if err.errno != errno.ENOENT: # ignore it if we have no current index
+                if err.errno != errno.ENOENT:  # ignore it if we have no current index
                     raise
             os.rename(idx_new, idx_old)
-

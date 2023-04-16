@@ -1,4 +1,3 @@
-
 """
     MoinMoin - C/C++ Source Parser
 
@@ -20,6 +19,7 @@
 
 from MoinMoin.parser.highlight import Parser as HighlightParser
 from MoinMoin.parser.highlight import Dependencies
+
 
 class Parser(HighlightParser):
     parsername = 'cpp'  # Lexer name pygments recognizes

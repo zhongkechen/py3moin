@@ -12,15 +12,15 @@ from MoinMoin import wikiutil
 from MoinMoin.Page import Page
 
 
-def execute(pagename, request):
+def execute(pagename, context):
     """ set bookmarks (in time) for RecentChanges or delete them """
-    _ = request.getText
-    if not request.user.valid:
+    _ = context.getText
+    if not context.user.valid:
         actname = __name__.split('.')[-1]
-        request.theme.add_msg(_("You must login to use this action: %(action)s.") % {"action": actname}, "error")
-        return Page(request, pagename).send_page()
+        context.theme.add_msg(_("You must login to use this action: %(action)s.") % {"action": actname}, "error")
+        return Page(context, pagename).send_page()
 
-    timestamp = request.request.values.get('time')
+    timestamp = context.request.values.get('time')
     if timestamp is not None:
         if timestamp == 'del':
             tm = None
@@ -33,7 +33,7 @@ def execute(pagename, request):
         tm = wikiutil.timestamp2version(time.time())
 
     if tm is None:
-        request.user.delBookmark()
+        context.user.delBookmark()
     else:
-        request.user.setBookmark(tm)
-    request.page.send_page()
+        context.user.setBookmark(tm)
+    context.page.send_page()

@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Load I18N Text and substitute data.
 
@@ -14,6 +13,7 @@
 from MoinMoin.packages import unpackLine
 
 Dependencies = ["language"]
+
 
 def execute(macro, args):
     """ args consists of a character specifiying the separator and then a
@@ -34,4 +34,3 @@ def execute(macro, args):
                 # % operator will raise TypeError if msg has named placeholders
                 msg = msg % dict([arg.split('=', 1) for arg in args if '=' in arg])
     return macro.formatter.text(msg)
-

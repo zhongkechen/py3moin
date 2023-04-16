@@ -22,6 +22,7 @@ class TestSimpleStuff:
 
     See http://codespeak.net/py/dist/test.html for reference.
     """
+
     def testSimplest(self):
         """ module_tested: test description...
 
@@ -43,7 +44,7 @@ class TestComplexStuff:
     """
     _tests = (
         # description,  test,            expected
-        ('Line break',  '<<BR>>',        '<br>'),
+        ('Line break', '<<BR>>', '<br>'),
     )
 
     from tests._tests import wikiconfig
@@ -73,4 +74,3 @@ class TestComplexStuff:
         module_tested.do_that()
         result = None
         return result
-

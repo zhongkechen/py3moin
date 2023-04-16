@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Creole wiki markup parser
 
@@ -21,20 +20,19 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
-
-
-import re
 import io
-from MoinMoin import config, wikiutil
-from MoinMoin.macro import Macro
+import re
+
 from MoinMoin import config
+from MoinMoin import wikiutil
+from MoinMoin.macro import Macro
 from ._creole import Parser as CreoleParser
 from ._creole import Rules as CreoleRules
 
 Dependencies = []
 
 _ = lambda x: x
+
 
 class Parser:
     """
@@ -75,6 +73,7 @@ class Parser:
                          self.rules).emit()
         self.request.write(result)
 
+
 class MoinRules(CreoleRules):
     # For the link targets:
     proto = r'http|https|ftp|nntp|news|mailto|telnet|file|irc'
@@ -95,6 +94,7 @@ class MoinRules(CreoleRules):
         self.addr_re = re.compile('|'.join([self.extern, self.attach,
                                             self.interwiki, self.page]),
                                   re.X | re.U)
+
 
 class Emitter:
     """
@@ -157,29 +157,29 @@ class Emitter:
             self.formatter.listitem(0),
         ])
 
-# Not used
-#    def definition_list_emit(self, node):
-#        return ''.join([
-#            self.formatter.definition_list(1),
-#            self.emit_children(node),
-#            self.formatter.definition_list(0),
-#        ])
+    # Not used
+    #    def definition_list_emit(self, node):
+    #        return ''.join([
+    #            self.formatter.definition_list(1),
+    #            self.emit_children(node),
+    #            self.formatter.definition_list(0),
+    #        ])
 
-# Not used
-#    def term_emit(self, node):
-#        return ''.join([
-#            self.formatter.definition_term(1),
-#            self.emit_children(node),
-#            self.formatter.definition_term(0),
-#        ])
+    # Not used
+    #    def term_emit(self, node):
+    #        return ''.join([
+    #            self.formatter.definition_term(1),
+    #            self.emit_children(node),
+    #            self.formatter.definition_term(0),
+    #        ])
 
-# Not used
-#    def definition_emit(self, node):
-#        return ''.join([
-#            self.formatter.definition_desc(1),
-#            self.emit_children(node),
-#            self.formatter.definition_desc(0),
-#        ])
+    # Not used
+    #    def definition_emit(self, node):
+    #        return ''.join([
+    #            self.formatter.definition_desc(1),
+    #            self.emit_children(node),
+    #            self.formatter.definition_desc(0),
+    #        ])
 
     def table_emit(self, node):
         return ''.join([
@@ -216,13 +216,13 @@ class Emitter:
             self.formatter.emphasis(0),
         ])
 
-# Not used
-#    def quote_emit(self, node):
-#        return ''.join([
-#            self.formatter.rawHTML('<q>'),
-#            self.emit_children(node),
-#            self.formatter.rawHTML('</q>'),
-#        ])
+    # Not used
+    #    def quote_emit(self, node):
+    #        return ''.join([
+    #            self.formatter.rawHTML('<q>'),
+    #            self.emit_children(node),
+    #            self.formatter.rawHTML('</q>'),
+    #        ])
 
     def strong_emit(self, node):
         return ''.join([
@@ -231,9 +231,9 @@ class Emitter:
             self.formatter.strong(0),
         ])
 
-# Not used
-#    def smiley_emit(self, node):
-#        return self.formatter.smiley(node.content)
+    # Not used
+    #    def smiley_emit(self, node):
+    #        return self.formatter.smiley(node.content)
 
     def header_emit(self, node):
         text = self.get_text(node)
@@ -244,26 +244,26 @@ class Emitter:
         ])
 
     def code_emit(self, node):
-# XXX The current formatter will replace all spaces with &nbsp;, so we need
-# to use rawHTML instead, until that is fixed.
-#        return ''.join([
-#            self.formatter.code(1),
-#            self.formatter.text(node.content or ''),
-#            self.formatter.code(0),
-#        ])
+        # XXX The current formatter will replace all spaces with &nbsp;, so we need
+        # to use rawHTML instead, until that is fixed.
+        #        return ''.join([
+        #            self.formatter.code(1),
+        #            self.formatter.text(node.content or ''),
+        #            self.formatter.code(0),
+        #        ])
         return ''.join([
             self.formatter.rawHTML('<tt>'),
             self.formatter.text(node.content or ''),
             self.formatter.rawHTML('</tt>'),
         ])
 
-# Not used
-#    def abbr_emit(self, node):
-#        return ''.join([
-#            self.formatter.rawHTML('<abbr title="%s">' % node.title),
-#            self.formatter.text(node.content or ''),
-#            self.formatter.rawHTML('</abbr>'),
-#        ])
+    # Not used
+    #    def abbr_emit(self, node):
+    #        return ''.join([
+    #            self.formatter.rawHTML('<abbr title="%s">' % node.title),
+    #            self.formatter.text(node.content or ''),
+    #            self.formatter.rawHTML('</abbr>'),
+    #        ])
 
     def link_emit(self, node):
         target = node.content
@@ -276,7 +276,7 @@ class Emitter:
                     word = word[wikiutil.PARENT_PREFIX_LEN:]
                 elif word.startswith(wikiutil.CHILD_PREFIX):
                     word = "%s/%s" % (self.formatter.page.page_name,
-                        word[wikiutil.CHILD_PREFIX_LEN:])
+                                      word[wikiutil.CHILD_PREFIX_LEN:])
                 word, anchor = wikiutil.split_anchor(word)
                 return ''.join([
                     self.formatter.pagelink(1, word, anchor=anchor),
@@ -309,19 +309,19 @@ class Emitter:
                 url = wikiutil.url_unquote(attachment)
                 text = self.get_text(node)
                 return ''.join([
-                        self.formatter.attachment_link(1, url),
-                        self.formatter.text(text),
-                        self.formatter.attachment_link(0)
-                    ])
+                    self.formatter.attachment_link(1, url),
+                    self.formatter.text(text),
+                    self.formatter.attachment_link(0)
+                ])
         return "".join(["[[", self.formatter.text(target), "]]"])
 
-# Not used
-#    def anchor_link_emit(self, node):
-#        return ''.join([
-#            self.formatter.url(1, node.content, css='anchor'),
-#            self.emit_children(node),
-#            self.formatter.url(0),
-#        ])
+    # Not used
+    #    def anchor_link_emit(self, node):
+    #        return ''.join([
+    #            self.formatter.url(1, node.content, css='anchor'),
+    #            self.emit_children(node),
+    #            self.formatter.url(0),
+    #        ])
 
     def image_emit(self, node):
         target = node.content
@@ -359,58 +359,58 @@ class Emitter:
             elif m.group('inter_wiki'):
                 # interwiki link
                 pass
-#        return "".join(["{{", self.formatter.text(target), "}}"])
+        #        return "".join(["{{", self.formatter.text(target), "}}"])
         url = wikiutil.url_unquote(node.content)
         return self.formatter.attachment_inlined(url, text)
 
-# Not used
-#    def drawing_emit(self, node):
-#        url = wikiutil.url_unquote(node.content)
-#        text = self.get_text(node)
-#        return self.formatter.attachment_drawing(url, text)
+    # Not used
+    #    def drawing_emit(self, node):
+    #        url = wikiutil.url_unquote(node.content)
+    #        text = self.get_text(node)
+    #        return self.formatter.attachment_drawing(url, text)
 
-# Not used
-#    def figure_emit(self, node):
-#        text = self.get_text(node)
-#        url = wikiutil.url_unquote(node.content)
-#        return ''.join([
-#            self.formatter.rawHTML('<div class="figure">'),
-#            self.get_image(url, text), self.emit_children(node),
-#            self.formatter.rawHTML('</div>'),
-#        ])
+    # Not used
+    #    def figure_emit(self, node):
+    #        text = self.get_text(node)
+    #        url = wikiutil.url_unquote(node.content)
+    #        return ''.join([
+    #            self.formatter.rawHTML('<div class="figure">'),
+    #            self.get_image(url, text), self.emit_children(node),
+    #            self.formatter.rawHTML('</div>'),
+    #        ])
 
-# Not used
-#    def bad_link_emit(self, node):
-#        return self.formatter.text(''.join([
-#            '[[',
-#            node.content or '',
-#            ']]',
-#        ]))
+    # Not used
+    #    def bad_link_emit(self, node):
+    #        return self.formatter.text(''.join([
+    #            '[[',
+    #            node.content or '',
+    #            ']]',
+    #        ]))
 
     def macro_emit(self, node):
         macro_name = node.content
         args = node.args
         return self.formatter.macro(self.macro, macro_name, args)
 
-# Not used
-#    def section_emit(self, node):
-#        return ''.join([
-#            self.formatter.rawHTML(
-#                '<div class="%s" style="%s">' % (node.sect, node.style)),
-#            self.emit_children(node),
-#            self.formatter.rawHTML('</div>'),
-#        ])
+    # Not used
+    #    def section_emit(self, node):
+    #        return ''.join([
+    #            self.formatter.rawHTML(
+    #                '<div class="%s" style="%s">' % (node.sect, node.style)),
+    #            self.emit_children(node),
+    #            self.formatter.rawHTML('</div>'),
+    #        ])
 
     def break_emit(self, node):
         return self.formatter.linebreak(preformatted=0)
 
-# Not used
-#    def blockquote_emit(self, node):
-#        return ''.join([
-#            self.formatter.rawHTML('<blockquote>'),
-#            self.emit_children(node),
-#            self.formatter.rawHTML('</blockquote>'),
-#        ])
+    # Not used
+    #    def blockquote_emit(self, node):
+    #        return ''.join([
+    #            self.formatter.rawHTML('<blockquote>'),
+    #            self.emit_children(node),
+    #            self.formatter.rawHTML('</blockquote>'),
+    #        ])
 
     def preformatted_emit(self, node):
         parser_name = getattr(node, 'sect', '')
@@ -471,5 +471,6 @@ class Emitter:
         # restore 'smart' formatting if it was set
         self.formatter.no_magic = magic_save
         return output
+
 
 del _

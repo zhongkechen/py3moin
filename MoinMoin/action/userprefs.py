@@ -10,25 +10,25 @@ from MoinMoin import Page, wikiutil
 from MoinMoin.widget import html
 
 
-def _handle_submission(request):
+def _handle_submission(context):
     """ Handle GET and POST requests of preferences forms.
 
     Return error msg_class, msg tuple or None, None.
     """
-    _ = request.getText
-    sub = request.request.values.get('handler')
+    _ = context.getText
+    sub = context.request.values.get('handler')
 
-    if sub in request.cfg.userprefs_disabled:
+    if sub in context.cfg.userprefs_disabled:
         return None, None
 
     try:
-        cls = wikiutil.importPlugin(request.cfg, 'userprefs', sub, 'Settings')
+        cls = wikiutil.importPlugin(context.cfg, 'userprefs', sub, 'Settings')
     except wikiutil.PluginMissingError:
         # we never show this plugin to click on so no need to
         # give a message here
         return None, None
 
-    obj = cls(request)
+    obj = cls(context)
     if not obj.allowed():
         return None, None
     res = obj.handle_form()
@@ -60,28 +60,28 @@ def _create_prefs_page(request, sel=None):
     return str(ret)
 
 
-def _create_page(request, cancel=False):
+def _create_page(context, cancel=False):
     # returns text, title, msg_class, msg
-    pagename = request.page.page_name
+    pagename = context.page.page_name
 
-    if 'handler' in request.request.values:
-        msg_class, msg = _handle_submission(request)
+    if 'handler' in context.request.values:
+        msg_class, msg = _handle_submission(context)
     else:
         msg_class, msg = None, None
 
-    sub = request.request.args.get('sub', '')
+    sub = context.request.args.get('sub', '')
     cls = None
-    if sub and sub not in request.cfg.userprefs_disabled:
+    if sub and sub not in context.cfg.userprefs_disabled:
         try:
-            cls = wikiutil.importPlugin(request.cfg, 'userprefs', sub, 'Settings')
+            cls = wikiutil.importPlugin(context.cfg, 'userprefs', sub, 'Settings')
         except wikiutil.PluginMissingError:
             # cls is already None
             pass
 
-    obj = cls and cls(request)
+    obj = cls and cls(context)
 
     if not obj or not obj.allowed():
-        return _create_prefs_page(request), None, msg_class, msg
+        return _create_prefs_page(context), None, msg_class, msg
 
     return obj.create_form(), obj.title, msg_class, msg
 

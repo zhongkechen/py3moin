@@ -21,6 +21,7 @@
 from MoinMoin.parser.highlight import Parser as HighlightParser
 from MoinMoin.parser.highlight import Dependencies
 
+
 class Parser(HighlightParser):
     parsername = 'diff'  # Lexer name pygments recognizes
     extensions = [] # this is only a compatibility wrapper, we have declared

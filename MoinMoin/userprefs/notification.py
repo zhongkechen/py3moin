@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Notification preferences
 
@@ -9,8 +8,8 @@
 """
 
 from MoinMoin import events, wikiutil
-from MoinMoin.widget import html
 from MoinMoin.userprefs import UserPrefBase
+from MoinMoin.widget import html
 
 
 class Settings(UserPrefBase):
@@ -71,22 +70,21 @@ class Settings(UserPrefBase):
 
         return 'info', _("Notification settings saved!")
 
-
     def handle_form(self):
         _ = self._
-        request = self.request
-        form = request.request.form
+        context = self.request
+        form = context.request.form
 
         if 'cancel' in form:
             return
 
-        if request.request.method != 'POST':
+        if context.request.method != 'POST':
             return
 
-        if not wikiutil.checkTicket(request, form.get('ticket', '')):
+        if not wikiutil.checkTicket(context, form.get('ticket', '')):
             return
 
-        if 'save' in form: # Save user profile
+        if 'save' in form:  # Save user profile
             return self._save_notification_settings()
 
     # form generation part
@@ -127,9 +125,9 @@ class Settings(UserPrefBase):
                 checked = evname in getattr(self.request.user,
                                             '%s_subscribed_events' % notiftype)
                 tr.append(html.TD().append(html.INPUT(
-                        type='checkbox',
-                        checked=checked,
-                        name='subscribe:%s:%s' % (notiftype, evname))))
+                    type='checkbox',
+                    checked=checked,
+                    name='subscribe:%s:%s' % (notiftype, evname))))
             tr.append(html.TD().append(html.Raw(self.request.getText(evdescr))))
 
         return table
@@ -147,7 +145,7 @@ class Settings(UserPrefBase):
         self._form.append(html.INPUT(type="hidden", name="ticket", value="%s" % ticket))
 
         if (not (self.cfg.mail_enabled and self.request.user.email)
-            and not (self.cfg.jabber_enabled and self.request.user.jid)):
+                and not (self.cfg.jabber_enabled and self.request.user.jid)):
             self.make_row('', [html.Text(
                 _("Before you can be notified, you need to provide a way"
                   " to contact you in the general preferences."))])
@@ -179,4 +177,4 @@ class Settings(UserPrefBase):
 
     def allowed(self):
         return UserPrefBase.allowed(self) and (
-            self.cfg.mail_enabled or self.cfg.jabber_enabled)
+                self.cfg.mail_enabled or self.cfg.jabber_enabled)

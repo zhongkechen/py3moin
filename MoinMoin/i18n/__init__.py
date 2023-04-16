@@ -285,7 +285,7 @@ def getText(original, request, lang, **kw):
         return u""  # we don't want to get *.po files metadata!
 
     global translations
-    if not lang in translations:  # load translation if needed
+    if lang not in translations:  # load translation if needed
         t = Translation(lang)
         t.loadLanguage(request)
         translations[lang] = t

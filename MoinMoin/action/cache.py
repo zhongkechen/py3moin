@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Send a raw object from the caching system (and offer utility
     functions to put data into cache, calculate cache key, etc.).
@@ -49,6 +48,7 @@ cache_arena = 'sendcache'  # just using action_name is maybe rather confusing
 cache_scope = 'wiki'
 
 do_locking = False
+
 
 def key(request, wikiname=None, itemname=None, attachname=None, content=None, secret=None):
     """
@@ -152,7 +152,7 @@ def put(request, key, data,
     if content_type is None:
         content_type = 'application/octet-stream'
 
-    data_cache = caching.CacheEntry(request, cache_arena, key+'.data', cache_scope, do_locking=do_locking)
+    data_cache = caching.CacheEntry(request, cache_arena, key + '.data', cache_scope, do_locking=do_locking)
     data_cache.update(data)
     content_length = content_length or data_cache.size()
     last_modified = last_modified or data_cache.mtime()
@@ -161,14 +161,15 @@ def put(request, key, data,
     headers = [('Content-Type', content_type),
                ('Last-Modified', httpdate_last_modified),
                ('Content-Length', content_length),
-              ]
+               ]
     if content_disposition and filename:
         # TODO: fix the encoding here, plain 8 bit is not allowed according to the RFCs
         # There is no solution that is compatible to IE except stripping non-ascii chars
         filename = filename.encode(config.charset)
         headers.append(('Content-Disposition', '%s; filename="%s"' % (content_disposition, filename)))
 
-    meta_cache = caching.CacheEntry(request, cache_arena, key+'.meta', cache_scope, do_locking=do_locking, use_pickle=True)
+    meta_cache = caching.CacheEntry(request, cache_arena, key + '.meta', cache_scope, do_locking=do_locking,
+                                    use_pickle=True)
     meta_cache.update({
         'httpdate_last_modified': httpdate_last_modified,
         'last_modified': last_modified,
@@ -187,12 +188,13 @@ def exists(request, key, strict=False):
     @return: is object cached? (bool)
     """
     if strict:
-        data_cache = caching.CacheEntry(request, cache_arena, key+'.data', cache_scope, do_locking=do_locking)
+        data_cache = caching.CacheEntry(request, cache_arena, key + '.data', cache_scope, do_locking=do_locking)
         data_cached = data_cache.exists()
     else:
         data_cached = True  # we assume data will be there if meta is there
 
-    meta_cache = caching.CacheEntry(request, cache_arena, key+'.meta', cache_scope, do_locking=do_locking, use_pickle=True)
+    meta_cache = caching.CacheEntry(request, cache_arena, key + '.meta', cache_scope, do_locking=do_locking,
+                                    use_pickle=True)
     meta_cached = meta_cache.exists()
 
     return meta_cached and data_cached
@@ -200,9 +202,10 @@ def exists(request, key, strict=False):
 
 def remove(request, key):
     """ delete headers/data cache for key """
-    meta_cache = caching.CacheEntry(request, cache_arena, key+'.meta', cache_scope, do_locking=do_locking, use_pickle=True)
+    meta_cache = caching.CacheEntry(request, cache_arena, key + '.meta', cache_scope, do_locking=do_locking,
+                                    use_pickle=True)
     meta_cache.remove()
-    data_cache = caching.CacheEntry(request, cache_arena, key+'.data', cache_scope, do_locking=do_locking)
+    data_cache = caching.CacheEntry(request, cache_arena, key + '.data', cache_scope, do_locking=do_locking)
     data_cache.remove()
 
 
@@ -210,16 +213,18 @@ def url(request, key, do='get'):
     """ return URL for the object cached for key """
     return request.href(action=action_name, do=do, key=key)
 
+
 def _get_headers(request, key):
     """ get last_modified and headers cached for key """
-    meta_cache = caching.CacheEntry(request, cache_arena, key+'.meta', cache_scope, do_locking=do_locking, use_pickle=True)
+    meta_cache = caching.CacheEntry(request, cache_arena, key + '.meta', cache_scope, do_locking=do_locking,
+                                    use_pickle=True)
     meta = meta_cache.content()
     return meta['last_modified'], meta['headers']
 
 
 def _get_datafile(request, key):
     """ get an open data file for the data cached for key """
-    data_cache = caching.CacheEntry(request, cache_arena, key+'.data', cache_scope, do_locking=do_locking)
+    data_cache = caching.CacheEntry(request, cache_arena, key + '.data', cache_scope, do_locking=do_locking)
     data_cache.open(mode='r')
     return data_cache
 
@@ -254,4 +259,3 @@ def execute(pagename, request):
         _do_remove(request, key)
     else:
         request.status_code = 404
-

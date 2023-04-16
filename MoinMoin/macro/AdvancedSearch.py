@@ -6,13 +6,13 @@
 
     @license: GNU GPL, see COPYING for details.
 """
+import mimetypes
 import sys
 
 from MoinMoin import wikiutil
 from MoinMoin.i18n import languages
-from MoinMoin.widget import html
 from MoinMoin.util.web import makeSelection
-import mimetypes
+from MoinMoin.widget import html
 
 Dependencies = ['pages']
 
@@ -38,15 +38,15 @@ def getCategories(request):
     return pages
 
 
-def form_get(request, name, default='', escaped=False):
+def form_get(context, name, default='', escaped=False):
     """ Fetches a form field
 
-    @param request: current request
+    @param context: current request
     @param name: name of the field
     @param default: value if not present (default: '')
     @param escaped: if True, escape value so it can be used for html generation (default: False)
     """
-    value = request.request.values.get(name, default)
+    value = context.request.values.get(name, default)
     if escaped:
         value = wikiutil.escape(value, quote=True)
     return value

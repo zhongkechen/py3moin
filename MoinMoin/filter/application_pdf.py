@@ -1,4 +1,3 @@
-
 """
     MoinMoin - PDF filter
 
@@ -12,10 +11,10 @@
 
 from MoinMoin.filter import execfilter
 
+
 def execute(indexobj, filename):
     # using -q switch to get quiet operation (no messages, no errors),
     # because poppler-utils pdftotext on Debian/Etch otherwise generates
     # lots of output on stderr (e.g. 10MB stderr output) and that causes
     # problems in current execfilter implementation.
     return execfilter("pdftotext -q -enc UTF-8 %s -", filename)
-

@@ -764,8 +764,8 @@ class Formatter(FormatterBase):
 
         # read in the complete log of this page
         for line in log.reverse():
-            if not line.action in ('SAVE', 'SAVENEW', 'SAVE/REVERT', 'SAVE/RENAME', ):
-                #Let's ignore adding of attachments
+            if line.action not in ('SAVE', 'SAVENEW', 'SAVE/REVERT', 'SAVE/RENAME', ):
+                # Let's ignore adding of attachments
                 continue
             revision = self.doc.createElement("revision")
 
@@ -778,7 +778,7 @@ class Formatter(FormatterBase):
             self._addTextElem(revision, "date", date_text)
 
             # Author or revision
-            if not (line.userid in user_cache):
+            if line.userid not in user_cache:
                 user_cache[line.userid] = user.User(self.request, line.userid, auth_method="text_docbook:740")
             author = user_cache[line.userid]
             if author and author.name:

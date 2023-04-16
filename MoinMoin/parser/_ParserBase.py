@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Base Source Parser
 
@@ -27,23 +26,26 @@ pre.codearea span.ConsWord { color: #008080; font-weight: bold; }
 import hashlib
 import re
 
+from MoinMoin import config
 from MoinMoin import log
-logging = log.getLogger(__name__)
-
-from MoinMoin import config, wikiutil
 from MoinMoin.parser import parse_start_step
+
+logging = log.getLogger(__name__)
 
 
 class FormatTextBase:
     pass
 
+
 class FormatBeginLine(FormatTextBase):
     def formatString(self, formatter, word):
         return formatter.code_line(1)
 
+
 class FormatEndLine(FormatTextBase):
     def formatString(self, formatter, word):
         return formatter.code_line(0)
+
 
 class FormatText(FormatTextBase):
 
@@ -54,6 +56,7 @@ class FormatText(FormatTextBase):
         return (formatter.code_token(1, self.fmt) +
                 formatter.text(word) +
                 formatter.code_token(0, self.fmt))
+
 
 class FormatTextID(FormatTextBase):
 
@@ -140,7 +143,7 @@ class ParserBase:
         self._formatting_rules_n2r = {}
         self._formatting_rule_index = 0
         self.rule_fmt = {}
-        #self.line_count = len(raw.split('\n')) + 1
+        # self.line_count = len(raw.split('\n')) + 1
 
     def setupRules(self):
         self.addRuleFormat("BEGINLINE", FormatBeginLine())
@@ -169,7 +172,7 @@ class ParserBase:
 
     def _addRule(self, name, fmt):
         self._formatting_rule_index += 1
-        name = "%s_%s" % (name, self._formatting_rule_index) # create unique name
+        name = "%s_%s" % (name, self._formatting_rule_index)  # create unique name
         self._formatting_rules.append((name, fmt))
         self._formatting_rules_n2r[name] = fmt
 
@@ -218,10 +221,11 @@ class ParserBase:
         self.text = self.STARTL + self.text + self.ENDL
         self.text_len = len(self.text)
 
-        result = [] # collects output
+        result = []  # collects output
 
         self._code_id = hashlib.new('sha1', self.raw.encode(config.charset)).hexdigest()
-        result.append(formatter.code_area(1, self._code_id, self.parsername, self.show_nums, self.num_start, self.num_step))
+        result.append(
+            formatter.code_area(1, self._code_id, self.parsername, self.show_nums, self.num_start, self.num_step))
 
         self.lastpos = 0
         match = scan_re.search(self.text)
@@ -267,4 +271,3 @@ class ParserBase:
                     result.append(FormatBeginLine().formatString(formatter, ''))
                 result.append(c.formatString(formatter, lines[-1]))
         return result
-

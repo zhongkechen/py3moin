@@ -237,7 +237,7 @@ def link_dialog(request):
     if not iwpreferred or iwpreferred and iwpreferred[-1] is not None:
         resultlist = iwpreferred
         for iw in interwiki:
-            if not iw in iwpreferred:
+            if iw not in iwpreferred:
                 resultlist.append(iw)
     else:
         resultlist = iwpreferred[:-1]

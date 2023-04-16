@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Macro Implementation
 
@@ -15,22 +14,24 @@
 """
 
 from MoinMoin.util import pysupport
+
 modules = pysupport.getPackageModules(__file__)
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
-import re, time, os
-from MoinMoin import action, config, util
+import re, time
+from MoinMoin import config
 from MoinMoin import wikiutil, i18n
 from MoinMoin.Page import Page
 from MoinMoin.datastruct.backends.wiki_dicts import WikiDict
 
-
 names = ["TitleSearch", "WordIndex", "TitleIndex", "GoTo",
          # Macros with arguments
          "Icon", "Date", "DateTime", "Anchor", "MailTo", "GetVal", "TemplateList",
-]
+         ]
+
 
 #############################################################################
 ### Helpers
@@ -41,7 +42,7 @@ def getNames(cfg):
         lnames = names[:]
         lnames.extend(list(i18n.wikiLanguages().keys()))
         lnames.extend(wikiutil.getPlugins('macro', cfg))
-        cfg.cache.macro_names = lnames # remember it
+        cfg.cache.macro_names = lnames  # remember it
     return cfg.cache.macro_names
 
 
@@ -67,18 +68,17 @@ class Macro:
         "WordIndex": ["namespace"],
         "TitleIndex": ["namespace"],
         "Goto": [],
-        "Icon": ["user"], # users have different themes and user prefs
+        "Icon": ["user"],  # users have different themes and user prefs
         "Date": ["time"],
         "DateTime": ["time"],
         "Anchor": [],
         "Mailto": ["user"],
         "GetVal": ["pages"],
-        }
-
+    }
 
     def __init__(self, parser):
         self.parser = parser
-        #self.form --> gone, please use self.request.{form,args,values}
+        # self.form --> gone, please use self.request.{form,args,values}
         self.request = self.parser.request
         self.formatter = self.request.formatter
         self._ = self.request.getText
@@ -105,13 +105,13 @@ class Macro:
         except UnicodeEncodeError:
             _ = self._
             return self.formatter.text(_('<<%(macro_name)s: invalid macro name>>') % {
-                   'macro_name': macro_name,
-                 })
+                'macro_name': macro_name,
+            })
         try:
             call = wikiutil.importPlugin(self.cfg, 'macro', macro_name,
                                          function='macro_%s' % macro_name)
             execute = lambda _self, _args: wikiutil.invoke_extension_function(
-                                               _self.request, call, _args, [_self])
+                _self.request, call, _args, [_self])
         except wikiutil.PluginAttributeError:
             # fall back to old execute() method, no longer recommended
             execute = wikiutil.importPlugin(self.cfg, 'macro', macro_name)
@@ -119,7 +119,7 @@ class Macro:
             try:
                 call = getattr(self, 'macro_%s' % macro_name)
                 execute = lambda _self, _args: wikiutil.invoke_extension_function(
-                                                   _self.request, call, _args, [])
+                    _self.request, call, _args, [])
             except AttributeError:
                 if macro_name in i18n.wikiLanguages():
                     execute = self.__class__._m_lang
@@ -139,9 +139,9 @@ class Macro:
             logging.exception("Macro %s%s raised an exception:" % (self.name, page_spec))
             _ = self.request.getText
             return self.formatter.text(_('<<%(macro_name)s: execution failed [%(error_msg)s] (see also the log)>>') % {
-                   'macro_name': self.name,
-                   'error_msg': err.args[0], # note: str(err) or unicode(err) does not work for py2.4/5/6
-                 })
+                'macro_name': self.name,
+                'error_msg': err.args[0],  # note: str(err) or unicode(err) does not work for py2.4/5/6
+            })
             import traceback
             logging.info("Stack:\n" + traceback.format_stack())
 
@@ -208,16 +208,17 @@ class Macro:
                   It should be able to filter for specific mimetypes, maybe match pagenames by regex (replace PageList?), etc.
         """
         _ = self._
-        request = self.request
+        context = self.request
         fmt = self.formatter
-        allpages = int(request.request.values.get('allpages', 0)) != 0
+        allpages = int(context.request.values.get('allpages', 0)) != 0
         # Get page list readable by current user, filter by isSystemPage if needed
         if allpages:
-            pages = request.rootpage.getPageList()
+            pages = context.rootpage.getPageList()
         else:
             def nosyspage(name):
-                return not wikiutil.isSystemPage(request, name)
-            pages = request.rootpage.getPageList(filter=nosyspage)
+                return not wikiutil.isSystemPage(context, name)
+
+            pages = context.rootpage.getPageList(filter=nosyspage)
 
         word_re = re.compile(word_re, re.UNICODE)
         wordmap = {}
@@ -249,7 +250,7 @@ class Macro:
             if letter not in index_letters:
                 index_letters.append(letter)
             links = wordmap[word]
-            if len(links) and links[0] != word: # show word fragment as on WordIndex
+            if len(links) and links[0] != word:  # show word fragment as on WordIndex
                 output.append(fmt.strong(1))
                 output.append(word)
                 output.append(fmt.strong(0))
@@ -261,32 +262,33 @@ class Macro:
                 if name == last_page:
                     continue
                 output.append(fmt.listitem(1))
-                output.append(Page(request, name).link_to(request, attachment_indicator=1))
+                output.append(Page(context, name).link_to(context, attachment_indicator=1))
                 output.append(fmt.listitem(0))
             output.append(fmt.bullet_list(0))
 
         def _make_index_key(index_letters):
             index_letters.sort()
+
             def letter_link(ch):
                 anchor = "idx-%s" % ch
                 return fmt.anchorlink(1, anchor) + fmt.text(ch.replace('~', 'Others')) + fmt.anchorlink(0)
+
             links = [letter_link(letter) for letter in index_letters]
             return ' | '.join(links)
 
         page = fmt.page
         allpages_txt = (_('Include system pages'), _('Exclude system pages'))[allpages]
-        allpages_url = page.url(request, querystr={'allpages': allpages and '0' or '1'})
+        allpages_url = page.url(context, querystr={'allpages': allpages and '0' or '1'})
 
         output = [fmt.paragraph(1), _make_index_key(index_letters), fmt.linebreak(0),
                   fmt.url(1, allpages_url), fmt.text(allpages_txt), fmt.url(0), fmt.paragraph(0)] + output
         return u''.join(output)
 
-
     def macro_TitleIndex(self):
         return self._make_index()
 
     def macro_WordIndex(self):
-        if self.request.isSpiderAgent: # reduce bot cpu usage
+        if self.request.isSpiderAgent:  # reduce bot cpu usage
             return ''
         word_re = u'[%s][%s]+' % (config.chars_upper, config.chars_lower)
         return self._make_index(word_re=word_re)
@@ -306,7 +308,7 @@ class Macro:
             u'<input type="submit" value="%s">' % _("Go To Page"),
             u'</div>',
             u'</form>',
-            ]
+        ]
         html = u'\n'.join(html)
         return self.formatter.rawHTML(html)
 
@@ -319,7 +321,7 @@ class Macro:
     def __get_Date(self, args, format_date):
         _ = self._
         if args is None:
-            tm = time.time() # always UTC
+            tm = time.time()  # always UTC
         elif len(args) >= 19 and args[4] == '-' and args[7] == '-' \
                 and args[10] == 'T' and args[13] == ':' and args[16] == ':':
             # we ignore any time zone offsets here, assume UTC,
@@ -327,13 +329,13 @@ class Macro:
             try:
                 year, month, day = int(args[0:4]), int(args[5:7]), int(args[8:10])
                 hour, minute, second = int(args[11:13]), int(args[14:16]), int(args[17:19])
-                tz = args[19:] # +HHMM, -HHMM or Z or nothing (then we assume Z)
-                tzoffset = 0 # we assume UTC no matter if there is a Z
+                tz = args[19:]  # +HHMM, -HHMM or Z or nothing (then we assume Z)
+                tzoffset = 0  # we assume UTC no matter if there is a Z
                 if tz:
                     sign = tz[0]
                     if sign in '+-':
                         tzh, tzm = int(tz[1:3]), int(tz[3:])
-                        tzoffset = (tzh*60+tzm)*60
+                        tzoffset = (tzh * 60 + tzm) * 60
                         if sign == '-':
                             tzoffset = -tzoffset
                 tm = (year, month, day, hour, minute, second, 0, 0, 0)
@@ -344,7 +346,7 @@ class Macro:
             try:
                 tm = time.mktime(tm) - time.timezone - tzoffset
             except (OverflowError, ValueError):
-                tm = 0 # incorrect, but we avoid an ugly backtrace
+                tm = 0  # incorrect, but we avoid an ugly backtrace
         else:
             # try raw seconds since epoch in UTC
             try:
@@ -406,4 +408,3 @@ class Macro:
         result = d.get(key, '')
 
         return self.formatter.text(result)
-

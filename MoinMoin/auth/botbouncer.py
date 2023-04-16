@@ -1,4 +1,3 @@
-
 """
     MoinMoin - botbouncer.com verifier for OpenID login
 
@@ -6,11 +5,11 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
 from MoinMoin import user
 from MoinMoin.auth import BaseAuth, CancelLogin, ContinueLogin, MultistageRedirectLogin
 from urllib.request import urlopen
 from urllib.parse import quote_plus
+
 
 class BotBouncer(BaseAuth):
     name = 'botbouncer'
@@ -42,7 +41,7 @@ class BotBouncer(BaseAuth):
 
         try:
             url = "http://botbouncer.com/api/info?openid=%s&api_key=%s" % (
-                           quote_plus(openid_id), self.apikey)
+                quote_plus(openid_id), self.apikey)
             data = urlopen(url).read().strip()
         except IOError:
             return CancelLogin(_('Could not contact botbouncer.com.'))

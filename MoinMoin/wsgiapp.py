@@ -1,4 +1,3 @@
-
 """
     MoinMoin - WSGI application
 
@@ -10,18 +9,17 @@ import os
 
 from werkzeug.datastructures import HeaderSet
 
+from MoinMoin import auth, config, i18n, user, wikiutil, xmlrpc, error
 from MoinMoin import log
-
-logging = log.getLogger(__name__)
-
+from MoinMoin.Page import Page
+from MoinMoin.action import get_names, get_available_actions
+from MoinMoin.util.abuse import log_attempt
 from MoinMoin.web.contexts import AllContext, Context, XMLRPCContext
 from MoinMoin.web.exceptions import HTTPException
 from MoinMoin.web.request import Request, MoinMoinFinish
 from MoinMoin.web.utils import check_forbidden, check_surge_protect, fatal_response, redirect_last_visited
-from MoinMoin.Page import Page
-from MoinMoin import auth, config, i18n, user, wikiutil, xmlrpc, error
-from MoinMoin.action import get_names, get_available_actions
-from MoinMoin.util.abuse import log_attempt
+
+logging = log.getLogger(__name__)
 
 
 def set_umask(new_mask=0o777 ^ config.umask):
@@ -36,7 +34,7 @@ def set_umask(new_mask=0o777 ^ config.umask):
         pass
 
 
-def init(request):
+def init(context):
     """
     Wraps an incoming WSGI request in a Context object and initializes
     several important attributes.
@@ -44,10 +42,10 @@ def init(request):
     set_umask()  # do it once per request because maybe some server
     # software sets own umask
 
-    if isinstance(request, Context):
-        context, request = request, request.request
+    if isinstance(context, Context):
+        context, request = context, context.request
     else:
-        context = AllContext(request)
+        context = AllContext(context)
 
     context.clock.start('total')
     context.clock.start('init')
@@ -171,13 +169,12 @@ def handle_action(context, pagename, action_name='show'):
 
     msg = None
     # Complain about unknown actions
-    if not action_name in get_names(cfg):
+    if action_name not in get_names(cfg):
         msg = _("Unknown action %(action_name)s.") % {
             'action_name': wikiutil.escape(action_name), }
 
     # Disallow non available actions
-    elif action_name[0].isupper() and not action_name in \
-                                          get_available_actions(cfg, context.page, context.user):
+    elif action_name[0].isupper() and action_name not in get_available_actions(cfg, context.page, context.user):
         msg = _("You are not allowed to do %(action_name)s on this page.") % {
             'action_name': wikiutil.escape(action_name), }
         if context.user.valid:

@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Theme Package
 
@@ -6,21 +5,16 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
-
 import io
 
-from MoinMoin import log
-logging = log.getLogger(__name__)
-
 from MoinMoin import i18n, wikiutil, config, version, caching
-from MoinMoin.action import get_available_actions
+from MoinMoin import log
 from MoinMoin.Page import Page
+from MoinMoin.action import get_available_actions
 from MoinMoin.util import pysupport
 
+logging = log.getLogger(__name__)
 modules = pysupport.getPackageModules(__file__)
-
-import sys, xml
 
 rss_supported = True
 
@@ -43,86 +37,86 @@ class ThemeBase:
         # key         alt                        icon filename      w   h
         # ------------------------------------------------------------------
         # navibar
-        'help':        ("%(page_help_contents)s", "moin-help.png",   12, 11),
-        'find':        ("%(page_find_page)s",     "moin-search.png", 12, 12),
-        'diff':        (_("Diffs"),               "moin-diff.png",   15, 11),
-        'info':        (_("Info"),                "moin-info.png",   12, 11),
-        'edit':        (_("Edit"),                "moin-edit.png",   12, 12),
-        'unsubscribe': (_("Unsubscribe"),         "moin-unsubscribe.png", 14, 10),
-        'subscribe':   (_("Subscribe"),           "moin-subscribe.png", 14, 10),
-        'raw':         (_("Raw"),                 "moin-raw.png",    12, 13),
-        'xml':         (_("XML"),                 "moin-xml.png",    20, 13),
-        'print':       (_("Print"),               "moin-print.png",  16, 14),
-        'view':        (_("View"),                "moin-show.png",   12, 13),
-        'home':        (_("Home"),                "moin-home.png",   13, 12),
-        'up':          (_("Up"),                  "moin-parent.png", 15, 13),
+        'help': ("%(page_help_contents)s", "moin-help.png", 12, 11),
+        'find': ("%(page_find_page)s", "moin-search.png", 12, 12),
+        'diff': (_("Diffs"), "moin-diff.png", 15, 11),
+        'info': (_("Info"), "moin-info.png", 12, 11),
+        'edit': (_("Edit"), "moin-edit.png", 12, 12),
+        'unsubscribe': (_("Unsubscribe"), "moin-unsubscribe.png", 14, 10),
+        'subscribe': (_("Subscribe"), "moin-subscribe.png", 14, 10),
+        'raw': (_("Raw"), "moin-raw.png", 12, 13),
+        'xml': (_("XML"), "moin-xml.png", 20, 13),
+        'print': (_("Print"), "moin-print.png", 16, 14),
+        'view': (_("View"), "moin-show.png", 12, 13),
+        'home': (_("Home"), "moin-home.png", 13, 12),
+        'up': (_("Up"), "moin-parent.png", 15, 13),
         # FileAttach
-        'attach':     ("%(attach_count)s",       "moin-attach.png",  7, 15),
-        'attachimg':  ("",                       "attach.png",      32, 32),
+        'attach': ("%(attach_count)s", "moin-attach.png", 7, 15),
+        'attachimg': ("", "attach.png", 32, 32),
         # RecentChanges
-        'rss':        (_("[RSS]"),               "moin-rss.png",    24, 24),
-        'deleted':    (_("[DELETED]"),           "moin-deleted.png", 60, 12),
-        'updated':    (_("[UPDATED]"),           "moin-updated.png", 60, 12),
-        'renamed':    (_("[RENAMED]"),           "moin-renamed.png", 60, 12),
-        'conflict':   (_("[CONFLICT]"),          "moin-conflict.png", 60, 12),
-        'new':        (_("[NEW]"),               "moin-new.png",    31, 12),
-        'diffrc':     (_("[DIFF]"),              "moin-diff.png",   15, 11),
+        'rss': (_("[RSS]"), "moin-rss.png", 24, 24),
+        'deleted': (_("[DELETED]"), "moin-deleted.png", 60, 12),
+        'updated': (_("[UPDATED]"), "moin-updated.png", 60, 12),
+        'renamed': (_("[RENAMED]"), "moin-renamed.png", 60, 12),
+        'conflict': (_("[CONFLICT]"), "moin-conflict.png", 60, 12),
+        'new': (_("[NEW]"), "moin-new.png", 31, 12),
+        'diffrc': (_("[DIFF]"), "moin-diff.png", 15, 11),
         # General
-        'bottom':     (_("[BOTTOM]"),            "moin-bottom.png", 14, 10),
-        'top':        (_("[TOP]"),               "moin-top.png",    14, 10),
-        'www':        ("[WWW]",                  "moin-www.png",    11, 11),
-        'mailto':     ("[MAILTO]",               "moin-email.png",  14, 10),
-        'news':       ("[NEWS]",                 "moin-news.png",   10, 11),
-        'telnet':     ("[TELNET]",               "moin-telnet.png", 10, 11),
-        'ftp':        ("[FTP]",                  "moin-ftp.png",    11, 11),
-        'file':       ("[FILE]",                 "moin-ftp.png",    11, 11),
+        'bottom': (_("[BOTTOM]"), "moin-bottom.png", 14, 10),
+        'top': (_("[TOP]"), "moin-top.png", 14, 10),
+        'www': ("[WWW]", "moin-www.png", 11, 11),
+        'mailto': ("[MAILTO]", "moin-email.png", 14, 10),
+        'news': ("[NEWS]", "moin-news.png", 10, 11),
+        'telnet': ("[TELNET]", "moin-telnet.png", 10, 11),
+        'ftp': ("[FTP]", "moin-ftp.png", 11, 11),
+        'file': ("[FILE]", "moin-ftp.png", 11, 11),
         # search forms
-        'searchbutton': ("[?]",                  "moin-search.png", 12, 12),
-        'interwiki':  ("[%(wikitag)s]",          "moin-inter.png",  16, 16),
+        'searchbutton': ("[?]", "moin-search.png", 12, 12),
+        'interwiki': ("[%(wikitag)s]", "moin-inter.png", 16, 16),
 
         # smileys (this is CONTENT, but good looking smileys depend on looking
         # adapted to the theme background color and theme style in general)
-        #vvv    ==      vvv  this must be the same for GUI editor converter
-        'X-(':        ("X-(",                    'angry.png',       15, 15),
-        ':D':         (":D",                     'biggrin.png',     15, 15),
-        '<:(':        ("<:(",                    'frown.png',       15, 15),
-        ':o':         (":o",                     'redface.png',     15, 15),
-        ':(':         (":(",                     'sad.png',         15, 15),
-        ':)':         (":)",                     'smile.png',       15, 15),
-        'B)':         ("B)",                     'smile2.png',      15, 15),
-        ':))':        (":))",                    'smile3.png',      15, 15),
-        ';)':         (";)",                     'smile4.png',      15, 15),
-        '/!\\':       ("/!\\",                   'alert.png',       15, 15),
-        '<!>':        ("<!>",                    'attention.png',   15, 15),
-        '(!)':        ("(!)",                    'idea.png',        15, 15),
+        # vvv    ==      vvv  this must be the same for GUI editor converter
+        'X-(': ("X-(", 'angry.png', 15, 15),
+        ':D': (":D", 'biggrin.png', 15, 15),
+        '<:(': ("<:(", 'frown.png', 15, 15),
+        ':o': (":o", 'redface.png', 15, 15),
+        ':(': (":(", 'sad.png', 15, 15),
+        ':)': (":)", 'smile.png', 15, 15),
+        'B)': ("B)", 'smile2.png', 15, 15),
+        ':))': (":))", 'smile3.png', 15, 15),
+        ';)': (";)", 'smile4.png', 15, 15),
+        '/!\\': ("/!\\", 'alert.png', 15, 15),
+        '<!>': ("<!>", 'attention.png', 15, 15),
+        '(!)': ("(!)", 'idea.png', 15, 15),
 
         # copied 2001-11-16 from http://pikie.darktech.org/cgi/pikie.py?EmotIcon
-        ':-?':        (":-?",                    'tongue.png',      15, 15),
-        ':\\':        (":\\",                    'ohwell.png',      15, 15),
-        '>:>':        (">:>",                    'devil.png',       15, 15),
-        '|)':         ("|)",                     'tired.png',       15, 15),
+        ':-?': (":-?", 'tongue.png', 15, 15),
+        ':\\': (":\\", 'ohwell.png', 15, 15),
+        '>:>': (">:>", 'devil.png', 15, 15),
+        '|)': ("|)", 'tired.png', 15, 15),
 
         # some folks use noses in their emoticons
-        ':-(':        (":-(",                    'sad.png',         15, 15),
-        ':-)':        (":-)",                    'smile.png',       15, 15),
-        'B-)':        ("B-)",                    'smile2.png',      15, 15),
-        ':-))':       (":-))",                   'smile3.png',      15, 15),
-        ';-)':        (";-)",                    'smile4.png',      15, 15),
-        '|-)':        ("|-)",                    'tired.png',       15, 15),
+        ':-(': (":-(", 'sad.png', 15, 15),
+        ':-)': (":-)", 'smile.png', 15, 15),
+        'B-)': ("B-)", 'smile2.png', 15, 15),
+        ':-))': (":-))", 'smile3.png', 15, 15),
+        ';-)': (";-)", 'smile4.png', 15, 15),
+        '|-)': ("|-)", 'tired.png', 15, 15),
 
         # version 1.0
-        '(./)':       ("(./)",                   'checkmark.png',   20, 15),
-        '{OK}':       ("{OK}",                   'thumbs-up.png',   14, 12),
-        '{X}':        ("{X}",                    'icon-error.png',  16, 16),
-        '{i}':        ("{i}",                    'icon-info.png',   16, 16),
-        '{1}':        ("{1}",                    'prio1.png',       15, 13),
-        '{2}':        ("{2}",                    'prio2.png',       15, 13),
-        '{3}':        ("{3}",                    'prio3.png',       15, 13),
+        '(./)': ("(./)", 'checkmark.png', 20, 15),
+        '{OK}': ("{OK}", 'thumbs-up.png', 14, 12),
+        '{X}': ("{X}", 'icon-error.png', 16, 16),
+        '{i}': ("{i}", 'icon-info.png', 16, 16),
+        '{1}': ("{1}", 'prio1.png', 15, 13),
+        '{2}': ("{2}", 'prio2.png', 15, 13),
+        '{3}': ("{3}", 'prio3.png', 15, 13),
 
         # version 1.3.4 (stars)
         # try {*}{*}{o}
-        '{*}':        ("{*}",                    'star_on.png',     15, 15),
-        '{o}':        ("{o}",                    'star_off.png',    15, 15),
+        '{*}': ("{*}", 'star_on.png', 15, 15),
+        '{o}': ("{o}", 'star_off.png', 15, 15),
     }
     del _
 
@@ -132,25 +126,25 @@ class ThemeBase:
     # Standard set of style sheets
     stylesheets = (
         # media         basename
-        ('all',         'common'),
-        ('screen',      'screen'),
-        ('print',       'print'),
-        ('projection',  'projection'),
-        )
+        ('all', 'common'),
+        ('screen', 'screen'),
+        ('print', 'print'),
+        ('projection', 'projection'),
+    )
 
     # Used in print mode
     stylesheets_print = (
         # media         basename
-        ('all',         'common'),
-        ('all',         'print'),
-        )
+        ('all', 'common'),
+        ('all', 'print'),
+    )
 
     # Used in slide show mode
     stylesheets_projection = (
         # media         basename
-        ('all',         'common'),
-        ('all',         'projection'),
-       )
+        ('all', 'common'),
+        ('all', 'projection'),
+    )
 
     stylesheetsCharset = 'utf-8'
 
@@ -162,7 +156,7 @@ class ThemeBase:
         """
         self.request = request
         self.cfg = request.cfg
-        self._cache = {} # Used to cache elements that may be used several times
+        self._cache = {}  # Used to cache elements that may be used several times
         self._status = []
         self._send_title_called = False
 
@@ -257,9 +251,9 @@ class ThemeBase:
         """
         _ = self.request.getText
         content = []
-        if d['title_text'] == d['page'].split_title(): # just showing a page, no action
+        if d['title_text'] == d['page'].split_title():  # just showing a page, no action
             curpage = ''
-            segments = d['page_name'].split('/') # was: title_text
+            segments = d['page_name'].split('/')  # was: title_text
             for s in segments[:-1]:
                 curpage += s
                 content.append("<li>%s</li>" % Page(self.request, curpage).link_to(self.request, s))
@@ -332,12 +326,13 @@ class ThemeBase:
             # link to userprefs action
             if 'userprefs' not in self.request.cfg.actions_excluded:
                 userlinks.append(d['page'].link_to(request, text=_('Settings'),
-                                               querystr={'action': 'userprefs'}, id='userprefs', rel='nofollow'))
+                                                   querystr={'action': 'userprefs'}, id='userprefs', rel='nofollow'))
 
         if request.user.valid:
             if request.user.auth_method in request.cfg.auth_can_logout:
                 userlinks.append(d['page'].link_to(request, text=_('Logout'),
-                                                   querystr={'action': 'logout', 'logout': 'logout'}, id='logout', rel='nofollow'))
+                                                   querystr={'action': 'logout', 'logout': 'logout'}, id='logout',
+                                                   rel='nofollow'))
         else:
             query = {'action': 'login'}
             # special direct-login link if the auth methods want no input
@@ -407,7 +402,8 @@ class ThemeBase:
             else:
                 if not title:
                     title = page
-                link = fmt.interwikilink(True, interwiki, page) + fmt.text(title) + fmt.interwikilink(False, interwiki, page)
+                link = fmt.interwikilink(True, interwiki, page) + fmt.text(title) + fmt.interwikilink(False, interwiki,
+                                                                                                      page)
                 return pagename, link
         except ValueError:
             pass
@@ -421,7 +417,7 @@ class ThemeBase:
         else:
             page = Page(request, pagename)
 
-        pagename = page.page_name # can be different, due to i18n
+        pagename = page.page_name  # can be different, due to i18n
 
         if not title:
             title = page.split_title()
@@ -467,8 +463,8 @@ class ThemeBase:
         @return: navibar html
         """
         request = self.request
-        found = {} # pages we found. prevent duplicates
-        items = [] # navibar items
+        found = {}  # pages we found. prevent duplicates
+        items = []  # navibar items
         item = u'<li class="%s">%s</li>'
         current = d['page_name']
 
@@ -488,7 +484,7 @@ class ThemeBase:
         for text in userlinks:
             # Split text without localization, user knows what he wants
             pagename, link = self.splitNavilink(text, localize=0)
-            if not pagename in found:
+            if pagename not in found:
                 if pagename == current:
                     cls = 'userlink current'
                 else:
@@ -497,7 +493,7 @@ class ThemeBase:
                 found[pagename] = 1
 
         # Add current page at end of local pages
-        if not current in found:
+        if current not in found:
             title = d['page'].split_title()
             title = self.shortenPagename(title)
             link = d['page'].link_to(request, title)
@@ -506,7 +502,7 @@ class ThemeBase:
 
         # Add sister pages.
         for sistername, sisterurl in request.cfg.sistersites:
-            if sistername == request.cfg.interwikiname: # it is THIS wiki
+            if sistername == request.cfg.interwikiname:  # it is THIS wiki
                 cls = 'sisterwiki current'
                 items.append(item % (cls, sistername))
             else:
@@ -519,7 +515,7 @@ class ThemeBase:
                         cls = 'sisterwiki'
                         url = sisterpages[current]
                         link = request.formatter.url(1, url) + \
-                               request.formatter.text(sistername) +\
+                               request.formatter.text(sistername) + \
                                request.formatter.url(0)
                         items.append(item % (cls, link))
 
@@ -577,10 +573,10 @@ class ThemeBase:
             vars = {}
         alt, img, w, h = self.get_icon(icon)
         try:
-            alt = vars['icon-alt-text'] # if it is possible we take the alt-text from 'page_icons_table'
+            alt = vars['icon-alt-text']  # if it is possible we take the alt-text from 'page_icons_table'
         except KeyError as err:
             try:
-                alt = alt % vars # if not we just leave the  alt-text from 'icons'
+                alt = alt % vars  # if not we just leave the  alt-text from 'icons'
             except KeyError as err:
                 alt = 'KeyError: %s' % str(err)
         alt = self.request.getText(alt)
@@ -598,7 +594,7 @@ class ThemeBase:
         """
         qs = {}
         pagekey, querystr, title, icon = self.cfg.page_icons_table[which]
-        qs.update(querystr) # do not modify the querystr dict in the cfg!
+        qs.update(querystr)  # do not modify the querystr dict in the cfg!
         d['icon-alt-text'] = d['title'] = title % d
         d['i18ntitle'] = self.request.getText(d['title'])
         img_src = self.make_icon(icon, d)
@@ -699,7 +695,7 @@ class ThemeBase:
         if theme:
             href = '%s/%s/css/%s.css' % (self.cfg.url_prefix_static, self.name, href)
         attrs = 'type="text/css" charset="%s" media="%s" href="%s"' % (
-                self.stylesheetsCharset, media, wikiutil.escape(href, True), )
+            self.stylesheetsCharset, media, wikiutil.escape(href, True),)
         if title:
             return '<link rel="alternate stylesheet" %s title="%s">' % (attrs, title)
         else:
@@ -786,7 +782,7 @@ class ThemeBase:
                 html = '<p id="pageinfo" class="info"%(lang)s>%(info)s</p>\n' % {
                     'lang': self.ui_lang_attr(),
                     'info': info
-                    }
+                }
         return html
 
     def searchform(self, d):
@@ -805,7 +801,7 @@ class ThemeBase:
             'search_full_label': _('Text'),
             'search_title_label': _('Titles'),
             'url': self.request.request.href(d['page'].page_name)
-            }
+        }
         d.update(updates)
 
         html = u'''
@@ -846,7 +842,7 @@ searchBlur(e);
         html = ''
         if self.cfg.show_version and not keywords.get('print_mode', 0):
             html = (u'<div id="version">MoinMoin Release %s [Revision %s], '
-                     'Copyright by Juergen Hermann et al.</div>') % (version.release, version.revision, )
+                    'Copyright by Juergen Hermann et al.</div>') % (version.release, version.revision,)
         return html
 
     def headscript(self, d):
@@ -868,8 +864,8 @@ var search_hint = "%(search_hint)s";
 //-->
 </script>
 """ % {
-    'search_hint': _('Search'),
-    }
+            'search_hint': _('Search'),
+        }
         return script
 
     def shouldUseRSS(self, page):
@@ -882,9 +878,9 @@ var search_hint = "%(search_hint)s";
         if not rss_supported:
             return False
         return page.page_name in [u'RecentChanges',
-            self.request.getText(u'RecentChanges'),
-            self.request.cfg.page_front_page,
-            self.request.getText(self.request.cfg.page_front_page)]
+                                  self.request.getText(u'RecentChanges'),
+                                  self.request.cfg.page_front_page,
+                                  self.request.getText(self.request.cfg.page_front_page)]
 
     def rsshref(self, page):
         """ Create rss href, used for rss button and head link
@@ -894,7 +890,7 @@ var search_hint = "%(search_hint)s";
         """
         request = self.request
         url = page.url(request, querystr={
-                'action': 'rss_rc', 'ddiffs': '1', 'unique': '1', }, escape=0)
+            'action': 'rss_rc', 'ddiffs': '1', 'unique': '1', }, escape=0)
         return url
 
     def rsslink(self, d):
@@ -911,17 +907,17 @@ var search_hint = "%(search_hint)s";
         if self.shouldUseRSS(page):
             link = (u'<link rel="alternate" title="%s Recent Changes" '
                     u'href="%s" type="application/rss+xml">') % (
-                        wikiutil.escape(self.cfg.sitename, True),
-                        wikiutil.escape(self.rsshref(page), True) )
+                       wikiutil.escape(self.cfg.sitename, True),
+                       wikiutil.escape(self.rsshref(page), True))
         elif rss_supported and self.cfg.rss_show_page_history_link:
             link = (u'<link rel="alternate" title="%s: %s" '
                     u'href="%s" type="application/rss+xml">') % (
-                        wikiutil.escape(self.cfg.sitename, True),
-                        wikiutil.escape(page.page_name, True),
-                        wikiutil.escape(page.url(self.request, querystr={
-                            'action': 'rss_rc', 'ddiffs': '1', 'unique': '0',
-                            'diffs': '1', 'show_att': '1',
-                            'page': page.page_name }, escape=0), True) )
+                       wikiutil.escape(self.cfg.sitename, True),
+                       wikiutil.escape(page.page_name, True),
+                       wikiutil.escape(page.url(self.request, querystr={
+                           'action': 'rss_rc', 'ddiffs': '1', 'unique': '0',
+                           'diffs': '1', 'show_att': '1',
+                           'page': page.page_name}, escape=0), True))
         return link
 
     def html_head(self, d):
@@ -937,12 +933,12 @@ var search_hint = "%(search_hint)s";
                 'sitename': wikiutil.escape(d['sitename']),
             },
             self.externalScript('common'),
-            self.headscript(d), # Should move to separate .js file
+            self.headscript(d),  # Should move to separate .js file
             self.guiEditorScript(d),
             self.html_stylesheets(d),
             self.rsslink(d),
             self.universal_edit_button(d),
-            ]
+        ]
         return '\n'.join(html)
 
     def externalScript(self, name):
@@ -1018,7 +1014,7 @@ var search_hint = "%(search_hint)s";
             'revert',
             'PackagePages',
             'SyncPages',
-            ]
+        ]
 
         titles = {
             # action: menu title
@@ -1028,7 +1024,7 @@ var search_hint = "%(search_hint)s";
             'raw': _('Raw Text'),
             'print': _('Print View'),
             'refresh': _('Delete Cache'),
-            'SpellCheck': _('Check Spelling'), # rename action!
+            'SpellCheck': _('Check Spelling'),  # rename action!
             'RenamePage': _('Rename Page'),
             'CopyPage': _('Copy Page'),
             'DeletePage': _('Delete Page'),
@@ -1041,7 +1037,7 @@ var search_hint = "%(search_hint)s";
             'PackagePages': _('Package Pages'),
             'RenderAsDocbook': _('Render as Docbook'),
             'SyncPages': _('Sync Pages'),
-            }
+        }
 
         options = []
         option = '<option value="%(action)s"%(disabled)s>%(title)s</option>'
@@ -1086,14 +1082,14 @@ var search_hint = "%(search_hint)s";
 
             # Actions which are not available for this wiki, user or page
             if (action == '__separator__' or
-                (action[0].isupper() and not action in available)):
+                    (action[0].isupper() and not action in available)):
                 data['disabled'] = disabled
 
             options.append(option % data)
 
         # Add custom actions not in the standard menu, except for
         # some actions like AttachFile (we have them on top level)
-        more = [item for item in available if not item in titles and not item in ('AttachFile', )]
+        more = [item for item in available if item not in titles and item not in ('AttachFile',)]
         more.sort()
         if more:
             # Add separator
@@ -1106,7 +1102,7 @@ var search_hint = "%(search_hint)s";
                 # Always add spaces: AttachFile -> Attach File
                 # XXX do not create page just for using split_title -
                 # creating pages for non-existent does 2 storage lookups
-                #title = Page(request, action).split_title(force=1)
+                # title = Page(request, action).split_title(force=1)
                 title = action
                 # Use translated version if available
                 data['title'] = _(title)
@@ -1118,7 +1114,7 @@ var search_hint = "%(search_hint)s";
             'rev_field': rev and '<input type="hidden" name="rev" value="%d">' % rev or '',
             'do_button': _("Do"),
             'url': self.request.request.href(page.page_name)
-            }
+        }
         html = '''
 <form class="actionsmenu" method="GET" action="%(url)s">
 <div>
@@ -1191,7 +1187,7 @@ actionsMenuInit('%(label)s');
         # that the user may read. If you may not read, you can't edit,
         # so you don't need editbar.
         if (page.exists(includeDeleted=1) and
-            self.request.user.may.read(page.page_name)):
+                self.request.user.may.read(page.page_name)):
             form = self.request.request.form
             action = self.request.action
             # Do not show editbar on edit but on save/cancel
@@ -1210,14 +1206,15 @@ actionsMenuInit('%(label)s');
         editbar_actions = []
         for editbar_item in self.request.cfg.edit_bar:
             if (editbar_item == 'Discussion' and
-               (self.request.getPragma('supplementation-page', self.request.cfg.supplementation_page)
-                                                   in (True, 1, 'on', '1'))):
-                    editbar_actions.append(self.supplementation_page_nameLink(page))
+                    (self.request.getPragma('supplementation-page', self.request.cfg.supplementation_page)
+                     in (True, 1, 'on', '1'))):
+                editbar_actions.append(self.supplementation_page_nameLink(page))
             elif editbar_item == 'Comments':
                 # we just use <a> to get same style as other links, but we add some dummy
                 # link target to get correct mouseover pointer appearance. return false
                 # keeps the browser away from jumping to the link target::
-                editbar_actions.append('<a href="#" class="nbcomment" onClick="toggleComments();return false;">%s</a>' % _('Comments'))
+                editbar_actions.append(
+                    '<a href="#" class="nbcomment" onClick="toggleComments();return false;">%s</a>' % _('Comments'))
             elif editbar_item == 'Edit':
                 editbar_actions.append(self.editorLink(page))
             elif editbar_item == 'Info':
@@ -1258,7 +1255,6 @@ actionsMenuInit('%(label)s');
         is_wiki = page.pi['format'] == 'wiki'
         gui_disallowed = self.cfg.editor_force and self.cfg.editor_default == 'text'
         return is_wiki and not gui_disallowed
-
 
     def editorLink(self, page):
         """ Return a link to the editor
@@ -1325,7 +1321,7 @@ var gui_editor_link_text = "%(text)s";
 </script>
 """ % {'url': page.url(self.request, querystr={'action': 'edit', 'editor': 'gui', }),
        'text': _('Edit (GUI)'),
-      }
+       }
 
     def disabledEdit(self):
         """ Return a disabled edit link """
@@ -1359,7 +1355,8 @@ var gui_editor_link_text = "%(text)s";
             action, text = 'subscribe', _("Subscribe")
         if action in self.request.cfg.actions_excluded:
             return ""
-        return page.link_to(self.request, text=text, querystr={'action': action}, css_class='nbsubscribe', rel='nofollow')
+        return page.link_to(self.request, text=text, querystr={'action': action}, css_class='nbsubscribe',
+                            rel='nofollow')
 
     def quicklinkLink(self, page):
         """ Return add/remove quicklink link
@@ -1377,7 +1374,8 @@ var gui_editor_link_text = "%(text)s";
             action, text = 'quicklink', _("Add Link")
         if action in self.request.cfg.actions_excluded:
             return ""
-        return page.link_to(self.request, text=text, querystr={'action': action}, css_class='nbquicklink', rel='nofollow')
+        return page.link_to(self.request, text=text, querystr={'action': action}, css_class='nbquicklink',
+                            rel='nofollow')
 
     def attachmentsLink(self, page):
         """ Return link to page attachments """
@@ -1519,7 +1517,7 @@ var gui_editor_link_text = "%(text)s";
                 self.request.formatter.rawHTML(self.make_icon("rss")),
                 self.request.formatter.url(0),
                 u'</div>',
-                ]
+            ]
             html += ''.join(link)
         html += '<p>'
         # Add day selector
@@ -1531,11 +1529,11 @@ var gui_editor_link_text = "%(text)s";
                 else:
                     days.append(
                         wikiutil.link_tag(self.request,
-                            '%s?max_days=%d' % (d['q_page_name'], day),
-                            str(day),
-                            self.request.formatter, rel='nofollow'))
+                                          '%s?max_days=%d' % (d['q_page_name'], day),
+                                          str(day),
+                                          self.request.formatter, rel='nofollow'))
             days = ' | '.join(days)
-            html += (_("Show %s days.") % (days, ))
+            html += (_("Show %s days.") % (days,))
 
         if d['rc_update_bookmark']:
             html += " %(rc_update_bookmark)s %(rc_curr_bookmark)s" % d
@@ -1619,43 +1617,45 @@ var gui_editor_link_text = "%(text)s";
         @keyword body_attr: additional <body> attributes
         @keyword body_onload: additional "onload" JavaScript code
         """
-        request = self.request
-        _ = request.getText
-        rev = request.rev
+        context = self.request
+        _ = context.getText
+        rev = context.rev
 
         if 'page' in keywords:
             page = keywords['page']
             pagename = page.page_name
         else:
             pagename = keywords.get('pagename', '')
-            page = Page(request, pagename)
+            page = Page(context, pagename)
         if keywords.get('msg', ''):
             raise DeprecationWarning("Using send_page(msg=) is deprecated! Use theme.add_msg() instead!")
-        scriptname = request.request.script_root
+        scriptname = context.request.script_root
 
         # get name of system pages
-        page_front_page = wikiutil.getFrontPage(request).page_name
-        page_help_contents = wikiutil.getLocalizedPage(request, 'HelpContents').page_name
-        page_title_index = wikiutil.getLocalizedPage(request, 'TitleIndex').page_name
-        page_site_navigation = wikiutil.getLocalizedPage(request, 'SiteNavigation').page_name
-        page_word_index = wikiutil.getLocalizedPage(request, 'WordIndex').page_name
-        page_help_formatting = wikiutil.getLocalizedPage(request, 'HelpOnFormatting').page_name
-        page_find_page = wikiutil.getLocalizedPage(request, 'FindPage').page_name
-        home_page = wikiutil.getInterwikiHomePage(request) # sorry theme API change!!! Either None or tuple (wikiname,pagename) now.
+        page_front_page = wikiutil.getFrontPage(context).page_name
+        page_help_contents = wikiutil.getLocalizedPage(context, 'HelpContents').page_name
+        page_title_index = wikiutil.getLocalizedPage(context, 'TitleIndex').page_name
+        page_site_navigation = wikiutil.getLocalizedPage(context, 'SiteNavigation').page_name
+        page_word_index = wikiutil.getLocalizedPage(context, 'WordIndex').page_name
+        page_help_formatting = wikiutil.getLocalizedPage(context, 'HelpOnFormatting').page_name
+        page_find_page = wikiutil.getLocalizedPage(context, 'FindPage').page_name
+        home_page = wikiutil.getInterwikiHomePage(
+            context)  # sorry theme API change!!! Either None or tuple (wikiname,pagename) now.
         page_parent_page = getattr(page.getParentPage(), 'page_name', None)
 
         # set content_type, including charset, so web server doesn't touch it:
-        request.content_type = "text/html; charset=%s" % (config.charset, )
+        context.content_type = "text/html; charset=%s" % (config.charset,)
 
         # Prepare the HTML <head> element
-        user_head = [request.cfg.html_head]
+        user_head = [context.cfg.html_head]
 
         # include charset information - needed for moin_dump or any other case
         # when reading the html without a web server
-        user_head.append('''<meta http-equiv="Content-Type" content="%s;charset=%s">\n''' % (page.output_mimetype, page.output_charset))
+        user_head.append('''<meta http-equiv="Content-Type" content="%s;charset=%s">\n''' % (
+        page.output_mimetype, page.output_charset))
 
-        meta_keywords = request.getPragma('keywords')
-        meta_desc = request.getPragma('description')
+        meta_keywords = context.getPragma('keywords')
+        meta_desc = context.getPragma('description')
         if meta_keywords:
             user_head.append('<meta name="keywords" content="%s">\n' % wikiutil.escape(meta_keywords, 1))
         if meta_desc:
@@ -1663,33 +1663,33 @@ var gui_editor_link_text = "%(text)s";
 
         #  add meta statement if user has doubleclick on edit turned on or it is default
         if (pagename and keywords.get('allow_doubleclick', 0) and
-            not keywords.get('print_mode', 0) and
-            request.user.edit_on_doubleclick):
-            if request.user.may.write(pagename): # separating this gains speed
-                user_head.append('<meta name="edit_on_doubleclick" content="%s">\n' % (request.script_root or '/'))
+                not keywords.get('print_mode', 0) and
+                context.user.edit_on_doubleclick):
+            if context.user.may.write(pagename):  # separating this gains speed
+                user_head.append('<meta name="edit_on_doubleclick" content="%s">\n' % (context.script_root or '/'))
 
         # search engine precautions / optimization:
         # if it is an action or edit/search, send query headers (noindex,nofollow):
-        if request.request.query_string:
-            user_head.append(request.cfg.html_head_queries)
-        elif request.request.method == 'POST':
-            user_head.append(request.cfg.html_head_posts)
+        if context.request.query_string:
+            user_head.append(context.cfg.html_head_queries)
+        elif context.request.method == 'POST':
+            user_head.append(context.cfg.html_head_posts)
         # we don't want to have BadContent stuff indexed:
         elif pagename in ['BadContent', 'LocalBadContent', ]:
-            user_head.append(request.cfg.html_head_posts)
+            user_head.append(context.cfg.html_head_posts)
         # if it is a special page, index it and follow the links - we do it
         # for the original, English pages as well as for (the possibly
         # modified) frontpage:
-        elif pagename in [page_front_page, request.cfg.page_front_page,
+        elif pagename in [page_front_page, context.cfg.page_front_page,
                           page_title_index, 'TitleIndex',
                           page_find_page, 'FindPage',
                           page_site_navigation, 'SiteNavigation',
                           'RecentChanges', ]:
-            user_head.append(request.cfg.html_head_index)
+            user_head.append(context.cfg.html_head_index)
         # if it is a normal page, index it, but do not follow the links, because
         # there are a lot of illegal links (like actions) or duplicates:
         else:
-            user_head.append(request.cfg.html_head_normal)
+            user_head.append(context.cfg.html_head_normal)
 
         if 'pi_refresh' in keywords and keywords['pi_refresh']:
             user_head.append('<meta http-equiv="refresh" content="%d;URL=%s">' % keywords['pi_refresh'])
@@ -1711,7 +1711,7 @@ var gui_editor_link_text = "%(text)s";
             self.html_head({
                 'page': page,
                 'title': text,
-                'sitename': request.cfg.html_pagetitle or request.cfg.sitename,
+                'sitename': context.cfg.html_pagetitle or context.cfg.sitename,
                 'print_mode': keywords.get('print_mode', False),
                 'media': keywords.get('media', 'screen'),
             }),
@@ -1719,52 +1719,52 @@ var gui_editor_link_text = "%(text)s";
         ))
 
         # Links
-        output.append('<link rel="Start" href="%s">\n' % request.request.href(page_front_page))
+        output.append('<link rel="Start" href="%s">\n' % context.request.href(page_front_page))
         if pagename:
             output.append('<link rel="Alternate" title="%s" href="%s">\n' % (
-                    _('Wiki Markup'), page.url(request, querystr=dict(action='raw'))))
+                _('Wiki Markup'), page.url(context, querystr=dict(action='raw'))))
             output.append('<link rel="Alternate" media="print" title="%s" href="%s">\n' % (
-                    _('Print View'), page.url(request, querystr=dict(action='print'))))
+                _('Print View'), page.url(context, querystr=dict(action='print'))))
 
             # !!! currently disabled due to Mozilla link prefetching, see
             # http://www.mozilla.org/projects/netlib/Link_Prefetching_FAQ.html
-            #~ all_pages = request.getPageList()
-            #~ if all_pages:
-            #~     try:
-            #~         pos = all_pages.index(pagename)
-            #~     except ValueError:
-            #~         # this shopuld never happend in theory, but let's be sure
-            #~         pass
-            #~     else:
-            #~         request.write('<link rel="First" href="%s/%s">\n' % (request.script_root, quoteWikinameURL(all_pages[0]))
-            #~         if pos > 0:
-            #~             request.write('<link rel="Previous" href="%s/%s">\n' % (request.script_root, quoteWikinameURL(all_pages[pos-1])))
-            #~         if pos+1 < len(all_pages):
-            #~             request.write('<link rel="Next" href="%s/%s">\n' % (request.script_root, quoteWikinameURL(all_pages[pos+1])))
-            #~         request.write('<link rel="Last" href="%s/%s">\n' % (request.script_root, quoteWikinameURL(all_pages[-1])))
+            # ~ all_pages = request.getPageList()
+            # ~ if all_pages:
+            # ~     try:
+            # ~         pos = all_pages.index(pagename)
+            # ~     except ValueError:
+            # ~         # this shopuld never happend in theory, but let's be sure
+            # ~         pass
+            # ~     else:
+            # ~         request.write('<link rel="First" href="%s/%s">\n' % (request.script_root, quoteWikinameURL(all_pages[0]))
+            # ~         if pos > 0:
+            # ~             request.write('<link rel="Previous" href="%s/%s">\n' % (request.script_root, quoteWikinameURL(all_pages[pos-1])))
+            # ~         if pos+1 < len(all_pages):
+            # ~             request.write('<link rel="Next" href="%s/%s">\n' % (request.script_root, quoteWikinameURL(all_pages[pos+1])))
+            # ~         request.write('<link rel="Last" href="%s/%s">\n' % (request.script_root, quoteWikinameURL(all_pages[-1])))
 
             if page_parent_page:
-                output.append('<link rel="Up" href="%s">\n' % request.request.href(page_parent_page))
+                output.append('<link rel="Up" href="%s">\n' % context.request.href(page_parent_page))
 
         # write buffer because we call AttachFile
-        request.write(''.join(output))
+        context.write(''.join(output))
         output = []
 
         # XXX maybe this should be removed completely. moin emits all attachments as <link rel="Appendix" ...>
         # and it is at least questionable if this fits into the original intent of rel="Appendix".
-        if pagename and request.user.may.read(pagename):
+        if pagename and context.user.may.read(pagename):
             from MoinMoin.action import AttachFile
-            AttachFile.send_link_rel(request, pagename)
+            AttachFile.send_link_rel(context, pagename)
 
         output.extend([
-            '<link rel="Search" href="%s">\n' % request.request.href(page_find_page),
-            '<link rel="Index" href="%s">\n' % request.request.href(page_title_index),
-            '<link rel="Glossary" href="%s">\n' % request.request.href(page_word_index),
-            '<link rel="Help" href="%s">\n' % request.request.href(page_help_formatting),
-                      ])
+            '<link rel="Search" href="%s">\n' % context.request.href(page_find_page),
+            '<link rel="Index" href="%s">\n' % context.request.href(page_title_index),
+            '<link rel="Glossary" href="%s">\n' % context.request.href(page_word_index),
+            '<link rel="Help" href="%s">\n' % context.request.href(page_help_formatting),
+        ])
 
         output.append("</head>\n")
-        request.write(''.join(output))
+        context.write(''.join(output))
         output = []
 
         # start the <body>
@@ -1791,7 +1791,7 @@ var gui_editor_link_text = "%(text)s";
                 'page_name': pagename or '',
                 'rev': rev,
             }
-            request.themedict = d
+            context.themedict = d
             output.append(self.startPage())
             output.append(self.interwiki(d))
             output.append(self.title(d))
@@ -1804,8 +1804,8 @@ var gui_editor_link_text = "%(text)s";
                 'theme': self.name,
                 'script_name': scriptname,
                 'title_text': text,
-                'logo_string': request.cfg.logo_string,
-                'site_name': request.cfg.sitename,
+                'logo_string': context.cfg.logo_string,
+                'site_name': context.cfg.sitename,
                 'page': page,
                 'rev': rev,
                 'pagesize': pagename and page.size() or 0,
@@ -1820,8 +1820,8 @@ var gui_editor_link_text = "%(text)s";
                 'page_parent_page': page_parent_page,
                 'page_title_index': page_title_index,
                 'page_word_index': page_word_index,
-                'user_name': request.user.name,
-                'user_valid': request.user.valid,
+                'user_name': context.user.name,
+                'user_valid': context.user.valid,
                 'msg': self._status,
                 'trail': keywords.get('trail', None),
                 # Discontinued keys, keep for a while for 3rd party theme developers
@@ -1836,11 +1836,11 @@ var gui_editor_link_text = "%(text)s";
             for key in d:
                 if key.startswith('page_'):
                     if not d[key] is None:
-                        newdict['q_'+key] = wikiutil.quoteWikinameURL(d[key])
+                        newdict['q_' + key] = wikiutil.quoteWikinameURL(d[key])
                     else:
-                        newdict['q_'+key] = None
+                        newdict['q_' + key] = None
             d.update(newdict)
-            request.themedict = d
+            context.themedict = d
 
             # now call the theming code to do the rendering
             if keywords.get('editor_mode', 0):
@@ -1849,7 +1849,7 @@ var gui_editor_link_text = "%(text)s";
                 output.append(self.header(d))
 
         # emit it
-        request.write(''.join(output))
+        context.write(''.join(output))
         output = []
         self._send_title_called = True
 
@@ -1888,7 +1888,7 @@ var gui_editor_link_text = "%(text)s";
             for t in request.clock.dump():
                 request.write('<li>%s</li>\n' % t)
             request.write('</ul>\n')
-        #request.write('<!-- auth_method == %s -->' % repr(request.user.auth_method))
+        # request.write('<!-- auth_method == %s -->' % repr(request.user.auth_method))
         request.write('</body>\n</html>\n\n')
 
     def sidebar(self, d, **keywords):
@@ -1917,6 +1917,7 @@ var gui_editor_link_text = "%(text)s";
 class ThemeNotFound(Exception):
     """ Thrown if the supplied theme could not be found anywhere """
 
+
 def load_theme(request, theme_name=None):
     """ Load a theme for this request.
 
@@ -1935,6 +1936,7 @@ def load_theme(request, theme_name=None):
         raise ThemeNotFound(theme_name)
 
     return Theme(request)
+
 
 def load_theme_fallback(request, theme_name=None):
     """ Try loading a theme, falling back to defaults on error.

@@ -1,4 +1,3 @@
-
 """
 MoinMoin - reducewiki script
 
@@ -6,13 +5,15 @@ MoinMoin - reducewiki script
 @license: GPL, see COPYING for details
 """
 
-import os, shutil, codecs
+import codecs
+import os
+import shutil
 
 from MoinMoin import config, wikiutil
 from MoinMoin.Page import Page
 from MoinMoin.action import AttachFile
-
 from MoinMoin.script import MoinScript
+
 
 class PluginScript(MoinScript):
     """\
@@ -62,7 +63,7 @@ General syntax: moin [options] maint reducewiki [reducewiki-options]
         # write a "current" file with content "00000001"
         revstr = '%08d' % 1
         cf = os.path.join(pagedir, 'current')
-        open(cf, 'w').write(revstr+'\n')
+        open(cf, 'w').write(revstr + '\n')
 
         # create a single revision 00000001
         revdir = os.path.join(pagedir, 'revisions')
@@ -88,4 +89,3 @@ General syntax: moin [options] maint reducewiki [reducewiki-options]
         pagelist = list(request.rootpage.getPageList(user=''))
         for pagename in pagelist:
             self.copypage(request, destdir, pagename)
-

@@ -1,4 +1,3 @@
-
 """
     MoinMoin - binary file Filter
 

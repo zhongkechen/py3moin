@@ -1,4 +1,3 @@
-
 """
     Outputs the interwiki map.
 
@@ -6,13 +5,14 @@
     @license: GNU GPL, see COPYING for details
 """
 
-Dependencies = ["pages"] # if interwikimap is editable
+Dependencies = ["pages"]  # if interwikimap is editable
 
 from MoinMoin import wikiutil
 
+
 def macro_InterWiki(macro):
     interwiki_list = wikiutil.load_wikimap(macro.request)
-    iwlist = list(interwiki_list.items()) # this is where we cached it
+    iwlist = list(interwiki_list.items())  # this is where we cached it
     iwlist.sort()
     fmt = macro.formatter
     output = []
@@ -37,4 +37,3 @@ def macro_InterWiki(macro):
         output.append(fmt.definition_desc(1))
     output.append(fmt.definition_list(0))
     return u''.join(output)
-

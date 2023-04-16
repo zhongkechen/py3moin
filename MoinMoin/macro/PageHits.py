@@ -1,4 +1,3 @@
-
 """
     MoinMoin - per page hit statistics
 
@@ -21,7 +20,7 @@ class PageHits:
 
     def execute(self):
         """ Execute the macro and return output """
-        if self.request.isSpiderAgent: # reduce bot cpu usage
+        if self.request.isSpiderAgent:  # reduce bot cpu usage
             return ''
         cacheDate, hits = self.cachedHits()
         self.addHitsFromLog(hits, cacheDate)
@@ -71,7 +70,7 @@ class PageHits:
     def filterReadableHits(self, hits):
         """ Filter out hits the user many not see """
         userMayRead = self.request.user.may.read
-        for pagename in list(hits.keys()): # we need .keys() because we modify the dict
+        for pagename in list(hits.keys()):  # we need .keys() because we modify the dict
             page = Page(self.request, pagename)
             if page.exists() and userMayRead(pagename):
                 continue
@@ -99,4 +98,3 @@ class PageHits:
 
 def macro_PageHits(macro):
     return PageHits(macro).execute()
-

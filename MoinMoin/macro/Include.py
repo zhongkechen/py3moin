@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Include macro
 
@@ -13,17 +12,18 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-#Dependencies = ["pages"] # included page
+# Dependencies = ["pages"] # included page
 
 
-Dependencies = ["time"] # works around MoinMoinBugs/TableOfContentsLacksLinks
+Dependencies = ["time"]  # works around MoinMoinBugs/TableOfContentsLacksLinks
 
 generates_headings = True
 
-import re, io
+import io
+import re
+
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
-
 
 _sysmsg = '<p><strong class="%s">%s</strong></p>'
 
@@ -43,16 +43,18 @@ _args_re_pattern = r'^(?P<name>[^,]+)(%s(%s)?%s%s%s%s%s%s%s)?$' % (
 
 _title_re = r"^(?P<heading>\s*(?P<hmarker>=+)\s.*\s(?P=hmarker))$"
 
+
 def extract_titles(body, title_re):
     titles = []
     for title, _ in title_re.findall(body):
         h = title.strip()
         level = 1
-        while h[level:level+1] == '=':
+        while h[level:level + 1] == '=':
             level += 1
         title_text = h[level:-level].strip()
         titles.append((title_text, level))
     return titles
+
 
 def execute(macro, text, args_re=re.compile(_args_re_pattern), title_re=re.compile(_title_re, re.M)):
     request = macro.request
@@ -65,7 +67,7 @@ def execute(macro, text, args_re=re.compile(_args_re_pattern), title_re=re.compi
     # parse and check arguments
     args = text and args_re.match(text)
     if not args:
-        return (_sysmsg % ('error', _('Invalid include arguments "%s"!')) % (text, ))
+        return (_sysmsg % ('error', _('Invalid include arguments "%s"!')) % (text,))
 
     # prepare including page
     result = []
@@ -81,7 +83,7 @@ def execute(macro, text, args_re=re.compile(_args_re_pattern), title_re=re.compi
         try:
             inc_match = re.compile(inc_name)
         except re.error:
-            pass # treat as plain page name
+            pass  # treat as plain page name
         else:
             # Get user filtered readable page list
             pagelist = request.rootpage.getPageList(filter=inc_match.match)
@@ -106,7 +108,7 @@ def execute(macro, text, args_re=re.compile(_args_re_pattern), title_re=re.compi
         if not request.user.may.read(inc_name):
             continue
         if inc_name in this_page._macroInclude_pagelist:
-            result.append(u'<p><strong class="error">Recursive include of "%s" forbidden</strong></p>' % (inc_name, ))
+            result.append(u'<p><strong class="error">Recursive include of "%s" forbidden</strong></p>' % (inc_name,))
             continue
         if skipitems:
             skipitems -= 1
@@ -224,13 +226,12 @@ def execute(macro, text, args_re=re.compile(_args_re_pattern), title_re=re.compi
         if editlink and not (level or print_mode):
             result.extend([
                 macro.formatter.div(1, css_class="include-link"),
-                inc_page.link_to(request, '[%s]' % (inc_name, ), css_class="include-page-link"),
-                inc_page.link_to(request, '[%s]' % (_('edit'), ), css_class="include-edit-link", querystr={'action': 'edit', 'backto': request._Include_backto}),
+                inc_page.link_to(request, '[%s]' % (inc_name,), css_class="include-page-link"),
+                inc_page.link_to(request, '[%s]' % (_('edit'),), css_class="include-edit-link",
+                                 querystr={'action': 'edit', 'backto': request._Include_backto}),
                 macro.formatter.div(0),
             ])
         # XXX page.link_to is wrong now, it escapes the edit_icon html as it escapes normal text
 
     # return include text
     return ''.join(result)
-
-# vim:ts=4:sw=4:et

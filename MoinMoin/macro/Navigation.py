@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Navigation Macro
 
@@ -8,13 +7,15 @@
 """
 
 import re
-from MoinMoin.Page import Page
+
 from MoinMoin import wikiutil
+from MoinMoin.Page import Page
 
 Dependencies = ["namespace"]
 
+
 # helpers
-#!!! refactor these to an util module?
+# !!! refactor these to an util module?
 def _getParent(pagename):
     """ Return parent of pagename.
     """
@@ -52,9 +53,9 @@ def _getLinks(request, pagename, filter_regex=None):
         else:
             if pos > 0:
                 first = all_pages[0]
-                prev = all_pages[pos-1]
-            if pos+1 < len(all_pages):
-                next = all_pages[pos+1]
+                prev = all_pages[pos - 1]
+            if pos + 1 < len(all_pages):
+                next = all_pages[pos + 1]
                 last = all_pages[-1]
 
     return pos, size, (first, prev, next, last)
@@ -80,7 +81,6 @@ class Navigation:
         self.media = self.macro.request.values.get('media')
         self.querystr = self.print_mode and self.PROJECTION or {}
 
-
     def dispatch(self):
         """ Return None if in plain print mode (no navigational
             elements in printouts), else the proper HTML code.
@@ -90,24 +90,21 @@ class Navigation:
 
         return getattr(self, 'do_%s' % self.scheme, self.badscheme)()
 
-
     def badscheme(self):
         """ Bad scheme argument.
         """
         _ = self._
         return (self.macro.formatter.sysmsg(1) +
                 self.macro.formatter.text(
-            _("Unsupported navigation scheme '%(scheme)s'!") %
-            {'scheme': self.scheme}) +
+                    _("Unsupported navigation scheme '%(scheme)s'!") %
+                    {'scheme': self.scheme}) +
                 self.macro.formatter.sysmsg(0))
-
 
     def do_children(self):
         """ Navigate to subpages from a parent page.
         """
         # delegate to siblings code, setting the parent explicitely
         return self.do_siblings(root=self.pagename)
-
 
     def do_siblings(self, root=None):
         """ Navigate from a subpage to its siblings.
@@ -118,7 +115,7 @@ class Navigation:
         parent = root or _getParent(self.pagename)
         if not parent:
             return (self.macro.formatter.sysmsg(1) +
-                    self.macro.formatter.text(_('No parent page found!'))+
+                    self.macro.formatter.text(_('No parent page found!')) +
                     self.macro.formatter.sysmsg(0))
 
         # iterate over children, adding links to all of them
@@ -142,7 +139,6 @@ class Navigation:
             result.append(' &nbsp; ')
 
         return ''.join(result)
-
 
     def do_slideshow(self, focus=None):
         """ Slideshow master page links.
@@ -179,7 +175,6 @@ class Navigation:
 
         return ''.join(result)
 
-
     def do_slides(self, root=None):
         """ Navigate within a slide show.
         """
@@ -197,7 +192,7 @@ class Navigation:
         filter_regex = '^%s/' % re.escape(parent)
         pos, size, links = _getLinks(request, self.pagename, filter_regex)
         pos += 1
-        links = list(zip(labels, (parent, ) + links))
+        links = list(zip(labels, (parent,) + links))
 
         # generate links to neighborhood
         for label, name in links:
@@ -218,9 +213,9 @@ class Navigation:
 
 
 def macro_Navigation(macro,
-                    scheme=wikiutil.required_arg((u'children', u'siblings',
-                                                  u'slideshow', u'slides')),
-                    depth=0):
+                     scheme=wikiutil.required_arg((u'children', u'siblings',
+                                                   u'slideshow', u'slides')),
+                     depth=0):
     # get HTML code with the links
     navi = Navigation(macro, scheme, depth).dispatch()
 
@@ -230,4 +225,3 @@ def macro_Navigation(macro,
 
     # navigation disabled in plain print mode
     return u''
-

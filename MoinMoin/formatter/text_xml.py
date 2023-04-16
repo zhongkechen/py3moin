@@ -1,4 +1,3 @@
-
 """
     MoinMoin - "text/xml" Formatter
 
@@ -7,9 +6,11 @@
 """
 
 from xml.sax import saxutils
-from MoinMoin.formatter import FormatterBase
+
 from MoinMoin import config
 from MoinMoin.Page import Page
+from MoinMoin.formatter import FormatterBase
+
 
 class Formatter(FormatterBase):
     """
@@ -65,16 +66,16 @@ class Formatter(FormatterBase):
             str = ' class="%s"' % css
         else:
             str = ''
-        return ('<jump href="%s"%s>' % (self._escape(url), str), '</jump>') [not on]
+        return ('<jump href="%s"%s>' % (self._escape(url), str), '</jump>')[not on]
 
     def attachment_link(self, on, url=None, **kw):
         if on:
-            return '<attachment href="%s">' % (url, )
+            return '<attachment href="%s">' % (url,)
         else:
             return '</attachment>'
 
     def attachment_image(self, url, **kw):
-        return '<attachmentimage href="%s"></attachmentimage>' % (url, )
+        return '<attachmentimage href="%s"></attachmentimage>' % (url,)
 
     def attachment_drawing(self, url, text, **kw):
         return '<attachmentdrawing href="%s">%s</attachmentdrawing>' % (url, text)
@@ -85,11 +86,12 @@ class Formatter(FormatterBase):
         return self._escape(text)
 
     def rule(self, size=0, **kw):
-        return "\n<br/>%s<br/>\n" % ("-" * 78, ) # <hr/> not supported in stylebook
-#        if size:
-#            return '<hr size="%d"/>\n' % (size, )
-#        else:
-#            return '<hr/>\n'
+        return "\n<br/>%s<br/>\n" % ("-" * 78,)  # <hr/> not supported in stylebook
+
+    #        if size:
+    #            return '<hr size="%d"/>\n' % (size, )
+    #        else:
+    #            return '<hr/>\n'
 
     def icon(self, type):
         return '<icon type="%s" />' % type
@@ -188,10 +190,10 @@ class Formatter(FormatterBase):
         extra = ''
         if id:
             extra = ' id="%s"' % id
-        return ('<link anchor="%s"%s>' % (name, extra), '</link>') [not on]
+        return ('<link anchor="%s"%s>' % (name, extra), '</link>')[not on]
 
     def underline(self, on, **kw):
-        return self.strong(on) # no underline in StyleBook
+        return self.strong(on)  # no underline in StyleBook
 
     def definition_list(self, on, **kw):
         result = ''

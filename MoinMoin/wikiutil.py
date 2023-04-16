@@ -499,40 +499,40 @@ def get_max_mtime(file_list, page):
         return 0  # no files / pages there
 
 
-def load_wikimap(request):
+def load_wikimap(context):
     """ load interwiki map (once, and only on demand) """
     from MoinMoin.Page import Page
 
     now = int(time.time())
-    if getattr(request.cfg, "shared_intermap_files", None) is None:
-        generate_file_list(request)
+    if getattr(context.cfg, "shared_intermap_files", None) is None:
+        generate_file_list(context)
 
     try:
-        _interwiki_list = request.cfg.cache.interwiki_list
-        old_mtime = request.cfg.cache.interwiki_mtime
-        if request.cfg.cache.interwiki_ts + (1 * 60) < now:  # 1 minutes caching time
-            max_mtime = get_max_mtime(request.cfg.shared_intermap_files, Page(request, INTERWIKI_PAGE))
+        _interwiki_list = context.cfg.cache.interwiki_list
+        old_mtime = context.cfg.cache.interwiki_mtime
+        if context.cfg.cache.interwiki_ts + (1 * 60) < now:  # 1 minutes caching time
+            max_mtime = get_max_mtime(context.cfg.shared_intermap_files, Page(context, INTERWIKI_PAGE))
             if max_mtime > old_mtime:
                 raise AttributeError  # refresh cache
             else:
-                request.cfg.cache.interwiki_ts = now
+                context.cfg.cache.interwiki_ts = now
     except AttributeError:
         _interwiki_list = {}
         lines = []
 
-        for filename in request.cfg.shared_intermap_files:
+        for filename in context.cfg.shared_intermap_files:
             f = codecs.open(filename, "r", config.charset)
             lines.extend(f.readlines())
             f.close()
 
         # add the contents of the InterWikiMap page
-        lines += Page(request, INTERWIKI_PAGE).get_raw_body().splitlines()
+        lines += Page(context, INTERWIKI_PAGE).get_raw_body().splitlines()
 
         for line in lines:
             if not line or line[0] == '#':
                 continue
             try:
-                line = "%s %s/InterWiki" % (line, request.request.script_root)
+                line = "%s %s/InterWiki" % (line, context.request.script_root)
                 wikitag, urlprefix, dummy = line.split(None, 2)
             except ValueError:
                 pass
@@ -542,15 +542,15 @@ def load_wikimap(request):
         del lines
 
         # add own wiki as "Self" and by its configured name
-        _interwiki_list['Self'] = request.request.script_root + '/'
-        if request.cfg.interwikiname:
-            _interwiki_list[request.cfg.interwikiname] = request.request.script_root + '/'
+        _interwiki_list['Self'] = context.request.script_root + '/'
+        if context.cfg.interwikiname:
+            _interwiki_list[context.cfg.interwikiname] = context.request.script_root + '/'
 
         # save for later
-        request.cfg.cache.interwiki_list = _interwiki_list
-        request.cfg.cache.interwiki_ts = now
-        request.cfg.cache.interwiki_mtime = get_max_mtime(request.cfg.shared_intermap_files,
-                                                          Page(request, INTERWIKI_PAGE))
+        context.cfg.cache.interwiki_list = _interwiki_list
+        context.cfg.cache.interwiki_ts = now
+        context.cfg.cache.interwiki_mtime = get_max_mtime(context.cfg.shared_intermap_files,
+                                                          Page(context, INTERWIKI_PAGE))
 
     return _interwiki_list
 
@@ -600,43 +600,43 @@ def split_interwiki(wikiurl):
     return wikiname, pagename
 
 
-def resolve_wiki(request, wikiurl):
+def resolve_wiki(context, wikiurl):
     """
     Resolve an interwiki link.
 
     *** DEPRECATED FUNCTION FOR OLD 1.5 SYNTAX - ONLY STILL HERE FOR THE 1.5 -> 1.6 MIGRATION ***
     Use resolve_interwiki(), see below.
 
-    @param request: the request object
+    @param context: the request object
     @param wikiurl: the InterWiki:PageName link
     @rtype: tuple
     @return: (wikitag, wikiurl, wikitail, err)
     """
-    _interwiki_list = load_wikimap(request)
+    _interwiki_list = load_wikimap(context)
     # split wiki url
     wikiname, pagename = split_wiki(wikiurl)
 
     # return resolved url
     if wikiname in _interwiki_list:
-        return (wikiname, _interwiki_list[wikiname], pagename, False)
+        return wikiname, _interwiki_list[wikiname], pagename, False
     else:
-        return (wikiname, request.request.script_root, "/InterWiki", True)
+        return wikiname, context.request.script_root, "/InterWiki", True
 
 
-def resolve_interwiki(request, wikiname, pagename):
+def resolve_interwiki(context, wikiname, pagename):
     """ Resolve an interwiki reference (wikiname:pagename).
 
-    @param request: the request object
+    @param context: the request object
     @param wikiname: interwiki wiki name
     @param pagename: interwiki page name
     @rtype: tuple
     @return: (wikitag, wikiurl, wikitail, err)
     """
-    _interwiki_list = load_wikimap(request)
+    _interwiki_list = load_wikimap(context)
     if wikiname in _interwiki_list:
-        return (wikiname, _interwiki_list[wikiname], pagename, False)
+        return wikiname, _interwiki_list[wikiname], pagename, False
     else:
-        return (wikiname, request.request.script_root, "/InterWiki", True)
+        return wikiname, context.request.script_root, "/InterWiki", True
 
 
 def join_wiki(wikiurl, wikitail):
@@ -1130,7 +1130,7 @@ def importBuiltinPlugin(kind, name, function="execute"):
 
     See importPlugin docstring.
     """
-    if not name in builtinPlugins(kind):
+    if name not in builtinPlugins(kind):
         raise PluginMissingError()
     moduleName = 'MoinMoin.%s.%s' % (kind, name)
     return importNameFromPlugin(moduleName, function)
@@ -1194,7 +1194,7 @@ def wikiPlugins(kind, cfg):
                 packagepath = os.path.dirname(module.__file__)
                 plugins = pysupport.getPluginModules(packagepath)
                 for p in plugins:
-                    if not p in result:
+                    if p not in result:
                         result[p] = '%s.%s' % (modname, kind)
             except AttributeError:
                 pass
@@ -1412,9 +1412,9 @@ def parse_quoted_separated_ext(args, separator=None, name_value_separator=None,
     matchingbracket = {}
     if brackets:
         for o, c in brackets:
-            assert not o in opening
+            assert o not in opening
             opening.append(o)
-            assert not c in closing
+            assert c not in closing
             closing.append(c)
             matchingbracket[o] = c
 
@@ -1440,7 +1440,7 @@ def parse_quoted_separated_ext(args, separator=None, name_value_separator=None,
             next = args[idx + 1]
         if skipquote:
             skipquote -= 1
-        if not separator is None and not quoted and char in SPACE:
+        if separator is not None and not quoted and char in SPACE:
             spaces = ''
             # accumulate all space
             while char in SPACE and idx < max - 1:
@@ -1741,7 +1741,7 @@ def get_choice(request, arg, name=None, choices=[None], default_none=False):
             return choices[0]
     elif not isinstance(arg, str):
         raise TypeError('Argument must be None or unicode')
-    elif not arg in choices:
+    elif arg not in choices:
         _ = request.getText
         if name:
             raise ValueError(
@@ -1840,8 +1840,7 @@ class required_arg:
         Initialise a required_arg
         @param argtype: the type the argument should have
         """
-        if not (argtype in (bool, int, int, float, complex, str) or
-                isinstance(argtype, (IEFArgument, tuple, list))):
+        if argtype not in (bool, int, int, float, complex, str) and not isinstance(argtype, (IEFArgument, tuple, list)):
             raise TypeError("argtype must be a valid type")
         self.argtype = argtype
 
@@ -1977,7 +1976,7 @@ def invoke_extension_function(request, function, args, fixed_args=[]):
             continue
         if positional:
             kwargs[argname] = positional.pop()
-        if not argname in kwargs:
+        if argname not in kwargs:
             kwargs[argname] = None
         if idx >= defstart:
             defaults[argname] = defaultlist[idx - defstart]
@@ -2009,7 +2008,7 @@ def invoke_extension_function(request, function, args, fixed_args=[]):
                 if isinstance(defaults[argname], IEFArgument):
                     kwargs[argname] = defaults[argname].get_default()
 
-        if not argname in argnames:
+        if argname not in argnames:
             # move argname into _kwargs parameter
             kwargs_to_pass[argname] = kwargs[argname]
             del kwargs[argname]
@@ -2426,12 +2425,12 @@ def isPicture(url):
     return extpos > 1 and url[extpos:].lower() in config.browser_supported_images
 
 
-def link_tag(request, params, text=None, formatter=None, on=None, **kw):
+def link_tag(context, params, text=None, formatter=None, on=None, **kw):
     """ Create a link.
 
     TODO: cleanup css_class
 
-    @param request: the request object
+    @param context: the request object
     @param params: parameter string appended to the URL after the scriptname/
     @param text: text / inner part of the <a>...</a> link - does NOT get
                  escaped, so you can give HTML here and it will be used verbatim
@@ -2442,7 +2441,7 @@ def link_tag(request, params, text=None, formatter=None, on=None, **kw):
     @return: formatted link tag
     """
     if formatter is None:
-        formatter = request.html_formatter
+        formatter = context.html_formatter
     if 'css_class' in kw:
         css_class = kw['css_class']
         del kw['css_class']  # one time is enough
@@ -2453,7 +2452,7 @@ def link_tag(request, params, text=None, formatter=None, on=None, **kw):
     if text is None:
         text = params  # default
     if formatter:
-        url = "%s/%s" % (request.request.script_root, params)
+        url = "%s/%s" % (context.request.script_root, params)
         # formatter.url will escape the url part
         if on is not None:
             tag = formatter.url(on, url, css_class, **kw)
@@ -2472,7 +2471,7 @@ def link_tag(request, params, text=None, formatter=None, on=None, **kw):
                 attrs += ' id="%s"' % id
             if name:
                 attrs += ' name="%s"' % name
-            tag = '<a%s href="%s/%s">' % (attrs, request.request.script_root, params)
+            tag = '<a%s href="%s/%s">' % (attrs, context.request.script_root, params)
             if not on:
                 tag = "%s%s</a>" % (tag, text)
         logging.warning(

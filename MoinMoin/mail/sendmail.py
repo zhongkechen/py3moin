@@ -10,12 +10,10 @@ import os
 import re
 from email.header import Header
 
+from MoinMoin import config
 from MoinMoin import log
 
 logging = log.getLogger(__name__)
-
-from MoinMoin import config
-
 _transdict = {"AT": "@", "DOT": ".", "DASH": "-"}
 
 
@@ -78,10 +76,10 @@ def sendmail(request, to, subject, text, mail_from=None):
     mail_from = mail_from or cfg.mail_from
 
     logging.debug("send mail, from: %r, subj: %r" % (mail_from, subject))
-    logging.debug("send mail, to: %r" % (to, ))
+    logging.debug("send mail, to: %r" % (to,))
 
     if not to:
-        return (1, _("No recipients, nothing to do"))
+        return 1, _("No recipients, nothing to do")
 
     subject = subject.encode(config.charset)
 
@@ -130,10 +128,10 @@ def sendmail(request, to, subject, text, mail_from=None):
             host, port = (cfg.mail_smarthost + ':25').split(':')[:2]
             server = smtplib.SMTP(host, int(port))
             try:
-                #server.set_debuglevel(1)
+                # server.set_debuglevel(1)
                 if cfg.mail_login:
                     user, pwd = cfg.mail_login.split()
-                    try: # try to do tls
+                    try:  # try to do tls
                         server.ehlo()
                         if server.has_extn('starttls'):
                             server.starttls()
@@ -151,7 +149,7 @@ def sendmail(request, to, subject, text, mail_from=None):
                     # in case the connection failed, SMTP has no "sock" attribute
                     pass
         except UnicodeError as e:
-            logging.exception("unicode error [%r -> %r]" % (mail_from, to, ))
+            logging.exception("unicode error [%r -> %r]" % (mail_from, to,))
             return (0, str(e))
         except smtplib.SMTPException as e:
             logging.exception("smtp mail failed with an exception.")
@@ -179,6 +177,7 @@ def sendmail(request, to, subject, text, mail_from=None):
     logging.debug("Mail sent OK")
     return (1, _("Mail sent OK"))
 
+
 def encodeSpamSafeEmail(email_address, obfuscation_text=''):
     """ Encodes a standard email address to an obfuscated address
     @param email_address: mail address to encode.
@@ -199,6 +198,7 @@ def encodeSpamSafeEmail(email_address, obfuscation_text=''):
         address = address.replace(' AT ', ' AT %s ' % obfuscation_text.upper())
 
     return address
+
 
 def decodeSpamSafeEmail(address):
     """ Decode obfuscated email address to standard email address
@@ -232,4 +232,3 @@ def decodeSpamSafeEmail(address):
 
     # return concatenated parts
     return ''.join(email)
-

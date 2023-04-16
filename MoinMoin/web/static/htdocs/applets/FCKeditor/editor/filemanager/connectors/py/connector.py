@@ -25,94 +25,99 @@ Connector for Python (CGI and WSGI).
 See config.py for configuration settings
 
 """
-from fckcommands import * 	# default command's implementation
-from fckoutput import * 	# base http, xml and html output mixins
-from fckconnector import FCKeditorConnectorBase # import base connector
-import config as Config
+from fckcommands import *  # default command's implementation
+from fckconnector import FCKeditorConnectorBase  # import base connector
+from fckoutput import *  # base http, xml and html output mixins
 
-class FCKeditorConnector(	FCKeditorConnectorBase,
-							GetFoldersCommandMixin,
-							GetFoldersAndFilesCommandMixin,
-							CreateFolderCommandMixin,
-							UploadFileCommandMixin,
-							BaseHttpMixin, BaseXmlMixin, BaseHtmlMixin  ):
-	"The Standard connector class."
-	def doResponse(self):
-		"Main function. Process the request, set headers and return a string as response."
-		s = ""
-		# Check if this connector is disabled
-		if not(Config.Enabled):
-			return self.sendError(1, "This connector is disabled.  Please check the connector configurations in \"editor/filemanager/connectors/py/config.py\" and try again.")
-		# Make sure we have valid inputs
-		for key in ("Command","Type","CurrentFolder"):
-			if key not in self.request:
-				return
-		# Get command, resource type and current folder
-		command = self.request.get("Command")
-		resourceType = self.request.get("Type")
-		currentFolder = getCurrentFolder(self.request.get("CurrentFolder"))
-		# Check for invalid paths
-		if currentFolder is None:
-			if (command == "FileUpload"):
-				return self.sendUploadResults( errorNo = 102, customMsg = "" )
-			else:
-				return self.sendError(102, "")
 
-		# Check if it is an allowed command
-		if ( not command in Config.ConfigAllowedCommands ):
-			return self.sendError( 1, 'The requested command isn\'t allowed' )
+class FCKeditorConnector(FCKeditorConnectorBase,
+                         GetFoldersCommandMixin,
+                         GetFoldersAndFilesCommandMixin,
+                         CreateFolderCommandMixin,
+                         UploadFileCommandMixin,
+                         BaseHttpMixin, BaseXmlMixin, BaseHtmlMixin):
+    "The Standard connector class."
 
-		if ( not resourceType in Config.ConfigAllowedTypes  ):
-			return self.sendError( 1, 'Invalid type specified' )
+    def doResponse(self):
+        "Main function. Process the request, set headers and return a string as response."
+        s = ""
+        # Check if this connector is disabled
+        if not Config.Enabled:
+            return self.sendError(1,
+                                  "This connector is disabled.  Please check the connector configurations in \"editor/filemanager/connectors/py/config.py\" and try again.")
+        # Make sure we have valid inputs
+        for key in ("Command", "Type", "CurrentFolder"):
+            if key not in self.request:
+                return
+        # Get command, resource type and current folder
+        command = self.request.get("Command")
+        resourceType = self.request.get("Type")
+        currentFolder = getCurrentFolder(self.request.get("CurrentFolder"))
+        # Check for invalid paths
+        if currentFolder is None:
+            if command == "FileUpload":
+                return self.sendUploadResults(errorNo=102, customMsg="")
+            else:
+                return self.sendError(102, "")
 
-		# Setup paths
-		if command == "QuickUpload":
-			self.userFilesFolder = Config.QuickUploadAbsolutePath[resourceType]
-			self.webUserFilesFolder =  Config.QuickUploadPath[resourceType]
-		else:
-			self.userFilesFolder = Config.FileTypesAbsolutePath[resourceType]
-			self.webUserFilesFolder = Config.FileTypesPath[resourceType]
+        # Check if it is an allowed command
+        if command not in Config.ConfigAllowedCommands:
+            return self.sendError(1, 'The requested command isn\'t allowed')
 
-		if not self.userFilesFolder: # no absolute path given (dangerous...)
-			self.userFilesFolder = mapServerPath(self.environ,
-									self.webUserFilesFolder)
-		# Ensure that the directory exists.
-		if not os.path.exists(self.userFilesFolder):
-			try:
-				self.createServerFolder( self.userFilesFolder )
-			except:
-				return self.sendError(1, "This connector couldn\'t access to local user\'s files directories.  Please check the UserFilesAbsolutePath in \"editor/filemanager/connectors/py/config.py\" and try again. ")
+        if resourceType not in Config.ConfigAllowedTypes:
+            return self.sendError(1, 'Invalid type specified')
 
-		# File upload doesn't have to return XML, so intercept here
-		if (command == "FileUpload"):
-			return self.uploadFile(resourceType, currentFolder)
+        # Setup paths
+        if command == "QuickUpload":
+            self.userFilesFolder = Config.QuickUploadAbsolutePath[resourceType]
+            self.webUserFilesFolder = Config.QuickUploadPath[resourceType]
+        else:
+            self.userFilesFolder = Config.FileTypesAbsolutePath[resourceType]
+            self.webUserFilesFolder = Config.FileTypesPath[resourceType]
 
-		# Create Url
-		url = combinePaths( self.webUserFilesFolder, currentFolder )
+        if not self.userFilesFolder:  # no absolute path given (dangerous...)
+            self.userFilesFolder = mapServerPath(self.environ,
+                                                 self.webUserFilesFolder)
+        # Ensure that the directory exists.
+        if not os.path.exists(self.userFilesFolder):
+            try:
+                self.createServerFolder(self.userFilesFolder)
+            except:
+                return self.sendError(1,
+                                      "This connector couldn\'t access to local user\'s files directories.  Please check the UserFilesAbsolutePath in \"editor/filemanager/connectors/py/config.py\" and try again. ")
 
-		# Begin XML
-		s += self.createXmlHeader(command, resourceType, currentFolder, url)
-		# Execute the command
-		selector = {"GetFolders": self.getFolders,
-					"GetFoldersAndFiles": self.getFoldersAndFiles,
-					"CreateFolder": self.createFolder,
-					}
-		s += selector[command](resourceType, currentFolder)
-		s += self.createXmlFooter()
-		return s
+        # File upload doesn't have to return XML, so intercept here
+        if command == "FileUpload":
+            return self.uploadFile(resourceType, currentFolder)
+
+        # Create Url
+        url = combinePaths(self.webUserFilesFolder, currentFolder)
+
+        # Begin XML
+        s += self.createXmlHeader(command, resourceType, currentFolder, url)
+        # Execute the command
+        selector = {"GetFolders": self.getFolders,
+                    "GetFoldersAndFiles": self.getFoldersAndFiles,
+                    "CreateFolder": self.createFolder,
+                    }
+        s += selector[command](resourceType, currentFolder)
+        s += self.createXmlFooter()
+        return s
+
 
 # Running from command line (plain old CGI)
 if __name__ == '__main__':
-	try:
-		# Create a Connector Instance
-		conn = FCKeditorConnector()
-		data = conn.doResponse()
-		for header in conn.headers:
-			print('%s: %s' % header)
-		print()
-		print(data)
-	except:
-		print("Content-Type: text/plain")
-		print()
-		import cgi
-		cgi.print_exception()
+    try:
+        # Create a Connector Instance
+        conn = FCKeditorConnector()
+        data = conn.doResponse()
+        for header in conn.headers:
+            print('%s: %s' % header)
+        print()
+        print(data)
+    except:
+        print("Content-Type: text/plain")
+        print()
+        import cgi
+
+        cgi.print_exception()

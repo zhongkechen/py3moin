@@ -1,4 +1,3 @@
-
 """
 MoinMoin - group access via various backends.
 
@@ -10,11 +9,12 @@ backends.
 @copyright: 2009 DmitrijsMilajevs
 @license: GPL, see COPYING for details
 """
+from abc import ABC
 
 from MoinMoin.datastruct.backends import BaseGroupsBackend, GroupDoesNotExistError
 
 
-class CompositeGroups(BaseGroupsBackend):
+class CompositeGroups(BaseGroupsBackend, ABC):
     """
     Manage several group backends.
     """
@@ -67,4 +67,3 @@ class CompositeGroups(BaseGroupsBackend):
 
     def __repr__(self):
         return "<%s backends=%s>" % (self.__class__, self._backends)
-

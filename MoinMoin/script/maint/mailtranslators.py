@@ -1,4 +1,3 @@
-
 """
 MoinMoin - mailtranslators script
 
@@ -10,6 +9,7 @@ import sys
 from MoinMoin import i18n
 from MoinMoin.mail.sendmail import sendmail
 from MoinMoin.script import MoinScript
+
 
 class PluginScript(MoinScript):
     """\
@@ -56,10 +56,10 @@ General syntax: moin [options] maint mailtranslators [mailtranslators-options]
 
         languages = i18n.wikiLanguages()
         langs = list(languages.keys())
-        langs.remove('en') # nothing to do for english, so remove it
-        #langs = ['de', ] # for testing
+        langs.remove('en')  # nothing to do for english, so remove it
+        # langs = ['de', ] # for testing
 
-        if len(text_template) > 10: # do not send mails w/o real content
+        if len(text_template) > 10:  # do not send mails w/o real content
             for lang in langs:
                 to_address = languages[lang]['last-translator']
                 rc = None
@@ -67,4 +67,3 @@ General syntax: moin [options] maint mailtranslators [mailtranslators-options]
                     text = text_template % locals()
                     rc = sendmail(request, [to_address], subject, text, mail_from=from_address)
                     print(lang, repr(from_address), repr(to_address), subject, repr(rc))
-

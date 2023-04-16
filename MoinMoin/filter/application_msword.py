@@ -1,4 +1,3 @@
-
 """
     MoinMoin - msword filter
 
@@ -12,9 +11,9 @@ import os
 
 from MoinMoin.filter import execfilter
 
+
 def execute(indexobj, filename):
     cmd = "antiword %s"
     if os.name == 'posix':
         cmd = "HOME=/tmp " + cmd  # no HOME makes antiword complain (on Linux)
     return execfilter(cmd, filename)
-

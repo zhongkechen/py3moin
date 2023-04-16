@@ -11,28 +11,28 @@ from MoinMoin.Page import Page
 from MoinMoin.wikiutil import quoteWikinameURL
 
 
-def execute(pagename, request):
-    _ = request.getText
-    sub_page_name = request.cfg.supplementation_page_name
-    sub_page_template = request.cfg.supplementation_page_template
+def execute(pagename, context):
+    _ = context.getText
+    sub_page_name = context.cfg.supplementation_page_name
+    sub_page_template = context.cfg.supplementation_page_template
     newpagename = "%s/%s" % (pagename, sub_page_name)
     errormsg = _("You are not allowed to create the supplementation page.")
 
     if pagename.endswith(sub_page_name):  # sub_sub_page redirects to sub_page
         query = {}
-        url = Page(request, pagename).url(request, query)
-        request.http_redirect(url)
-    elif request.user.may.read(newpagename):
+        url = Page(context, pagename).url(context, query)
+        context.http_redirect(url)
+    elif context.user.may.read(newpagename):
         query = {}
-        url = Page(request, newpagename).url(request, query)
-        test = Page(request, newpagename)
+        url = Page(context, newpagename).url(context, query)
+        test = Page(context, newpagename)
         if test.exists():  # page is defined -> redirect
-            request.http_redirect(url)
-        elif request.user.may.write(newpagename):  # page will be created from template
+            context.http_redirect(url)
+        elif context.user.may.write(newpagename):  # page will be created from template
             query = {'action': 'edit', 'backto': newpagename, 'template': quoteWikinameURL(sub_page_template)}
-            url = Page(request, newpagename).url(request, query)
-            request.http_redirect(url)
+            url = Page(context, newpagename).url(context, query)
+            context.http_redirect(url)
         else:
-            request.theme.add_msg(errormsg, "error")
+            context.theme.add_msg(errormsg, "error")
     else:
-        request.theme.add_msg(errormsg, "error")
+        context.theme.add_msg(errormsg, "error")

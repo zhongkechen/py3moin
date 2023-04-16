@@ -37,7 +37,7 @@ def execute(macro, args):
         backlink_id = "fndef-%s-%d" % (shahex, idx)
         fwdlink_id = "fnref-%s" % shahex
 
-        if not args in request.footnotes:
+        if args not in request.footnotes:
             showidx = request.footnote_show_ctr
             request.footnote_show_ctr += 1
             request.footnotes[args] = ([], fwdlink_id, showidx)
@@ -71,7 +71,7 @@ def emit_footnotes(request, formatter):
         subidx = 0
         for ctr in range(request.footnote_ctr):
             fn_txt = request.footnotes[ctr]
-            if not fn_txt in request.footnotes:
+            if fn_txt not in request.footnotes:
                 continue
             this_txt_footnotes, fwdlink_id, showidx = request.footnotes[fn_txt]
             # this text was handled

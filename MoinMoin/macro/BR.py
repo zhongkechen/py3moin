@@ -1,4 +1,3 @@
-
 """
     MoinMoin - BR Macro
 
@@ -9,6 +8,7 @@
 """
 
 Dependencies = []
+
 
 def macro_BR(macro):
     """

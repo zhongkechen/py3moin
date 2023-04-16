@@ -1,4 +1,3 @@
-
 """
     Creole wiki markup parser
 
@@ -53,17 +52,17 @@ class Rules:
             >>
         )'''
     code = r'(?P<code> {{{ (?P<code_text>.*?) }}} )'
-    emph = r'(?P<emph> (?<!:)// )' # there must be no : in front of the //
-                                   # avoids italic rendering in urls with
-                                   # unknown protocols
+    emph = r'(?P<emph> (?<!:)// )'  # there must be no : in front of the //
+    # avoids italic rendering in urls with
+    # unknown protocols
     strong = r'(?P<strong> \*\* )'
     linebreak = r'(?P<break> \\\\ )'
     escape = r'(?P<escape> ~ (?P<escaped_char>\S) )'
-    char =  r'(?P<char> . )'
+    char = r'(?P<char> . )'
 
     # For the block elements:
-    separator = r'(?P<separator> ^ \s* ---- \s* $ )' # horizontal line
-    line = r'(?P<line> ^ \s* $ )' # empty line that separates paragraphs
+    separator = r'(?P<separator> ^ \s* ---- \s* $ )'  # horizontal line
+    line = r'(?P<line> ^ \s* $ )'  # empty line that separates paragraphs
     head = r'''(?P<head>
             ^ \s*
             (?P<head_head>=+) \s*
@@ -75,14 +74,14 @@ class Rules:
     list = r'''(?P<list>
             ^ [ \t]* ([*][^*\#]|[\#][^\#*]).* $
             ( \n[ \t]* [*\#]+.* $ )*
-        )''' # Matches the whole list, separate items are parsed later. The
-             # list *must* start with a single bullet.
+        )'''  # Matches the whole list, separate items are parsed later. The
+    # list *must* start with a single bullet.
     item = r'''(?P<item>
             ^ \s*
             (?P<item_head> [\#*]+) \s*
             (?P<item_text> .*?)
             $
-        )''' # Matches single list items
+        )'''  # Matches single list items
     pre = r'''(?P<pre>
             ^{{{ \s* $
             (\n)?
@@ -133,7 +132,7 @@ class Rules:
         # For inline elements:
         if url_protocols is not None:
             self.proto = '|'.join(re.escape(p) for p in url_protocols)
-        self.url =  r'''(?P<url>
+        self.url = r'''(?P<url>
             (^ | (?<=\s | [.,:;!?()/=]))
             (?P<escaped_url>~)?
             (?P<url_target> (?P<url_proto> %s ):\S+? )
@@ -145,10 +144,11 @@ class Rules:
         if wiki_words:
             import unicodedata
             up_case = u''.join(chr(i) for i in range(sys.maxunicode)
-                               if unicodedata.category(chr(i))=='Lu')
+                               if unicodedata.category(chr(i)) == 'Lu')
             self.wiki = r'''(?P<wiki>[%s]\w+[%s]\w+)''' % (up_case, up_case)
             inline_elements.insert(3, self.wiki)
         self.inline_re = c('|'.join(inline_elements), re.X | re.U)
+
 
 class Parser:
     """
@@ -165,8 +165,8 @@ class Parser:
         self.rules = rules or Rules()
         self.raw = raw
         self.root = DocNode('document', None)
-        self.cur = self.root        # The most recent document node
-        self.text = None            # The node to add inline characters to
+        self.cur = self.root  # The most recent document node
+        self.text = None  # The node to add inline characters to
 
     def _upto(self, node, kinds):
         """
@@ -174,7 +174,7 @@ class Parser:
         of one of the listed kinds of nodes or root.
         Start at the node node.
         """
-        while node.parent is not None and not node.kind in kinds:
+        while node.parent is not None and node.kind not in kinds:
             node = node.parent
         return node
 
@@ -196,6 +196,7 @@ class Parser:
             if self.text is None:
                 self.text = DocNode('text', self.cur, u'')
             self.text.content += groups.get('url_target')
+
     _url_target_repl = _url_repl
     _url_proto_repl = _url_repl
     _escaped_url = _url_repl
@@ -212,6 +213,7 @@ class Parser:
         re.sub(self.rules.link_re, self._replace, text)
         self.cur = parent
         self.text = None
+
     _link_target_repl = _link_repl
     _link_text_repl = _link_repl
 
@@ -233,6 +235,7 @@ class Parser:
         node.args = groups.get('macro_args', '') or ''
         DocNode('text', node, text or name)
         self.text = None
+
     _macro_name_repl = _macro_repl
     _macro_args_repl = _macro_repl
     _macro_text_repl = _macro_repl
@@ -245,6 +248,7 @@ class Parser:
         node = DocNode("image", self.cur, target)
         DocNode('text', node, text or node.content)
         self.text = None
+
     _image_target_repl = _image_repl
     _image_text_repl = _image_repl
 
@@ -262,22 +266,22 @@ class Parser:
         level = len(bullet)
         lst = self.cur
         # Find a list of the same kind and level up the tree
-        while (lst and
-                   not (lst.kind in ('number_list', 'bullet_list') and
-                        lst.level == level) and
-                    not lst.kind in ('document', 'section', 'blockquote')):
+        while lst and \
+                (lst.kind not in ('number_list', 'bullet_list') or lst.level != level) and \
+                lst.kind not in ('document', 'section', 'blockquote'):
             lst = lst.parent
         if lst and lst.kind == kind:
             self.cur = lst
         else:
             # Create a new level of list
             self.cur = self._upto(self.cur,
-                ('list_item', 'document', 'section', 'blockquote'))
+                                  ('list_item', 'document', 'section', 'blockquote'))
             self.cur = DocNode(kind, self.cur)
             self.cur.level = level
         self.cur = DocNode('list_item', self.cur)
         self.parse_inline(text)
         self.text = None
+
     _item_text_repl = _item_repl
     _item_head_repl = _item_repl
 
@@ -289,24 +293,23 @@ class Parser:
         self.cur = self._upto(self.cur, ('document', 'section', 'blockquote'))
         node = DocNode('header', self.cur, groups.get('head_text', '').strip())
         node.level = len(groups.get('head_head', ' '))
+
     _head_head_repl = _head_repl
     _head_text_repl = _head_repl
 
     def _text_repl(self, groups):
         text = groups.get('text', '')
-        if self.cur.kind in ('table', 'table_row', 'bullet_list',
-            'number_list'):
-            self.cur = self._upto(self.cur,
-                ('document', 'section', 'blockquote'))
+        if self.cur.kind in ('table', 'table_row', 'bullet_list', 'number_list'):
+            self.cur = self._upto(self.cur, ('document', 'section', 'blockquote'))
         if self.cur.kind in ('document', 'section', 'blockquote'):
             self.cur = DocNode('paragraph', self.cur)
         else:
             text = u' ' + text
         self.parse_inline(text)
-        if groups.get('break') and self.cur.kind in ('paragraph',
-            'emphasis', 'strong', 'code'):
+        if groups.get('break') and self.cur.kind in ('paragraph', 'emphasis', 'strong', 'code'):
             DocNode('break', self.cur, '')
         self.text = None
+
     _break_repl = _text_repl
 
     def _table_repl(self, groups):
@@ -337,12 +340,15 @@ class Parser:
         self.cur = self._upto(self.cur, ('document', 'section', 'blockquote'))
         kind = groups.get('pre_kind', None)
         text = groups.get('pre_text', u'')
+
         def remove_tilde(m):
             return m.group('indent') + m.group('rest')
+
         text = self.rules.pre_escape_re.sub(remove_tilde, text)
         node = DocNode('preformatted', self.cur, text)
         node.sect = kind or ''
         self.text = None
+
     _pre_text_repl = _pre_repl
     _pre_head_repl = _pre_repl
     _pre_kind_repl = _pre_repl
@@ -353,6 +359,7 @@ class Parser:
     def _code_repl(self, groups):
         DocNode('code', self.cur, groups.get('code_text', u'').strip())
         self.text = None
+
     _code_text_repl = _code_repl
     _code_head_repl = _code_repl
 
@@ -360,14 +367,14 @@ class Parser:
         if self.cur.kind != 'emphasis':
             self.cur = DocNode('emphasis', self.cur)
         else:
-            self.cur = self._upto(self.cur, ('emphasis', )).parent
+            self.cur = self._upto(self.cur, ('emphasis',)).parent
         self.text = None
 
     def _strong_repl(self, groups):
         if self.cur.kind != 'strong':
             self.cur = DocNode('strong', self.cur)
         else:
-            self.cur = self._upto(self.cur, ('strong', )).parent
+            self.cur = self._upto(self.cur, ('strong',)).parent
         self.text = None
 
     def _break_repl(self, groups):
@@ -410,6 +417,7 @@ class Parser:
         self.parse_block(self.raw)
         return self.root
 
+
 #################### Helper classes
 
 ### The document model
@@ -426,5 +434,3 @@ class DocNode:
         self.content = content
         if self.parent is not None:
             self.parent.children.append(self)
-
-

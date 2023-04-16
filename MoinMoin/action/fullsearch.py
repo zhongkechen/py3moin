@@ -17,7 +17,7 @@ from MoinMoin.Page import Page
 from MoinMoin.web.utils import check_surge_protect
 
 
-def checkTitleSearch(request):
+def checkTitleSearch(context):
     """ Return 1 for title search, 0 for full text search, -1 for idiot spammer
         who tries to press all buttons at once.
 
@@ -26,7 +26,7 @@ def checkTitleSearch(request):
     'fullsearch' with localized string. If both missing, default to
     True (might happen with Safari) if this isn't an advanced search.
 """
-    form = request.request.values
+    form = context.request.values
     if 'titlesearch' in form and 'fullsearch' in form:
         ret = -1  # spammer / bot
     else:
@@ -35,14 +35,14 @@ def checkTitleSearch(request):
         except ValueError:
             ret = 1
         except KeyError:
-            ret = ('fullsearch' not in form and not isAdvancedSearch(request)) and 1 or 0
+            ret = ('fullsearch' not in form and not isAdvancedSearch(context)) and 1 or 0
     return ret
 
 
-def isAdvancedSearch(request):
+def isAdvancedSearch(context):
     """ Return True if advanced search is requested """
     try:
-        return int(request.request.values['advancedsearch'])
+        return int(context.request.values['advancedsearch'])
     except KeyError:
         return False
 
@@ -61,16 +61,16 @@ def searchHints(f, hints):
     ])
 
 
-def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
-    _ = request.getText
-    titlesearch = checkTitleSearch(request)
+def execute(pagename, context, fieldname='value', titlesearch=0, statistic=0):
+    _ = context.getText
+    titlesearch = checkTitleSearch(context)
     if titlesearch < 0:
-        check_surge_protect(request, kick=True)  # get rid of spammer
+        check_surge_protect(context, kick=True)  # get rid of spammer
         return
 
-    advancedsearch = isAdvancedSearch(request)
+    advancedsearch = isAdvancedSearch(context)
 
-    form = request.request.values
+    form = context.request.values
 
     # context is relevant only for full search
     if titlesearch:
@@ -110,9 +110,9 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
             mtime_parsed = None
 
             # get mtime from known date/time formats
-            for fmt in (request.user.datetime_fmt,
-                        request.cfg.datetime_fmt, request.user.date_fmt,
-                        request.cfg.date_fmt):
+            for fmt in (context.user.datetime_fmt,
+                        context.cfg.datetime_fmt, context.user.date_fmt,
+                        context.cfg.date_fmt):
                 try:
                     mtime_parsed = time.strptime(mtime, fmt)
                 except ValueError:
@@ -139,7 +139,7 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
             if mtime_parsed:
                 # XXX mtime_msg is not shown in some cases
                 mtime_msg = _("(!) Only pages changed since '''%s''' are being displayed!",
-                              wiki=True) % request.user.getFormattedDateTime(mtime)
+                              wiki=True) % context.user.getFormattedDateTime(mtime)
             else:
                 mtime_msg = _('/!\\ The modification date you entered was not '
                               'recognized and is therefore not considered for the '
@@ -169,9 +169,9 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
     # check for sensible search term
     stripped = needle.strip()
     if len(stripped) == 0:
-        request.theme.add_msg(_('Please use a more selective search term instead '
+        context.theme.add_msg(_('Please use a more selective search term instead '
                                 'of {{{"%s"}}}', wiki=True) % wikiutil.escape(needle), "error")
-        Page(request, pagename).send_page()
+        Page(context, pagename).send_page()
         return
     needle = stripped
 
@@ -192,13 +192,13 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
         query = QueryParser(case=case, regex=regex,
                             titlesearch=titlesearch).parse_query(needle)
     except QueryError:  # catch errors in the search query
-        request.theme.add_msg(_('Your search query {{{"%s"}}} is invalid. Please refer to '
+        context.theme.add_msg(_('Your search query {{{"%s"}}} is invalid. Please refer to '
                                 'HelpOnSearching for more information.', wiki=True, percent=True) % wikiutil.escape(
             needle), "error")
-        Page(request, pagename).send_page()
+        Page(context, pagename).send_page()
         return
 
-    results = searchPages(request, query, sort, mtime, historysearch)
+    results = searchPages(context, query, sort, mtime, historysearch)
 
     # directly show a single hit for title searches
     # this is the "quick jump" functionality if you don't remember
@@ -206,57 +206,57 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
     if titlesearch and len(results.hits) == 1:
         page = results.hits[0]
         if not page.attachment:  # we did not find an attachment
-            page = Page(request, page.page_name)
+            page = Page(context, page.page_name)
             querydict = {}
             if highlight_pages:
                 highlight = query.highlight_re()
                 if highlight:
                     querydict.update({'highlight': highlight})
-            url = page.url(request, querystr=querydict)
-            request.http_redirect(url)
+            url = page.url(context, querystr=querydict)
+            context.http_redirect(url)
             return
     if not results.hits:  # no hits?
-        f = request.formatter
-        querydict = wikiutil.parseQueryString(request.query_string).to_dict()
+        f = context.formatter
+        querydict = wikiutil.parseQueryString(context.query_string).to_dict()
         querydict.update({'titlesearch': 0})
 
-        request.theme.add_msg(_('Your search query {{{"%s"}}} didn\'t return any results. '
+        context.theme.add_msg(_('Your search query {{{"%s"}}} didn\'t return any results. '
                                 'Please change some terms and refer to HelpOnSearching for '
                                 'more information.%s', wiki=True, percent=True) % (wikiutil.escape(needle),
                                                                                    titlesearch and ''.join([
                                                                                        '<br>',
                                                                                        _('(!) Consider performing a',
                                                                                          wiki=True), ' ',
-                                                                                       f.url(1, href=request.page.url(
-                                                                                           request, querydict,
+                                                                                       f.url(1, href=context.page.url(
+                                                                                           context, querydict,
                                                                                            escape=0)),
                                                                                        _('full-text search with your search terms'),
                                                                                        f.url(0), '.',
                                                                                    ]) or ''), "error")
-        Page(request, pagename).send_page()
+        Page(context, pagename).send_page()
         return
 
     # This action generates data using the user language
-    request.setContentLanguage(request.lang)
+    context.setContentLanguage(context.lang)
 
-    request.theme.send_title(title % needle, pagename=pagename)
+    context.theme.send_title(title % needle, pagename=pagename)
 
     # Start content (important for RTL support)
-    request.write(request.formatter.startContent("content"))
+    context.write(context.formatter.startContent("content"))
 
     # Hints
-    f = request.formatter
+    f = context.formatter
     hints = []
 
     if titlesearch:
-        querydict = wikiutil.parseQueryString(request.request.query_string).to_dict()
+        querydict = wikiutil.parseQueryString(context.request.query_string).to_dict()
         querydict.update({'titlesearch': 0})
 
         hints.append(''.join([
             _("(!) You're performing a title search that might not include"
               ' all related results of your search query in this wiki. <<BR>>', wiki=True),
             ' ',
-            f.url(1, href=request.page.url(request, querydict, escape=0)),
+            f.url(1, href=context.page.url(context, querydict, escape=0)),
             f.text(_('Click here to perform a full-text search with your '
                      'search terms!')),
             f.url(0),
@@ -266,26 +266,26 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
         hints.append(mtime_msg)
 
     if hints:
-        request.write(searchHints(f, hints))
+        context.write(searchHints(f, hints))
 
     # Search stats
-    request.write(results.stats(request, request.formatter, hitsFrom))
+    context.write(results.stats(context, context.formatter, hitsFrom))
 
     # Then search results
     info = not titlesearch
     if context:
-        output = results.pageListWithContext(request, request.formatter,
+        output = results.pageListWithContext(context, context.formatter,
                                              info=info, context=context, hitsFrom=hitsFrom, hitsInfo=1,
                                              highlight_titles=highlight_titles,
                                              highlight_pages=highlight_pages)
     else:
-        output = results.pageList(request, request.formatter, info=info,
+        output = results.pageList(context, context.formatter, info=info,
                                   hitsFrom=hitsFrom, hitsInfo=1,
                                   highlight_titles=highlight_titles,
                                   highlight_pages=highlight_pages)
 
-    request.write(output)
+    context.write(output)
 
-    request.write(request.formatter.endContent())
-    request.theme.send_footer(pagename)
-    request.theme.send_closing_html()
+    context.write(context.formatter.endContent())
+    context.theme.send_footer(pagename)
+    context.theme.send_closing_html()

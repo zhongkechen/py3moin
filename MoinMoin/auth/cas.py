@@ -93,7 +93,7 @@ class CASAuth(BaseAuth):
             return user_obj, True
 
         # anonymous
-        if not ticket and not "login" in action:
+        if not ticket and "login" not in action:
             return user_obj, True
 
         # valid ticket on CAS

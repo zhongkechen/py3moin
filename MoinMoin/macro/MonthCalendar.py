@@ -147,13 +147,14 @@ nonexisting day pages:
 <<MonthCalendar(,,,,,,,MonthCalendarTemplate)>>
 """
 
-Dependencies = ['namespace', 'time', ]
-
-import re, calendar, time
+import calendar
+import re
+import time
 
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
 
+Dependencies = ['namespace', 'time', ]
 # The following line sets the calendar to have either Sunday or Monday as
 # the first day of the week. Only SUNDAY or MONDAY (case sensitive) are
 # valid here.  All other values will not make good calendars.
@@ -263,8 +264,8 @@ def execute(macro, text):
 
     # european / US differences
     months = (
-    'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November',
-    'December')
+        'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November',
+        'December')
     # Set things up for Monday or Sunday as the first day of the week
     if calendar.firstweekday() == calendar.MONDAY:
         wkend = (5, 6)
@@ -304,7 +305,7 @@ def execute(macro, text):
             link = Page(request, parmpagename[0]).link_to(request, ch,
                                                           rel='nofollow',
                                                           style='background-color:#%02x%02x%02x;color:#000000;text-decoration:none' % (
-                                                          r, g, b))
+                                                              r, g, b))
             pagelinks = pagelinks + link
             r, g, b = (r, g + colorstep, b)
             st = st + chstep
@@ -313,7 +314,7 @@ def execute(macro, text):
             link = Page(request, page).link_to(request, page,
                                                rel='nofollow',
                                                style='background-color:#%02x%02x%02x;color:#000000;text-decoration:none' % (
-                                               r, g, b))
+                                                   r, g, b))
             pagelinks = pagelinks + '*' + link
         showpagename = '   %s<BR>\n' % pagelinks
     else:

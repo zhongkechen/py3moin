@@ -1,4 +1,3 @@
-
 """
     MoinMoin - convert content in 1.6.0alpha (rev 1844: 58ebb64243cc) wiki markup to 1.6.0 style
                by using a modified 1.6.0alpha parser as translator.
@@ -16,6 +15,7 @@
 import re
 
 from MoinMoin import i18n
+
 i18n.wikiLanguages = lambda: {}
 
 from MoinMoin import config, macro, wikiutil
@@ -26,6 +26,7 @@ from . import wikiutil160a
 from .text_moin160a_wiki import Parser
 
 QUOTE_CHARS = u"'\""
+
 
 def convert_wiki(request, pagename, intext, renames):
     """ Convert content written in wiki markup """
@@ -40,7 +41,8 @@ def convert_wiki(request, pagename, intext, renames):
     return result
 
 
-STONEAGE_IMAGELINK = False # True for ImageLink(target,image), False for ImageLink(image,target)
+STONEAGE_IMAGELINK = False  # True for ImageLink(target,image), False for ImageLink(image,target)
+
 
 # copied from moin 1.6.0 macro/ImageLink.py (to be safe in case we remove ImageLink some day)
 # ... and slightly modified/refactored for our needs here.
@@ -55,8 +57,8 @@ def explore_args(args):
         args = []
 
     kw_count = 0
-    kw = {} # keyword args
-    pp = [] # positional parameters
+    kw = {}  # keyword args
+    pp = []  # positional parameters
 
     kwAllowed = ('width', 'height', 'alt')
 
@@ -89,11 +91,13 @@ class Converter(Parser):
         self._ = None
         self.in_pre = 0
 
-        self.formatting_rules = self.formatting_rules % {'macronames': u'|'.join(['ImageLink', ] + macro.getNames(self.request.cfg))}
+        self.formatting_rules = self.formatting_rules % {
+            'macronames': u'|'.join(['ImageLink', ] + macro.getNames(self.request.cfg))}
 
     # no change
     def return_word(self, word):
         return word
+
     _emph_repl = return_word
     _emph_ibb_repl = return_word
     _emph_ibi_repl = return_word
@@ -133,7 +137,7 @@ class Converter(Parser):
             or a 3-tuple ('FILE', pagename, filename)
         """
         current_page = self.pagename
-        item_type, page_name, file_name = (key + (None, ))[:3]
+        item_type, page_name, file_name = (key + (None,))[:3]
         abs_page_name = wikiutil.AbsPageName(current_page, page_name)
         if item_type == 'PAGE':
             key = (item_type, abs_page_name)
@@ -186,14 +190,14 @@ class Converter(Parser):
             (\((?P<macro_args>.*?)\))?
             \]\]
         """
-        word = str(word) # XXX why is word not unicode before???
-        m = re.match(macro_rule, word, re.X|re.U)
+        word = str(word)  # XXX why is word not unicode before???
+        m = re.match(macro_rule, word, re.X | re.U)
         macro_name = m.group('macro_name')
         macro_args = m.group('macro_args')
         if macro_name == 'ImageLink':
             fixed, kw = explore_args(macro_args)
-            #print "macro_args=%r" % macro_args
-            #print "fixed=%r, kw=%r" % (fixed, kw)
+            # print "macro_args=%r" % macro_args
+            # print "fixed=%r, kw=%r" % (fixed, kw)
             image, target = (fixed + ['', ''])[:2]
             if image is None:
                 image = ''
@@ -205,9 +209,9 @@ class Converter(Parser):
             if not target:
                 target = image
             elif target.startswith('inline:'):
-                target = 'attachment:' + target[7:] # we don't support inline:
+                target = 'attachment:' + target[7:]  # we don't support inline:
             elif target.startswith('wiki:'):
-                target = target[5:] # drop wiki:
+                target = target[5:]  # drop wiki:
             image_attrs = []
             alt = kw.get('alt') or ''
             width = kw.get('width')
@@ -238,19 +242,19 @@ class Converter(Parser):
                 return word
             else:
                 return '[[%s]]' % word
-        else: # internal use:
+        else:  # internal use:
             return '[[%s|%s]]' % (word, text)
 
     def _wikiname_bracket_repl(self, text):
         """Handle special-char wikinames with link text, like:
            ["Jim O'Brian" Jim's home page] or ['Hello "world"!' a page with doublequotes]
         """
-        word = text[1:-1] # strip brackets
+        word = text[1:-1]  # strip brackets
         first_char = word[0]
         if first_char in QUOTE_CHARS:
             # split on closing quote
             target, linktext = word[1:].split(first_char, 1)
-        else: # not quoted
+        else:  # not quoted
             # split on whitespace
             target, linktext = word.split(None, 1)
         if target:
@@ -275,31 +279,31 @@ class Converter(Parser):
         scheme, rest = target_and_text.split(':', 1)
         wikiname, pagename, text = wikiutil160a.split_wiki(rest)
 
-        #if (pagename.startswith(wikiutil.CHILD_PREFIX) or # fancy link to subpage [wiki:/SubPage text]
+        # if (pagename.startswith(wikiutil.CHILD_PREFIX) or # fancy link to subpage [wiki:/SubPage text]
         #    Page(self.request, pagename).exists()): # fancy link to local page [wiki:LocalPage text]
         #    # XXX OtherWiki:FooPage markup -> checks for local FooPage -sense???
         #    pagename = wikiutil.url_unquote(pagename)
         #    pagename = self._replace_target(pagename)
         #    return '[[%s%s]]' % (pagename, text)
 
-        if wikiname in ('Self', self.request.cfg.interwikiname, ''): # [wiki:Self:LocalPage text] or [:LocalPage:text]
+        if wikiname in ('Self', self.request.cfg.interwikiname, ''):  # [wiki:Self:LocalPage text] or [:LocalPage:text]
             orig_pagename = pagename
             pagename = wikiutil.url_unquote(pagename)
             pagename = self._replace_target(pagename)
             camelcase = wikiutil.isStrictWikiname(pagename)
             if camelcase and (not text or text == orig_pagename):
-                return pagename # optimize special case
+                return pagename  # optimize special case
             else:
                 if text:
                     text = '|' + text
                 return '[[%s%s]]' % (pagename, text)
 
-        wikitag, wikiurl, wikitail, wikitag_bad = wikiutil.resolve_wiki(self.request, wikiname+':')
-        if wikitag_bad: # likely we got some /InterWiki as wikitail, we don't want that!
+        wikitag, wikiurl, wikitail, wikitag_bad = wikiutil.resolve_wiki(self.request, wikiname + ':')
+        if wikitag_bad:  # likely we got some /InterWiki as wikitail, we don't want that!
             pagename = wikiutil.url_unquote(pagename)
             pagename = self._replace_target(pagename)
             wikitail = pagename
-        else: # good
+        else:  # good
             wikitail = wikiutil.url_unquote(pagename)
 
         # link to self?
@@ -321,8 +325,8 @@ class Converter(Parser):
         pagename, fname = AttachFile.absoluteName(fname, self.pagename)
         from_this_page = pagename == self.pagename
         fname = self._replace(('FILE', pagename, fname))
-        #fname = wikiutil.url_unquote(fname)
-        #fname = self._replace(('FILE', pagename, fname))
+        # fname = wikiutil.url_unquote(fname)
+        # fname = self._replace(('FILE', pagename, fname))
         pagename = self._replace(('PAGE', pagename))
         if from_this_page:
             name = fname
@@ -355,15 +359,14 @@ class Converter(Parser):
         if scheme in self.attachment_schemas:
             return '%s' % self.attachment(word)
 
-        if wikiutil.isPicture(word): # magic will go away in 1.6!
-            return '{{%s}}' % word # new markup for inline images
+        if wikiutil.isPicture(word):  # magic will go away in 1.6!
+            return '{{%s}}' % word  # new markup for inline images
         else:
             return word
 
-
     def _url_bracket_repl(self, word):
         """Handle bracketed URLs."""
-        word = word[1:-1] # strip brackets
+        word = word[1:-1]  # strip brackets
 
         # Local extended link? [:page name:link text] XXX DEPRECATED
         if word[0] == ':':
@@ -377,10 +380,10 @@ class Converter(Parser):
             return '[[%s%s]]' % (link, text)
 
         scheme_and_rest = word.split(":", 1)
-        if len(scheme_and_rest) == 1: # no scheme
+        if len(scheme_and_rest) == 1:  # no scheme
             # Traditional split on space
             words = word.split(None, 1)
-            if words[0].startswith('#'): # anchor link
+            if words[0].startswith('#'):  # anchor link
                 link, text = (words + ['', ''])[:2]
                 if link.strip() == text.strip():
                     text = ''
@@ -442,12 +445,11 @@ class Converter(Parser):
         result.append(line[lastpos:])
         return u''.join(result)
 
-
     def replace(self, match):
         """ Replace match using type name """
         result = []
         for _type, hit in list(match.groupdict().items()):
-            if hit is not None and not _type in ["hmarker", ]:
+            if hit is not None and _type not in ["hmarker", ]:
                 # Get replace method and replace hit
                 replace = getattr(self, '_' + _type + '_repl')
                 # print _type, hit
@@ -501,7 +503,7 @@ class Converter(Parser):
                 if not found:
                     self.in_processing_instructions = False
                 else:
-                    continue # do not parse this line
+                    continue  # do not parse this line
             if not line.strip():
                 self.request.write(line + '\r\n')
             else:
@@ -509,4 +511,3 @@ class Converter(Parser):
                 scanning_re = self.in_pre and pre_scan_re or scan_re
                 formatted_line = self.scan(scanning_re, line)
                 self.request.write(formatted_line + '\r\n')
-

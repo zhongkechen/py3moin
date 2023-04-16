@@ -1,4 +1,3 @@
-
 """
     MoinMoin - WikiDict functions.
 
@@ -7,7 +6,6 @@
                 2009 MoinMoin:DmitrijsMilajevs
     @license: GNU GPL, see COPYING for details.
 """
-
 
 import re
 
@@ -62,7 +60,6 @@ class WikiDict(BaseDict):
 
 
 class WikiDicts(BaseDictsBackend):
-
     # Key:: Value - ignore all but key:: value pairs, strip whitespace, exactly one space after the :: is required
     _dict_page_parse_regex = re.compile(r'^ (?P<key>.+?):: (?P<val>.*?) *$', re.MULTILINE | re.UNICODE)
 
@@ -84,4 +81,3 @@ class WikiDicts(BaseDictsBackend):
         page = Page(self.request, dict_name)
         text = page.get_raw_body()
         return dict([match.groups() for match in self._dict_page_parse_regex.finditer(text)])
-

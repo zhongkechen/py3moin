@@ -103,18 +103,18 @@ def _loadDict(request):
     return wordsdict
 
 
-def _addLocalWords(request):
+def _addLocalWords(context):
     from MoinMoin.PageEditor import PageEditor
     # get the new words as a string (if any are marked at all)
     try:
-        newwords = request.request.form.getlist('newwords')
+        newwords = context.request.form.getlist('newwords')
     except KeyError:
         # no new words checked
         return
     newwords = u' '.join(newwords)
 
     # get the page contents
-    lsw_page = PageEditor(request, request.cfg.page_local_spelling_words)
+    lsw_page = PageEditor(context, context.cfg.page_local_spelling_words)
     words = lsw_page.get_raw_body()
 
     # add the words to the page and save it
@@ -123,25 +123,25 @@ def _addLocalWords(request):
     lsw_page.saveText(words + '\n' + newwords, 0)
 
 
-def checkSpelling(page, request, own_form=1):
+def checkSpelling(page, context, own_form=1):
     """ Do spell checking, return a tuple with the result.
     """
-    _ = request.getText
+    _ = context.getText
 
     # first check to see if we we're called with a "newwords" parameter
-    if 'button_newwords' in request.request.form:
-        _addLocalWords(request)
+    if 'button_newwords' in context.request.form:
+        _addLocalWords(context)
 
     # load words
-    wordsdict = _loadDict(request)
+    wordsdict = _loadDict(context)
 
     localwords = {}
-    lsw_page = Page(request, request.cfg.page_local_spelling_words)
+    lsw_page = Page(context, context.cfg.page_local_spelling_words)
     if lsw_page.exists():
-        _loadWordsPage(request, localwords, lsw_page)
+        _loadWordsPage(context, localwords, lsw_page)
 
     # init status vars & load page
-    request.clock.start('spellcheck')
+    context.clock.start('spellcheck')
     badwords = {}
     text = page.get_raw_body()
 
@@ -180,7 +180,7 @@ def checkSpelling(page, request, own_form=1):
         lsw_msg = ''
         if localwords:
             lsw_msg = ' ' + _('(including %(localwords)d %(pagelink)s)') % {
-                'localwords': len(localwords), 'pagelink': lsw_page.link_to(request)}
+                'localwords': len(localwords), 'pagelink': lsw_page.link_to(context)}
         msg = _('The following %(badwords)d words could not be found in the dictionary of '
                 '%(totalwords)d words%(localwords)s and are highlighted below:') % {
                   'badwords': len(badwords),
@@ -194,8 +194,8 @@ def checkSpelling(page, request, own_form=1):
         if own_form:
             msg = msg + ('<form method="post" action="%s">\n'
                          '<input type="hidden" name="action" value="%s">\n') % (
-                      request.request.href(page.page_name),
-                      action_name)
+                context.request.href(page.page_name),
+                action_name)
 
         checkbox = '<input type="checkbox" name="newwords" value="%(word)s">%(word)s&nbsp;&nbsp;'
         msg = msg + (
@@ -209,27 +209,27 @@ def checkSpelling(page, request, own_form=1):
         badwords_re = None
         msg = _("No spelling errors found!")
 
-    request.clock.stop('spellcheck')
+    context.clock.stop('spellcheck')
 
     return badwords, badwords_re, msg
 
 
-def execute(pagename, request):
-    _ = request.getText
+def execute(pagename, context):
+    _ = context.getText
 
-    page = Page(request, pagename)
-    if not request.user.may.write(request.cfg.page_local_spelling_words):
-        request.theme.add_msg(_("You can't save spelling words."), "error")
+    page = Page(context, pagename)
+    if not context.user.may.write(context.cfg.page_local_spelling_words):
+        context.theme.add_msg(_("You can't save spelling words."), "error")
         page.send_page()
         return
 
-    if request.user.may.read(pagename):
-        badwords, badwords_re, msg = checkSpelling(page, request)
+    if context.user.may.read(pagename):
+        badwords, badwords_re, msg = checkSpelling(page, context)
     else:
         badwords = []
-        request.theme.add_msg(_("You can't check spelling on a page you can't read."), "error")
+        context.theme.add_msg(_("You can't check spelling on a page you can't read."), "error")
 
-    request.theme.add_msg(msg, "dialog")
+    context.theme.add_msg(msg, "dialog")
     if badwords:
         page.send_page(hilite_re=badwords_re)
     else:

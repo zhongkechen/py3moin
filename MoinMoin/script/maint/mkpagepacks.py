@@ -1,4 +1,3 @@
-
 """
 MoinMoin - Package Generator
 
@@ -8,24 +7,24 @@ MoinMoin - Package Generator
 @license: GNU GPL, see COPYING for details.
 """
 
-
 import os
-import zipfile
 import time
+import zipfile
 from datetime import datetime
 
+from MoinMoin import i18n
 from MoinMoin import wikiutil
-from MoinMoin.action.AttachFile import _get_files
 from MoinMoin.Page import Page
 from MoinMoin.action import AttachFile
+from MoinMoin.action.AttachFile import _get_files
+from MoinMoin.i18n import strings
 from MoinMoin.packages import packLine, MOIN_PACKAGE_FILE
 from MoinMoin.script import MoinScript
-from MoinMoin import i18n
-from MoinMoin.i18n import strings
+
 i18n.strings = strings
 
-
 COMPRESSION_LEVEL = zipfile.ZIP_STORED
+
 
 class PluginScript(MoinScript):
     """\
@@ -93,7 +92,8 @@ General syntax: moin [options] maint mkpagepacks [mkpagepacks-options]
         except OSError:
             pass
         # page LanguageSetup needs no packing!
-        existing_pages = [pagename for pagename in pagelist if Page(request, pagename).exists() and pagename != 'LanguageSetup']
+        existing_pages = [pagename for pagename in pagelist if
+                          Page(request, pagename).exists() and pagename != 'LanguageSetup']
         if not existing_pages:
             return
 
@@ -151,11 +151,12 @@ General syntax: moin [options] maint mkpagepacks [mkpagepacks-options]
             print("NEVER EVER RUN THIS ON A REAL WIKI!!! This must be run on a local testwiki.")
             return
 
-        self.init_request() # this request will work on a test wiki in tests/wiki/ directory
-                            # we assume that there are current moinmaster pages there
+        self.init_request()  # this request will work on a test wiki in tests/wiki/ directory
+        # we assume that there are current moinmaster pages there
         request = self.request
 
-        if not ('tests/wiki' in request.cfg.data_dir.replace("\\", "/") and 'tests/wiki' in request.cfg.data_underlay_dir.replace("\\", "/")):
+        if 'tests/wiki' not in request.cfg.data_dir.replace("\\", "/") or \
+                'tests/wiki' not in request.cfg.data_underlay_dir.replace("\\", "/"):
             import sys
             print(sys.path)
             print("NEVER EVER RUN THIS ON A REAL WIKI!!! This must be run on a local testwiki.")
@@ -172,11 +173,11 @@ General syntax: moin [options] maint mkpagepacks [mkpagepacks-options]
         except OSError:
             pass
         generate_filename = lambda name: os.path.join(package_path, '%s.zip' % name)
-        [self.packagePages(list(pages), generate_filename(name), "ReplaceUnderlay") for name, pages in list(pageSets.items())]
+        [self.packagePages(list(pages), generate_filename(name), "ReplaceUnderlay") for name, pages in
+         list(pageSets.items())]
 
         print("Removing pagedirs of packaged pages ...")
         dontkill = set(['LanguageSetup'])
         [self.removePages(list(pages - dontkill)) for name, pages in list(pageSets.items())]
 
         print("Finished.")
-

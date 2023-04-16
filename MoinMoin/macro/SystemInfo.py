@@ -119,10 +119,10 @@ class SystemInfo:
             ', '.join(wikiutil.wikiPlugins('macro', self.macro.cfg)) or nonestr)
 
         glob_actions = [x for x in action.modules
-                        if not x in request.cfg.actions_excluded]
+                        if x not in request.cfg.actions_excluded]
         row(_('Global extension actions'), ', '.join(glob_actions) or nonestr)
         loc_actions = [x for x in wikiutil.wikiPlugins('action', self.macro.cfg)
-                       if not x in request.cfg.actions_excluded]
+                       if x not in request.cfg.actions_excluded]
         row(_('Local extension actions'), ', '.join(loc_actions) or nonestr)
 
         row(_('Global parsers'), ', '.join(parser.modules) or nonestr)

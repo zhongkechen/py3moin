@@ -1,4 +1,3 @@
-
 """
     MoinMoin - LDAP / Active Directory authentication
 
@@ -18,7 +17,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 from MoinMoin import log
-logging = log.getLogger(__name__)
+from MoinMoin import user
+from MoinMoin.auth import BaseAuth, CancelLogin, ContinueLogin
 
 try:
     import ldap
@@ -26,8 +26,7 @@ except ImportError as err:
     logging.error("You need to have python-ldap installed (%s)." % str(err))
     raise
 
-from MoinMoin import user
-from MoinMoin.auth import BaseAuth, CancelLogin, ContinueLogin
+logging = log.getLogger(__name__)
 
 
 class LDAPAuth(BaseAuth):
@@ -41,51 +40,55 @@ class LDAPAuth(BaseAuth):
     name = 'ldap'
 
     def __init__(self,
-        server_uri='ldap://localhost',  # ldap / active directory server URI
-                                        # use ldaps://server:636 url for ldaps,
-                                        # use  ldap://server for ldap without tls (and set start_tls to 0),
-                                        # use  ldap://server for ldap with tls (and set start_tls to 1 or 2).
-        bind_dn='',  # We can either use some fixed user and password for binding to LDAP.
-                     # Be careful if you need a % char in those strings - as they are used as
-                     # a format string, you have to write %% to get a single % in the end.
-                     #bind_dn = 'binduser@example.org' # (AD)
-                     #bind_dn = 'cn=admin,dc=example,dc=org' # (OpenLDAP)
-                     #bind_pw = 'secret'
-                     # or we can use the username and password we got from the user:
-                     #bind_dn = '%(username)s@example.org' # DN we use for first bind (AD)
-                     #bind_pw = '%(password)s' # password we use for first bind
-                     # or we can bind anonymously (if that is supported by your directory).
-                     # In any case, bind_dn and bind_pw must be defined.
-        bind_pw='',
-        base_dn='',  # base DN we use for searching
-                     #base_dn = 'ou=SOMEUNIT,dc=example,dc=org'
-        scope=ldap.SCOPE_SUBTREE, # scope of the search we do (2 == ldap.SCOPE_SUBTREE)
-        referrals=0, # LDAP REFERRALS (0 needed for AD)
-        search_filter='(uid=%(username)s)',  # ldap filter used for searching:
-                                             #search_filter = '(sAMAccountName=%(username)s)' # (AD)
-                                             #search_filter = '(uid=%(username)s)' # (OpenLDAP)
-                                             # you can also do more complex filtering like:
-                                             # "(&(cn=%(username)s)(memberOf=CN=WikiUsers,OU=Groups,DC=example,DC=org))"
-        # some attribute names we use to extract information from LDAP:
-        givenname_attribute=None, # ('givenName') ldap attribute we get the first name from
-        surname_attribute=None, # ('sn') ldap attribute we get the family name from
-        aliasname_attribute=None, # ('displayName') ldap attribute we get the aliasname from
-        email_attribute=None, # ('mail') ldap attribute we get the email address from
-        email_callback=None, # called to make up email address
-        name_callback=None, # called to use a Wiki name different from the login name
-        coding='utf-8', # coding used for ldap queries and result values
-        timeout=10, # how long we wait for the ldap server [s]
-        start_tls=0, # 0 = No, 1 = Try, 2 = Required
-        tls_cacertdir=None,
-        tls_cacertfile=None,
-        tls_certfile=None,
-        tls_keyfile=None,
-        tls_require_cert=0, # 0 == ldap.OPT_X_TLS_NEVER (needed for self-signed certs)
-        bind_once=False, # set to True to only do one bind - useful if configured to bind as the user on the first attempt
-        autocreate=False, # set to True if you want to autocreate user profiles
-        name='ldap', # use e.g. 'ldap_pdc' and 'ldap_bdc' (or 'ldap1' and 'ldap2') if you auth against 2 ldap servers
-        report_invalid_credentials=True, # whether to emit "invalid username or password" msg at login time or not
-        ):
+                 server_uri='ldap://localhost',  # ldap / active directory server URI
+                 # use ldaps://server:636 url for ldaps,
+                 # use  ldap://server for ldap without tls (and set start_tls to 0),
+                 # use  ldap://server for ldap with tls (and set start_tls to 1 or 2).
+                 bind_dn='',  # We can either use some fixed user and password for binding to LDAP.
+                 # Be careful if you need a % char in those strings - as they are used as
+                 # a format string, you have to write %% to get a single % in the end.
+                 # bind_dn = 'binduser@example.org' # (AD)
+                 # bind_dn = 'cn=admin,dc=example,dc=org' # (OpenLDAP)
+                 # bind_pw = 'secret'
+                 # or we can use the username and password we got from the user:
+                 # bind_dn = '%(username)s@example.org' # DN we use for first bind (AD)
+                 # bind_pw = '%(password)s' # password we use for first bind
+                 # or we can bind anonymously (if that is supported by your directory).
+                 # In any case, bind_dn and bind_pw must be defined.
+                 bind_pw='',
+                 base_dn='',  # base DN we use for searching
+                 # base_dn = 'ou=SOMEUNIT,dc=example,dc=org'
+                 scope=ldap.SCOPE_SUBTREE,  # scope of the search we do (2 == ldap.SCOPE_SUBTREE)
+                 referrals=0,  # LDAP REFERRALS (0 needed for AD)
+                 search_filter='(uid=%(username)s)',  # ldap filter used for searching:
+                 # search_filter = '(sAMAccountName=%(username)s)' # (AD)
+                 # search_filter = '(uid=%(username)s)' # (OpenLDAP)
+                 # you can also do more complex filtering like:
+                 # "(&(cn=%(username)s)(memberOf=CN=WikiUsers,OU=Groups,DC=example,DC=org))"
+                 # some attribute names we use to extract information from LDAP:
+                 givenname_attribute=None,  # ('givenName') ldap attribute we get the first name from
+                 surname_attribute=None,  # ('sn') ldap attribute we get the family name from
+                 aliasname_attribute=None,  # ('displayName') ldap attribute we get the aliasname from
+                 email_attribute=None,  # ('mail') ldap attribute we get the email address from
+                 email_callback=None,  # called to make up email address
+                 name_callback=None,  # called to use a Wiki name different from the login name
+                 coding='utf-8',  # coding used for ldap queries and result values
+                 timeout=10,  # how long we wait for the ldap server [s]
+                 start_tls=0,  # 0 = No, 1 = Try, 2 = Required
+                 tls_cacertdir=None,
+                 tls_cacertfile=None,
+                 tls_certfile=None,
+                 tls_keyfile=None,
+                 tls_require_cert=0,  # 0 == ldap.OPT_X_TLS_NEVER (needed for self-signed certs)
+                 bind_once=False,
+                 # set to True to only do one bind - useful if configured to bind as the user on the first attempt
+                 autocreate=False,  # set to True if you want to autocreate user profiles
+                 name='ldap',
+                 # use e.g. 'ldap_pdc' and 'ldap_bdc' (or 'ldap1' and 'ldap2') if you auth against 2 ldap servers
+                 report_invalid_credentials=True,
+                 # whether to emit "invalid username or password" msg at login time or not
+                 ):
+        super().__init__()
         self.server_uri = server_uri
         self.bind_dn = bind_dn
         self.bind_pw = bind_pw
@@ -122,7 +125,6 @@ class LDAPAuth(BaseAuth):
         password = kw.get('password')
         _ = request.getText
 
-
         # we require non-empty password as ldap bind does a anon (not password
         # protected) bind if the password is empty and SUCCEEDS!
         if not password:
@@ -135,19 +137,19 @@ class LDAPAuth(BaseAuth):
                 server = self.server_uri
                 coding = self.coding
                 logging.debug("Setting misc. ldap options...")
-                ldap.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3) # ldap v2 is outdated
+                ldap.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)  # ldap v2 is outdated
                 ldap.set_option(ldap.OPT_REFERRALS, self.referrals)
                 ldap.set_option(ldap.OPT_NETWORK_TIMEOUT, self.timeout)
 
                 if hasattr(ldap, 'TLS_AVAIL') and ldap.TLS_AVAIL:
                     for option, value in (
-                        (ldap.OPT_X_TLS_CACERTDIR, self.tls_cacertdir),
-                        (ldap.OPT_X_TLS_CACERTFILE, self.tls_cacertfile),
-                        (ldap.OPT_X_TLS_CERTFILE, self.tls_certfile),
-                        (ldap.OPT_X_TLS_KEYFILE, self.tls_keyfile),
-                        (ldap.OPT_X_TLS_REQUIRE_CERT, self.tls_require_cert),
-                        (ldap.OPT_X_TLS, self.start_tls),
-                        #(ldap.OPT_X_TLS_ALLOW, 1),
+                            (ldap.OPT_X_TLS_CACERTDIR, self.tls_cacertdir),
+                            (ldap.OPT_X_TLS_CACERTFILE, self.tls_cacertfile),
+                            (ldap.OPT_X_TLS_CERTFILE, self.tls_certfile),
+                            (ldap.OPT_X_TLS_KEYFILE, self.tls_keyfile),
+                            (ldap.OPT_X_TLS_REQUIRE_CERT, self.tls_require_cert),
+                            (ldap.OPT_X_TLS, self.start_tls),
+                            # (ldap.OPT_X_TLS_ALLOW, 1),
                     ):
                         if value is not None:
                             ldap.set_option(option, value)
@@ -176,11 +178,11 @@ class LDAPAuth(BaseAuth):
                 filterstr = self.search_filter % locals()
                 logging.debug("Searching %r" % filterstr)
                 attrs = [getattr(self, attr) for attr in [
-                                         'email_attribute',
-                                         'aliasname_attribute',
-                                         'surname_attribute',
-                                         'givenname_attribute',
-                                         ] if getattr(self, attr) is not None]
+                    'email_attribute',
+                    'aliasname_attribute',
+                    'surname_attribute',
+                    'givenname_attribute',
+                ] if getattr(self, attr) is not None]
                 lusers = l.search_st(basedn, self.scope, filterstr.encode(coding),
                                      attrlist=attrs, timeout=self.timeout)
                 # we remove entries with dn == None to get the real result list:
@@ -195,7 +197,7 @@ class LDAPAuth(BaseAuth):
                     if result_length > 1:
                         logging.warning("Search found more than one (%d) matches for %r." % (result_length, filterstr))
                     if result_length == 0:
-                        logging.debug("Search found no matches for %r." % (filterstr, ))
+                        logging.debug("Search found no matches for %r." % (filterstr,))
                     if self.report_invalid_credentials:
                         return ContinueLogin(user_obj, _("Invalid username or password."))
                     else:
@@ -233,13 +235,15 @@ class LDAPAuth(BaseAuth):
                     username = self.name_callback(ldap_dict)
 
                 if email:
-                    u = user.User(request, auth_username=username, auth_method=self.name, auth_attribs=('name', 'password', 'email', 'mailto_author', ))
+                    u = user.User(request, auth_username=username, auth_method=self.name,
+                                  auth_attribs=('name', 'password', 'email', 'mailto_author',))
                     u.email = email
                 else:
-                    u = user.User(request, auth_username=username, auth_method=self.name, auth_attribs=('name', 'password', 'mailto_author', ))
+                    u = user.User(request, auth_username=username, auth_method=self.name,
+                                  auth_attribs=('name', 'password', 'mailto_author',))
                 u.name = username
                 u.aliasname = aliasname
-                u.remember_me = 0 # 0 enforces cookie_lifetime config param
+                u.remember_me = 0  # 0 enforces cookie_lifetime config param
                 logging.debug("creating user object with name %r email %r alias %r" % (username, email, aliasname))
 
             except ldap.INVALID_CREDENTIALS as err:
@@ -263,4 +267,3 @@ class LDAPAuth(BaseAuth):
         except:
             logging.exception("caught an exception, traceback follows...")
             return ContinueLogin(user_obj)
-

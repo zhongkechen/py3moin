@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Create an action link
 
@@ -19,12 +18,13 @@ def _get_valid_actions(macro):
     actions_builtin = action.names
     # global
     actions_global = ([x for x in action.modules
-                       if not x in macro.request.cfg.actions_excluded])
+                       if x not in macro.request.cfg.actions_excluded])
     # local
     actions_local = ([x for x in wikiutil.wikiPlugins('action', macro.cfg)
-                      if not x in macro.request.cfg.actions_excluded])
+                      if x not in macro.request.cfg.actions_excluded])
 
     return actions_builtin + actions_global + actions_local
+
 
 def macro_Action(macro, action=u'show', text=None, _kwargs=None):
     _ = macro.request.getText

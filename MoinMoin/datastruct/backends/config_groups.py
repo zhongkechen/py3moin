@@ -1,4 +1,3 @@
-
 """
 MoinMoin - config groups backend
 
@@ -41,4 +40,3 @@ class ConfigGroups(BaseGroupsBackend):
             return self._groups[group_name]
         except KeyError:
             raise GroupDoesNotExistError(group_name)
-

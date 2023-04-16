@@ -1,4 +1,3 @@
-
 """
     MoinMoin - New Page macro
 
@@ -16,6 +15,7 @@
 from MoinMoin import wikiutil
 
 Dependencies = ["language"]
+
 
 class NewPage:
     """ NewPage - create new pages
@@ -73,7 +73,6 @@ class NewPage:
 
         requires_input = '%s' in self.nametemplate
 
-
         # TODO: better abstract this using the formatter
         html = [
             u'<form class="macro" method="POST" action="%s"><div>' % self.request.href(self.formatter.page.page_name),
@@ -90,11 +89,11 @@ class NewPage:
         html += [
             u'<input type="submit" value="%s">' % wikiutil.escape(self.label, 1),
             u'</div></form>',
-            ]
+        ]
         return self.formatter.rawHTML('\n'.join(html))
+
 
 def macro_NewPage(macro, template=u'', button_label=u'',
                   parent_page=u'', name_template=u'%s'):
     """ Temporary glue code to use with moin current macro system """
     return NewPage(macro, template, button_label, parent_page, name_template).renderInPage()
-

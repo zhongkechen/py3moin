@@ -172,16 +172,16 @@ class EditLog(LogFile):
         # this is needed so PageLock can work correctly for locks of anon editors.
         self.force_ip = kw.get('force_ip', False)
 
-    def add(self, request, mtime, rev, action, pagename, host=None, extra=u'', comment=u''):
+    def add(self, context, mtime, rev, action, pagename, host=None, extra=u'', comment=u''):
         """ Generate (and add) a line to the edit-log.
 
         If `host` is None, it's read from request vars.
         """
-        if request.cfg.log_remote_addr or self.force_ip:
+        if context.cfg.log_remote_addr or self.force_ip:
             if host is None:
-                host = request.request.remote_addr or ''
+                host = context.request.remote_addr or ''
 
-            if request.cfg.log_reverse_dns_lookups:
+            if context.cfg.log_reverse_dns_lookups:
                 import socket
                 try:
                     hostname = socket.gethostbyaddr(host)[0]
@@ -195,7 +195,7 @@ class EditLog(LogFile):
             hostname = ''
 
         comment = wikiutil.clean_input(comment)
-        user_id = request.user.valid and request.user.id or ''
+        user_id = context.user.valid and context.user.id or ''
 
         if self.uid_override is not None:
             user_id = ''

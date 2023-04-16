@@ -1,4 +1,3 @@
-
 """
     MoinMoin - RandomQuote Macro
 
@@ -25,6 +24,7 @@ from MoinMoin.Page import Page
 
 Dependencies = ["time"]
 
+
 def macro_RandomQuote(macro, pagename=u'FortuneCookies'):
     _ = macro.request.getText
 
@@ -48,7 +48,6 @@ def macro_RandomQuote(macro, pagename=u'FortuneCookies'):
     quote = random.choice(quotes)
     page.set_raw_body(quote, 1)
     quote = macro.request.redirectedOutput(page.send_page,
-        content_only=1, content_id="RandomQuote")
+                                           content_only=1, content_id="RandomQuote")
 
     return quote
-

@@ -58,7 +58,7 @@ class Parser(XsltParser):
         self.db_xsl = os.path.join(docbook_html_directory, 'docbook.xsl')
         self.db_compiled_xsl = os.path.join(docbook_html_directory, 'db_compiled.dat')
 
-        self.wikiParser = WikiParser(raw=self.raw, request=self.request, pretty_url=1)
+        self.wikiParser = WikiParser(raw=self.raw, context=self.request, pretty_url=1)
         self.key = 'docbook'
 
     def format(self, formatter, **kw):

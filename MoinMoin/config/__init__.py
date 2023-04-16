@@ -1,4 +1,3 @@
-
 """
     MoinMoin - site-wide configuration defaults (NOT per single wiki!)
 
@@ -6,8 +5,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 import re
-from MoinMoin import version
 
+from MoinMoin import version
 # unicode: set the char types (upper, lower, digits, spaces)
 from MoinMoin.util.chartypes import *
 
@@ -16,8 +15,8 @@ browser_supported_images = ('gif', 'jpg', 'jpeg', 'png', 'bmp', 'ico', 'svg+xml'
 
 # Parser to use mimetype text
 parser_text_mimetype = ('plain', 'csv', 'rst', 'docbook', 'latex', 'tex', 'html', 'css',
-                       'xml', 'python', 'perl', 'php', 'ruby', 'javascript',
-                       'cplusplus', 'java', 'pascal', 'diff', 'gettext', 'xslt', 'creole', )
+                        'xml', 'python', 'perl', 'php', 'ruby', 'javascript',
+                        'cplusplus', 'java', 'pascal', 'diff', 'gettext', 'xslt', 'creole',)
 
 # When creating files, we use e.g. 0666 & config.umask for the mode:
 umask = 0o770
@@ -66,7 +65,7 @@ page_invalid_chars_regex = re.compile(
     \u202E   # RLM
     """,
     re.UNICODE | re.VERBOSE
-    )
+)
 
 # used for wikiutil.clean_input
 clean_input_translation_map = {
@@ -76,7 +75,7 @@ clean_input_translation_map = {
     ord(u'\n'): u' ',
 }
 for c in u'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f' \
-          '\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f':
+         '\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f':
     # these chars will be removed
     clean_input_translation_map[ord(c)] = None
 del c
@@ -90,7 +89,7 @@ url_schemas = ['http', 'https', 'ftp', 'file',
                'notes',
                'rtp', 'rtsp', 'rtcp',
                'tel',
-              ]
+               ]
 
 smileys = (r"X-( :D <:( :o :( :) B) :)) ;) /!\ <!> (!) :-? :\ >:> |) " +
            r":-( :-) B-) :-)) ;-) |-) (./) {OK} {X} {i} {1} {2} {3} {*} {o}").split()

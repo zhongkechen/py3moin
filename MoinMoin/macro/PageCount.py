@@ -1,4 +1,3 @@
-
 """
     Outputs the page count of the wiki.
 
@@ -9,6 +8,7 @@
 Dependencies = ['namespace']
 
 from MoinMoin import wikiutil
+
 
 def macro_PageCount(macro, exists=None):
     """ Return number of pages readable by current user
@@ -28,4 +28,3 @@ def macro_PageCount(macro, exists=None):
 
     count = request.rootpage.getPageCount(exists=only_existing)
     return macro.formatter.text("%d" % count)
-

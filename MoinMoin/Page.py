@@ -822,11 +822,11 @@ class Page:
 
         return link
 
-    def getSubscribersUncached(self, request, **kw):
+    def getSubscribersUncached(self, context, **kw):
         """ Get all subscribers of this page.
             (original method, slow for many users, needs to open all user profiles)
 
-        @param request: the request object
+        @param context: the request object
         @keyword include_self: if 1, include current user (default: 0)
         @keyword return_users: if 1, return user instances (default: 0)
         @rtype: dict
@@ -836,7 +836,7 @@ class Page:
         return_users = kw.get('return_users', 0)
 
         # extract categories of this page
-        pageList = self.getCategories(request)
+        pageList = self.getCategories(context)
 
         # add current page name for list matching
         pageList.append(self.page_name)
@@ -846,17 +846,17 @@ class Page:
         else:
             from MoinMoin.security import Default as UserPerms
 
-        request.clock.start("getSubscribersUncached")
+        context.clock.start("getSubscribersUncached")
 
         # get email addresses of the all wiki user which have a profile stored;
         # add the address only if the user has subscribed to the page and
         # the user is not the current editor
-        userlist = user.getUserList(request)
+        userlist = user.getUserList(context)
         subscriber_list = {}
         for uid in userlist:
-            if uid == request.user.id and not include_self:
+            if uid == context.user.id and not include_self:
                 continue  # no self notification
-            subscriber = user.User(request, uid)
+            subscriber = user.User(context, uid)
 
             # The following tests should be ordered in order of
             # decreasing computation complexity, in particular
@@ -878,15 +878,15 @@ class Page:
                 continue
 
             # add the user to the list
-            lang = subscriber.language or request.cfg.language_default
-            if not lang in subscriber_list:
+            lang = subscriber.language or context.cfg.language_default
+            if lang not in subscriber_list:
                 subscriber_list[lang] = []
             if return_users:
                 subscriber_list[lang].append(subscriber)
             else:
                 subscriber_list[lang].append(subscriber.email)
 
-        request.clock.stop("getSubscribersUncached")
+        context.clock.stop("getSubscribersUncached")
 
         return subscriber_list
 
@@ -987,7 +987,7 @@ class Page:
                     continue
 
                 lang = subscriber.language or request.cfg.language_default
-                if not lang in subscriber_list:
+                if lang not in subscriber_list:
                     subscriber_list[lang] = []
                 if return_users:
                     subscriber_list[lang].append(subscriber)

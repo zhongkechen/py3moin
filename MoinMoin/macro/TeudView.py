@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Teud Macro
 
@@ -26,10 +25,12 @@ from MoinMoin import config, wikiutil
 
 Dependencies = ["time"]
 
-def macro_TeudView(macro):
-    if _imperr: return "Error in TeudView macro: " + str(_imperr)
 
-    #dtdfile = xmldoc.getDTDPath()
+def macro_TeudView(macro):
+    if _imperr:
+        return "Error in TeudView macro: " + str(_imperr)
+
+    # dtdfile = xmldoc.getDTDPath()
     xslfile = xmldoc.getDataPath('webde.xsl')
     pagename = macro.formatter.page.page_name
 
@@ -48,7 +49,7 @@ def macro_TeudView(macro):
             navigation = navigation + ' | '
             modparts = modname.split('.')
             for pathidx in range(pathlen):
-                path = '.'.join(modparts[:pathidx+1])
+                path = '.'.join(modparts[:pathidx + 1])
                 navigation = navigation + '<a href="%s?module=%s">%s</a>' % (
                     pagename, path, modparts[pathidx])
                 if pathidx < pathlen:
@@ -63,14 +64,13 @@ def macro_TeudView(macro):
     processor.appendStylesheetFile(xslfile)
     try:
         result = processor.runString(xmlstr,
-            topLevelParams={
-                'uri-prefix': pagename + "?module=",
-                'uri-suffix': "",
-            }
-        )
+                                     topLevelParams={
+                                         'uri-prefix': pagename + "?module=",
+                                         'uri-suffix': "",
+                                     }
+                                     )
     except:
         print(wikiutil.escape(xmlstr))
         raise
 
     return navigation + result
-

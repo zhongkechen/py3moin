@@ -1,4 +1,3 @@
-
 """
     MoinMoin - PageSize Macro
 
@@ -8,8 +7,9 @@
 
 Dependencies = ["pages"]
 
+
 def macro_PageSize(macro):
-    if macro.request.isSpiderAgent: # reduce bot cpu usage
+    if macro.request.isSpiderAgent:  # reduce bot cpu usage
         return ''
 
     # get list of pages and their objects
@@ -37,4 +37,3 @@ def macro_PageSize(macro):
     result.append(macro.formatter.number_list(0))
 
     return ''.join(result)
-

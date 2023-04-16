@@ -1,4 +1,3 @@
-
 """
     MoinMoin - RandomPage Macro
 
@@ -7,15 +6,17 @@
 """
 
 import random
-random.seed()
 
 from MoinMoin.Page import Page
 
 Dependencies = ["time"]
 
+random.seed()
+
+
 def macro_RandomPage(macro, links=1):
     request = macro.request
-    links = max(links, 1) # at least 1 link
+    links = max(links, 1)  # at least 1 link
 
     # Get full page unfiltered page list - very fast!
     all_pages = request.rootpage.getPageList(user='', exists=0)
@@ -63,4 +64,3 @@ def macro_RandomPage(macro, links=1):
 
     result = ''.join(result)
     return result
-

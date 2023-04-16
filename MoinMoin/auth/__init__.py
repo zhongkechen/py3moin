@@ -1,4 +1,3 @@
-
 """
     MoinMoin - modular authentication handling
 
@@ -135,6 +134,7 @@
 """
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
 from werkzeug.utils import redirect
@@ -170,8 +170,10 @@ def get_multistage_continuation_url(request, auth_name, extra_fields={}):
         logging.debug("request.abs_href: " + request.abs_href(**fields))
         return request.abs_href(**fields)
 
+
 class LoginReturn:
     """ LoginReturn - base class for auth method login() return value"""
+
     def __init__(self, user_obj, continue_flag, message=None, multistage=None,
                  redirect_to=None):
         self.user_obj = user_obj
@@ -180,23 +182,31 @@ class LoginReturn:
         self.multistage = multistage
         self.redirect_to = redirect_to
 
+
 class ContinueLogin(LoginReturn):
     """ ContinueLogin - helper for auth method login that just continues """
+
     def __init__(self, user_obj, message=None):
         LoginReturn.__init__(self, user_obj, True, message=message)
 
+
 class CancelLogin(LoginReturn):
     """ CancelLogin - cancel login showing a message """
+
     def __init__(self, message):
         LoginReturn.__init__(self, None, False, message=message)
 
+
 class MultistageFormLogin(LoginReturn):
     """ MultistageFormLogin - require user to fill in another form """
+
     def __init__(self, multistage):
         LoginReturn.__init__(self, None, False, multistage=multistage)
 
+
 class MultistageRedirectLogin(LoginReturn):
     """ MultistageRedirectLogin - redirect user to another site before continuing login """
+
     def __init__(self, url):
         LoginReturn.__init__(self, None, False, redirect_to=url)
 
@@ -205,22 +215,29 @@ class BaseAuth:
     name = None
     login_inputs = []
     logout_possible = False
+
     def __init__(self):
         pass
+
     def login(self, request, user_obj, **kw):
         return ContinueLogin(user_obj)
+
     def request(self, request, user_obj, **kw):
         return user_obj, True
+
     def logout(self, request, user_obj, **kw):
         if self.name and user_obj and user_obj.auth_method == self.name:
             logging.debug("%s: logout - invalidating user %r" % (self.name, user_obj.name))
             user_obj.valid = False
         return user_obj, True
+
     def login_hint(self, request):
         return None
 
+
 class MoinAuth(BaseAuth):
     """ handle login from moin login form """
+
     def __init__(self):
         BaseAuth.__init__(self)
 
@@ -263,22 +280,22 @@ class MoinAuth(BaseAuth):
 
     def login_hint(self, request):
         _ = request.getText
-        #if request.cfg.openidrp_registration_url:
+        # if request.cfg.openidrp_registration_url:
         #    userprefslink = request.cfg.openidrp_registration_url
-        #else:
+        # else:
         userprefslink = request.page.url(request, querystr={'action': 'newaccount'})
         sendmypasswordlink = request.page.url(request, querystr={'action': 'recoverpass'})
 
         msg = ''
-        #if request.cfg.openidrp_allow_registration:
+        # if request.cfg.openidrp_allow_registration:
         if 'newaccount' not in request.cfg.actions_superuser:
             msg += _('If you do not have an account, <a href="%(userprefslink)s">you can create one now</a>. ') % {
-                     'userprefslink': userprefslink}
+                'userprefslink': userprefslink}
         msg += _('<a href="%(sendmypasswordlink)s">Forgot your password?</a>') % {
-               'sendmypasswordlink': sendmypasswordlink}
+            'sendmypasswordlink': sendmypasswordlink}
         return msg
 
-        #return _('If you do not have an account, <a href="%(userprefslink)s">you can create one now</a>. '
+        # return _('If you do not have an account, <a href="%(userprefslink)s">you can create one now</a>. '
         #         '<a href="%(sendmypasswordlink)s">Forgot your password?</a>') % {
         #       'userprefslink': userprefslink,
         #       'sendmypasswordlink': sendmypasswordlink}
@@ -292,7 +309,7 @@ class GivenAuth(BaseAuth):
         Alternatively you can directly give a fixed user name (user_name)
         that will be considered as authenticated.
     """
-    name = 'given' # was 'http' in 1.8.x and before
+    name = 'given'  # was 'http' in 1.8.x and before
 
     def __init__(self,
                  env_var=None,  # environment variable we want to read (default: REMOTE_USER)
@@ -303,7 +320,7 @@ class GivenAuth(BaseAuth):
                  titlecase=False,  # joe doe -> Joe Doe
                  remove_blanks=False,  # Joe Doe -> JoeDoe
                  coding=None,  # for decoding REMOTE_USER correctly (default: auto)
-                ):
+                 ):
         self.env_var = env_var
         self.user_name = user_name
         self.autocreate = autocreate
@@ -383,7 +400,7 @@ class GivenAuth(BaseAuth):
         if u and u.valid:
             logging.debug("returning valid user %r" % u)
             log_attempt("auth/request (given)", True, request, auth_username)
-            return u, True # True to get other methods called, too
+            return u, True  # True to get other methods called, too
         else:
             logging.debug("returning %r" % user_obj)
             if u and not u.valid:
@@ -428,7 +445,7 @@ def handle_login(request, userobj=None, username=None, password=None,
             url = url.replace('%return', url_quote(nextstage))
             abort(redirect(url))
         msg = ret.message
-        if msg and not msg in request._login_messages:
+        if msg and msg not in request._login_messages:
             request._login_messages.append(msg)
 
         if not cont:
@@ -436,7 +453,8 @@ def handle_login(request, userobj=None, username=None, password=None,
 
     return userobj
 
-def handle_logout(request, userobj):
+
+def handle_logout(context, userobj):
     """ Logout the passed user from every configured authentication method. """
     if userobj is None:
         # not logged in
@@ -444,23 +462,25 @@ def handle_logout(request, userobj):
 
     if userobj.auth_method == 'setuid':
         # we have no authmethod object for setuid
-        userobj = request._setuid_real_user
-        del request._setuid_real_user
+        userobj = context._setuid_real_user
+        del context._setuid_real_user
         return userobj
 
-    for authmethod in request.cfg.auth:
-        userobj, cont = authmethod.logout(request, userobj, cookie=request.request.cookies)
+    for authmethod in context.cfg.auth:
+        userobj, cont = authmethod.logout(context, userobj, cookie=context.request.cookies)
         if not cont:
             break
     return userobj
 
-def handle_request(request, userobj):
+
+def handle_request(context, userobj):
     """ Handle the per-request callbacks of the configured authentication methods. """
-    for authmethod in request.cfg.auth:
-        userobj, cont = authmethod.request(request, userobj, cookie=request.request.cookies)
+    for authmethod in context.cfg.auth:
+        userobj, cont = authmethod.request(context, userobj, cookie=context.request.cookies)
         if not cont:
             break
     return userobj
+
 
 def setup_setuid(request, userobj):
     """ Check for setuid conditions in the session and setup an user
@@ -481,6 +501,7 @@ def setup_setuid(request, userobj):
     logging.debug("setup_suid returns %r, %r" % (userobj, old_user))
     return (userobj, old_user)
 
+
 def setup_from_session(request, session):
     userobj = None
     if 'user.id' in session:
@@ -495,4 +516,3 @@ def setup_from_session(request, session):
                                 auth_attribs=auth_attrs)
     logging.debug("session started for user %r", userobj)
     return userobj
-
