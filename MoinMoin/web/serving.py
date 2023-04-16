@@ -9,16 +9,15 @@
 """
 import os
 
-from MoinMoin import version, log
-
-logging = log.getLogger(__name__)
-
 # make werkzeug use our logging framework and configuration:
 import werkzeug._internal
+from werkzeug.serving import run_simple, WSGIRequestHandler
+
+from MoinMoin import version, log
 
 werkzeug._internal._logger = log.getLogger('werkzeug')
 
-from werkzeug.serving import run_simple, WSGIRequestHandler
+logging = log.getLogger(__name__)
 
 
 class RequestHandler(WSGIRequestHandler):

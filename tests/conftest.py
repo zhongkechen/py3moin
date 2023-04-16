@@ -26,12 +26,14 @@ import os.path
 
 import pytest
 
+from MoinMoin.web.contexts import AllContext
+
 rootdir = os.path.abspath(os.path.dirname(__file__))
 moindir = rootdir.join("..")
 sys.path.insert(0, str(moindir))
 
 from MoinMoin.web.request import TestRequest, Client
-from MoinMoin.wsgiapp import Application, init
+from MoinMoin.wsgiapp import Application
 from tests._tests import maketestwiki, wikiconfig
 
 coverage_modules = set()
@@ -71,8 +73,8 @@ def init_test_request(given_config=None, static_state=[False]):
         static_state[0] = True
     request = TestRequest()
     request.given_config = given_config
-    request = init(request)
-    return request
+    context = AllContext(request)
+    return context
 
 
 # pytest customization starts here

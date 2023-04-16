@@ -41,6 +41,7 @@ from logging import NOTSET
 from MoinMoin import config, caching, user, util, wikiutil
 from MoinMoin import log
 from MoinMoin.logfile import eventlog
+from MoinMoin.decorator import context_timer
 
 logging = log.getLogger(__name__)
 
@@ -822,6 +823,7 @@ class Page:
 
         return link
 
+    @context_timer("getSubscribersUncached")
     def getSubscribersUncached(self, context, **kw):
         """ Get all subscribers of this page.
             (original method, slow for many users, needs to open all user profiles)
@@ -845,8 +847,6 @@ class Page:
             UserPerms = self.cfg.SecurityPolicy
         else:
             from MoinMoin.security import Default as UserPerms
-
-        context.clock.start("getSubscribersUncached")
 
         # get email addresses of the all wiki user which have a profile stored;
         # add the address only if the user has subscribed to the page and
@@ -886,10 +886,9 @@ class Page:
             else:
                 subscriber_list[lang].append(subscriber.email)
 
-        context.clock.stop("getSubscribersUncached")
-
         return subscriber_list
 
+    @context_timer("getSubscribers")
     def getSubscribers(self, request, **kw):
         """ Get all subscribers of this page.
             (new method, uses caching)
@@ -903,7 +902,6 @@ class Page:
         include_self = kw.get('include_self', self.include_self)
         return_users = kw.get('return_users', 0)
 
-        request.clock.start('getSubscribers')
         # extract categories of this page
         pageList = self.getCategories(request)
 
@@ -994,7 +992,6 @@ class Page:
                 else:
                     subscriber_list[lang].append(subscriber.email)
 
-        request.clock.stop('getSubscribers')
         return subscriber_list
 
     def parse_processing_instructions(self):
@@ -1115,6 +1112,7 @@ class Page:
 
         context.write(text)
 
+    @context_timer("send_page")
     def send_page(self, **keywords):
         """ Output the formatted page.
 
@@ -1128,7 +1126,6 @@ class Page:
         """
         context = self.context
         _ = context.getText
-        context.clock.start('send_page')
         emit_headers = keywords.get('emit_headers', 1)
         content_only = keywords.get('content_only', 0)
         omit_footnotes = keywords.get('omit_footnotes', 0)
@@ -1366,7 +1363,6 @@ class Page:
 
             context.write(self.formatter.endDocument())
 
-        context.clock.stop('send_page')
         if not content_only and self.default_formatter:
             context.theme.send_closing_html()
 
@@ -1419,6 +1415,7 @@ class Page:
             return getattr(parser, 'caching', False)
         return False
 
+    @context_timer("send_page_content")
     def send_page_content(self, request, body, format='wiki', format_args='', do_cache=1, **kw):
         """ Output the formatted wiki page, using caching if possible
 
@@ -1428,7 +1425,6 @@ class Page:
         @param format_args: #format arguments, used by some parsers
         @param do_cache: if True, use cached content
         """
-        request.clock.start('send_page_content')
         # Load the parser
         try:
             Parser = wikiutil.searchAndImportPlugin(request.cfg, "parser", format)
@@ -1454,26 +1450,21 @@ class Page:
                     logging.error('page cache failed after creation')
                     self.format(parser)
 
-        request.clock.stop('send_page_content')
-
     def format(self, parser):
         """ Format and write page content without caching """
         parser.format(self.formatter)
 
+    @context_timer("Page.execute")
     def execute(self, request, parser, code):
         """ Write page content by executing cache code """
         formatter = self.formatter
-        request.clock.start("Page.execute")
-        try:
-            from MoinMoin.macro import Macro
-            macro_obj = Macro(parser)
-            # Fix __file__ when running from a zip package
-            import MoinMoin
-            if hasattr(MoinMoin.__loader__, "archive"):
-                __file__ = os.path.join(MoinMoin.__loader__.archive, 'dummy')
-            exec(code)
-        finally:
-            request.clock.stop("Page.execute")
+        from MoinMoin.macro import Macro
+        macro_obj = Macro(parser)
+        # Fix __file__ when running from a zip package
+        import MoinMoin
+        if hasattr(MoinMoin.__loader__, "archive"):
+            __file__ = os.path.join(MoinMoin.__loader__.archive, 'dummy')
+        exec(code)
 
     def loadCache(self, request):
         """ Return page content cache or raises 'CacheNeedsUpdate' """
@@ -1630,6 +1621,7 @@ class Page:
             links = []
         return links
 
+    @context_timer("parsePageLinks")
     def parsePageLinks(self, request):
         """ Parse page links by formatting with a pagelinks formatter
 
@@ -1648,8 +1640,6 @@ class Page:
         # logging.debug("running parsePageLinks for page %r" % pagename)
         # remember we are already running this function for this page:
         request.parsePageLinks_running[pagename] = True
-
-        request.clock.start('parsePageLinks')
 
         class Null:
             def write(self, data):
@@ -1672,7 +1662,6 @@ class Page:
             request.redirect()
             if hasattr(request, '_fmt_hd_counters'):
                 del request._fmt_hd_counters
-            request.clock.stop('parsePageLinks')
         return formatter.pagelinks
 
     def getCategories(self, request):
@@ -1710,32 +1699,34 @@ class Page:
         try:
             return self.__acl  # for request.page, this is n-1 times used
         except AttributeError:
-            # the caching here is still useful for pages != request.page,
-            # when we have multiple page objects for the same page name.
-            request.clock.start('getACL')
-            # Try the cache or parse acl and update the cache
-            currentRevision = self.current_rev()
-            cache_name = self.page_name
-            cache_key = 'acl'
-            cache_data = request.cfg.cache.meta.getItem(request, cache_name, cache_key)
-            if cache_data is None:
-                aclRevision, acl = None, None
-            else:
-                aclRevision, acl = cache_data
-            # logging.debug("currrev: %r, cachedaclrev: %r" % (currentRevision, aclRevision))
-            if aclRevision != currentRevision:
-                acl = self.parseACL()
-                if currentRevision != 99999999:
-                    # don't use cache for non existing pages
-                    # otherwise in the process of creating copies by filesys.copytree (PageEditor.copyPage)
-                    # the first may test will create a cache entry with the default_acls for a non existing page
-                    # At the time the page is created acls on that page would be ignored until the process
-                    # is completed by adding a log entry into edit-log
-                    cache_data = (currentRevision, acl)
-                    request.cfg.cache.meta.putItem(request, cache_name, cache_key, cache_data)
-            self.__acl = acl
-            request.clock.stop('getACL')
-            return acl
+            self.__acl = self.getACLUncached(request)
+            return self.__acl
+
+    @context_timer("getACL")
+    def getACLUncached(self, request):
+        # the caching here is still useful for pages != request.page,
+        # when we have multiple page objects for the same page name.
+        # Try the cache or parse acl and update the cache
+        currentRevision = self.current_rev()
+        cache_name = self.page_name
+        cache_key = 'acl'
+        cache_data = request.cfg.cache.meta.getItem(request, cache_name, cache_key)
+        if cache_data is None:
+            aclRevision, acl = None, None
+        else:
+            aclRevision, acl = cache_data
+        # logging.debug("currrev: %r, cachedaclrev: %r" % (currentRevision, aclRevision))
+        if aclRevision != currentRevision:
+            acl = self.parseACL()
+            if currentRevision != 99999999:
+                # don't use cache for non existing pages
+                # otherwise in the process of creating copies by filesys.copytree (PageEditor.copyPage)
+                # the first may test will create a cache entry with the default_acls for a non existing page
+                # At the time the page is created acls on that page would be ignored until the process
+                # is completed by adding a log entry into edit-log
+                cache_data = (currentRevision, acl)
+                request.cfg.cache.meta.putItem(request, cache_name, cache_key, cache_data)
+        return acl
 
     def parseACL(self):
         """ Return ACLs parsed from the last available revision
@@ -1841,6 +1832,7 @@ class RootPage(Page):
 
         return underlay, path
 
+    @context_timer("getPageList")
     def getPageList(self, user=None, exists=1, filter=None, include_underlay=True, return_objects=False):
         """ List user readable pages under current page
 
@@ -1872,7 +1864,6 @@ class RootPage(Page):
         @return: user readable wiki page names
         """
         request = self.context
-        request.clock.start('getPageList')
         # Check input
         if user is None:
             user = request.user
@@ -1924,7 +1915,6 @@ class RootPage(Page):
         else:
             pages = list(cachedlist.keys())
 
-        request.clock.stop('getPageList')
         return pages
 
     def getPageDict(self, user=None, exists=1, filter=None, include_underlay=True):
@@ -1996,6 +1986,7 @@ class RootPage(Page):
             # case someone has the pages dir under CVS control.
         return pages
 
+    @context_timer("getPageCount")
     def getPageCount(self, exists=0):
         """ Return page count
 
@@ -2009,13 +2000,11 @@ class RootPage(Page):
         @rtype: int
         @return: number of pages
         """
-        self.context.clock.start('getPageCount')
         if exists:
             # WARNING: SLOW
             pages = self.getPageList(user='')
         else:
             pages = self._listPages()
         count = len(pages)
-        self.context.clock.stop('getPageCount')
 
         return count

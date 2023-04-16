@@ -146,14 +146,14 @@ class Request(RequestBase):
     charset = config.charset
     encoding_errors = 'replace'
     default_mimetype = 'text/html'
-    given_config = None  # if None, load wiki config from disk
 
     # get rid of some inherited descriptors
     headers = None
 
-    def __init__(self, environ, populate_request=True, shallow=False):
-        RequestBase.__init__(self, environ, populate_request, shallow)
+    def __init__(self, environ, populate_request=True, shallow=False, given_config=None):
+        super().__init__(environ, populate_request, shallow)
         self.href = Href(self.script_root or '/', self.charset)
+        self.given_config = given_config
         # self.abs_href = Href(self.url_root, self.charset)
         # self.headers = Headers([('Content-Type', 'text/html')])
         # self.response = []
@@ -219,4 +219,4 @@ def evaluate_request(request):
     # any output via (WSGI-deprecated) write-callable?
     if output:
         result = output
-    return (result, headers_set[0], headers_set[1])
+    return result, headers_set[0], headers_set[1]

@@ -25,6 +25,7 @@ import re
 
 from MoinMoin import config, wikiutil
 from MoinMoin.Page import Page
+from MoinMoin.decorator import context_timer
 
 
 def _getWordsFiles(request):
@@ -55,8 +56,8 @@ def _loadWords(lines, dict):
             dict[word.encode(config.charset)] = ''
 
 
+@context_timer("spellread")
 def _loadWordsFile(request, dict, filename):
-    request.clock.start('spellread')
     try:
         try:
             f = codecs.open(filename, 'r', config.charset)
@@ -67,7 +68,6 @@ def _loadWordsFile(request, dict, filename):
     finally:
         f.close()
     _loadWords(lines, dict)
-    request.clock.stop('spellread')
 
 
 def _loadWordsPage(request, dict, page):
@@ -123,6 +123,7 @@ def _addLocalWords(context):
     lsw_page.saveText(words + '\n' + newwords, 0)
 
 
+@context_timer("spellcheck")
 def checkSpelling(page, context, own_form=1):
     """ Do spell checking, return a tuple with the result.
     """
@@ -141,7 +142,6 @@ def checkSpelling(page, context, own_form=1):
         _loadWordsPage(context, localwords, lsw_page)
 
     # init status vars & load page
-    context.clock.start('spellcheck')
     badwords = {}
     text = page.get_raw_body()
 
@@ -208,8 +208,6 @@ def checkSpelling(page, context, own_form=1):
     else:
         badwords_re = None
         msg = _("No spelling errors found!")
-
-    context.clock.stop('spellcheck')
 
     return badwords, badwords_re, msg
 

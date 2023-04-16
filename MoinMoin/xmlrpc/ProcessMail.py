@@ -1,4 +1,3 @@
-
 """
     MoinMoin - This plugin is used for multi-tier mail processing
 
@@ -7,9 +6,10 @@
 """
 
 from MoinMoin import log
+from MoinMoin.mail import mailimport
+
 logging = log.getLogger(__name__)
 
-from MoinMoin.mail import mailimport
 
 def execute(xmlrpcobj, secret, mail):
     request = xmlrpcobj.request

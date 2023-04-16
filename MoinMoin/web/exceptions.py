@@ -1,4 +1,3 @@
-
 """
     MoinMoin - HTTP exceptions
 
@@ -36,12 +35,14 @@ class SurgeProtection(exceptions.ServiceUnavailable):
         headers.append(('Retry-After', '%d' % self.retry_after))
         return headers
 
+
 class Forbidden(exceptions.Forbidden):
     """
     Override the default description of werkzeug.exceptions.Forbidden to a
     less technical sounding one.
     """
     description = "You are not allowed to access this!"
+
 
 # handy exception raising
 abort = exceptions.abort

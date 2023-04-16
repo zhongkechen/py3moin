@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Remote Script Execution Server part
 
@@ -7,9 +6,10 @@
 """
 
 from MoinMoin import log
+from MoinMoin.script import MoinScript
+
 logging = log.getLogger(__name__)
 
-from MoinMoin.script import MoinScript
 
 def execute(xmlrpcobj, their_secret, argv):
     request = xmlrpcobj.request
@@ -27,4 +27,3 @@ def execute(xmlrpcobj, their_secret, argv):
         logging.exception('An exception occurred.')
         return xmlrpcobj._outstr(str(err))
     return xmlrpcobj._outstr(u"OK")
-

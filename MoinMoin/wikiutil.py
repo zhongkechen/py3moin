@@ -18,17 +18,16 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-
-from MoinMoin import log
-
-logging = log.getLogger(__name__)
-
-from MoinMoin import config
 from inspect import isfunction, isclass, ismethod, getfullargspec
 
 import werkzeug
 import werkzeug.urls
+
+from MoinMoin import config
+from MoinMoin import log
 from MoinMoin.util import pysupport, lock
+
+logging = log.getLogger(__name__)
 
 
 def safe_str_cmp(a: str, b: str) -> bool:

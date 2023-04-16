@@ -133,17 +133,16 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from MoinMoin import log
-
-logging = log.getLogger(__name__)
-
-from werkzeug.utils import redirect
 from werkzeug.exceptions import abort
 from werkzeug.urls import url_quote, url_quote_plus
+from werkzeug.utils import redirect
 
+from MoinMoin import log
 from MoinMoin import user, wikiutil
-from MoinMoin.web.utils import check_surge_protect
 from MoinMoin.util.abuse import log_attempt
+from MoinMoin.web.utils import check_surge_protect
+
+logging = log.getLogger(__name__)
 
 
 def get_multistage_continuation_url(request, auth_name, extra_fields={}):
@@ -499,7 +498,7 @@ def setup_setuid(request, userobj):
         userobj.valid = True
         log_attempt("auth/login (setuid from %r)" % old_user.name, True, request, userobj.name)
     logging.debug("setup_suid returns %r, %r" % (userobj, old_user))
-    return (userobj, old_user)
+    return userobj, old_user
 
 
 def setup_from_session(request, session):

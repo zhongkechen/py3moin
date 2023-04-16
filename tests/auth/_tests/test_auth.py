@@ -8,6 +8,7 @@
 import pytest
 
 from MoinMoin import wsgiapp
+from MoinMoin.web.contexts import AllContext
 from MoinMoin.web.request import TestRequest, evaluate_request
 from tests._tests import wikiconfig
 
@@ -31,7 +32,7 @@ class AuthTest:
         request = TestRequest(**params)
         # XXX: config passing hack
         request.given_config = getattr(self, 'Config', wikiconfig.Config)
-        context = wsgiapp.init(request)
+        context = AllContext(request)
         wsgiapp.run(context)
         return context
 

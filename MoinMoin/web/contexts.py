@@ -6,74 +6,36 @@
     @copyright: 2008-2008 MoinMoin:FlorianKrupicka
     @license: GNU GPL, see COPYING for details.
 """
-
 import io
+import os
 import sys
 import time
 import warnings
 
-from werkzeug.datastructures import Headers
+from werkzeug.datastructures import Headers, HeaderSet
+from werkzeug.exceptions import abort, Unauthorized, NotFound
 from werkzeug.test import create_environ
 from werkzeug.utils import redirect
-from werkzeug.exceptions import abort, Unauthorized, NotFound
 
-from MoinMoin import i18n, error, user, config, wikiutil
+from MoinMoin import auth
+from MoinMoin import i18n, user, config
+from MoinMoin import log
+from MoinMoin import wikiutil, xmlrpc, error
+from MoinMoin.Page import Page
+from MoinMoin.action import get_names, get_available_actions
 from MoinMoin.config import multiconfig
+from MoinMoin.decorator import EnvironProxy, context_timer
 from MoinMoin.formatter import text_html
 from MoinMoin.theme import load_theme_fallback
+from MoinMoin.util.abuse import log_attempt
 from MoinMoin.util.clock import Clock
-from MoinMoin.web.request import Request, MoinMoinFinish, ResponseBase
-from MoinMoin.web.utils import UniqueIDGenerator
 from MoinMoin.web.exceptions import Forbidden, SurgeProtection
-
-from MoinMoin import log
+from MoinMoin.web.request import Request, MoinMoinFinish
+from MoinMoin.web.request import ResponseBase
+from MoinMoin.web.utils import UniqueIDGenerator
+from MoinMoin.web.utils import check_forbidden, check_surge_protect, redirect_last_visited
 
 logging = log.getLogger(__name__)
-NoDefault = object()
-
-
-class EnvironProxy(property):
-    """ Proxy attribute lookups to keys in the environ. """
-
-    def __init__(self, name, default=NoDefault):
-        """
-        An entry will be proxied to the supplied name in the .environ
-        object of the property holder. A factory can be supplied, for
-        values that need to be preinstantiated. If given as first
-        parameter name is taken from the callable too.
-
-        @param name: key (or factory for convenience)
-        @param default: literal object or callable
-        """
-        if not isinstance(name, (str, bytes)):
-            default = name
-            name = default.__name__
-        self.name = 'moin.' + name
-        self.default = default
-        property.__init__(self, self.get, self.set, self.delete)
-
-    def get(self, obj):
-        if self.name in obj.environ:
-            res = obj.environ[self.name]
-        else:
-            factory = self.default
-            if factory is NoDefault:
-                raise AttributeError(self.name)
-            elif hasattr(factory, '__call__'):
-                res = obj.environ.setdefault(self.name, factory(obj))
-            else:
-                res = obj.environ.setdefault(self.name, factory)
-        return res
-
-    def set(self, obj, value):
-        obj.environ[self.name] = value
-
-    def delete(self, obj):
-        del obj.environ[self.name]
-
-    def __repr__(self):
-        return "<%s for '%s'>" % (self.__class__.__name__,
-                                  self.name)
 
 
 class Context:
@@ -92,9 +54,7 @@ class Context:
         self.response.response = []
         self.response.status_code = 200
         self.environ = request.environ
-        self.personalities = self.environ.setdefault(
-            'context.personalities', []
-        )
+        self.personalities = self.environ.setdefault('context.personalities', [])
         self.personalities.append(self.__class__.__name__)
 
     def become(self, cls):
@@ -134,18 +94,18 @@ class BaseContext(Context):
     page = EnvironProxy('page', None)
 
     # now the more complex factories
+    @EnvironProxy
     def cfg(self):
         if self.request.given_config is not None:
             return self.request.given_config('MoinMoin._tests.wikiconfig')
+        return self.load_multi_cfg()
+
+    @context_timer("load_multi_cfg")
+    def load_multi_cfg(self):
         try:
-            self.clock.start('load_multi_cfg')
-            cfg = multiconfig.getConfig(self.request.url)
-            self.clock.stop('load_multi_cfg')
-            return cfg
+            return multiconfig.getConfig(self.request.url)
         except error.NoConfigMatchedError:
             raise NotFound('<p>No wiki configuration matching the URL found!</p>')
-
-    cfg = EnvironProxy(cfg)
 
     def getText(self):
         lang = self.lang
@@ -176,7 +136,7 @@ class BaseContext(Context):
 
     def rev(self):
         try:
-            return int(self.values['rev'])
+            return int(self.request.values['rev'])
         except:
             return None
 
@@ -425,6 +385,230 @@ class XMLRPCContext(HTTPContext, AuxilaryMixin):
 class AllContext(HTTPContext, AuxilaryMixin):
     """ Catchall context to be able to quickly test old Moin code. """
 
+    def __init__(self, request):
+        super().__init__(request)
+        self.clock.start('total')
+        self.init()
+
+    def finish(self):
+        pass
+
+    @staticmethod
+    def set_umask(new_mask=0o777 ^ config.umask):
+        """ Set the OS umask value (and ignore potential failures on OSes where
+            this is not supported).
+            Default: the bitwise inverted value of config.umask
+        """
+        try:
+            old_mask = os.umask(new_mask)
+        except:
+            # maybe we are on win32?
+            pass
+
+    @context_timer("init")
+    def init(self):
+        """
+        Wraps an incoming WSGI request in a Context object and initializes
+        several important attributes.
+        """
+        self.set_umask()  # do it once per request because maybe some server
+        # software sets own umask
+
+        self.lang = self.setup_i18n_preauth()
+
+        self.session = self.cfg.session_service.get_session(self)
+
+        self.user = self.setup_user()
+
+        self.lang = self.setup_i18n_postauth()
+
+        self.reset()
+
+    def setup_i18n_preauth(self):
+        """ Determine language for the request in absence of any user info. """
+        if i18n.languages is None:
+            i18n.i18n_init(self)
+        lang = i18n.requestLanguage(self)
+        return lang
+
+    def setup_i18n_postauth(self):
+        """ Determine language for the request after user-id is established. """
+        lang = i18n.userLanguage(self) or self.lang
+        return lang
+
+    def setup_user(self):
+        """ Try to retrieve a valid user object from the request, be it
+        either through the session or through a login. """
+        # first try setting up from session
+        userobj = auth.setup_from_session(self, self.session)
+        userobj, olduser = auth.setup_setuid(self, userobj)
+        self._setuid_real_user = olduser
+
+        # then handle login/logout forms
+        form = self.request.values
+
+        if 'login' in form:
+            params = {
+                'username': form.get('name'),
+                'password': form.get('password'),
+                'attended': True,
+                'openid_identifier': form.get('openid_identifier'),
+                'stage': form.get('stage')
+            }
+            userobj = auth.handle_login(self, userobj, **params)
+        elif 'logout' in form:
+            userobj = auth.handle_logout(self, userobj)
+        else:
+            userobj = auth.handle_request(self, userobj)
+
+        # if we still have no user obj, create a dummy:
+        if not userobj:
+            userobj = user.User(self, auth_method='invalid')
+
+        return userobj
+
+    @context_timer("run")
+    def run(self):
+        """ Run a context through the application. """
+        request = self.request
+
+        # preliminary access checks (forbidden, bots, surge protection)
+        try:
+            try:
+                check_forbidden(self)
+                check_surge_protect(self)
+
+                action_name = self.action
+
+                # handle XMLRPC calls
+                if action_name == 'xmlrpc':
+                    response = xmlrpc.xmlrpc(XMLRPCContext(request))
+                elif action_name == 'xmlrpc2':
+                    response = xmlrpc.xmlrpc2(XMLRPCContext(request))
+                else:
+                    response = self.dispatch(action_name)
+                self.cfg.session_service.finalize(self, self.session)
+                return response
+            except MoinMoinFinish:
+                return self.response
+        finally:
+            self.finish()
+
+            self.clock.stop('total')
+            if self.cfg.log_timing:
+                dt = self.clock.timings['total']
+                logging.info("timing: %s %s %s %3.3f %s", request.remote_addr, request.url, request.referrer, dt,
+                             "!" * int(dt) or ".")
+
+    def dispatch(self, action_name='show'):
+        cfg = self.cfg
+
+        # The last component in path_info is the page name, if any
+        path = self.remove_prefix(self.request.path, cfg.url_prefix_action)
+
+        if path.startswith('/'):
+            pagename = wikiutil.normalize_pagename(path, cfg)
+        else:
+            pagename = None
+
+        # need to inform caches that content changes based on:
+        # * cookie (even if we aren't sending one now)
+        # * User-Agent (because a bot might be denied and get no content)
+        # * Accept-Language (except if moin is told to ignore browser language)
+        hs = HeaderSet(('Cookie', 'User-Agent'))
+        if not cfg.language_ignore_browser:
+            hs.add('Accept-Language')
+        self.response.headers['Vary'] = str(hs)
+
+        # Handle request. We have these options:
+        # 1. jump to page where user left off
+        if not pagename and self.user.remember_last_visit and action_name == 'show':
+            response = redirect_last_visited(self)
+        # 2. handle action
+        else:
+            response = self.handle_action(pagename, action_name)
+        if isinstance(response, Context):
+            response = response.response
+        return response
+
+    def remove_prefix(self, path, prefix=None):
+        """ Remove an url prefix from the path info and return shortened path. """
+        # we can have all action URLs like this: /action/ActionName/PageName?action=ActionName&...
+        # this is just for robots.txt being able to forbid them for crawlers
+        if prefix is not None:
+            prefix = '/%s/' % prefix  # e.g. '/action/'
+            if path.startswith(prefix):
+                # remove prefix and action name
+                path = path[len(prefix):]
+                action, path = (path.split('/', 1) + ['', ''])[:2]
+                path = '/' + path
+        return path
+
+    def handle_action(self, pagename, action_name='show'):
+        """ Actual dispatcher function for non-XMLRPC actions.
+
+        Also sets up the Page object for this request, normalizes and
+        redirects to canonical pagenames and checks for non-allowed
+        actions.
+        """
+        _ = self.getText
+        cfg = self.cfg
+
+        # pagename could be empty after normalization e.g. '///' -> ''
+        # Use localized FrontPage if pagename is empty
+        if not pagename:
+            self.page = wikiutil.getFrontPage(self)
+        else:
+            self.page = Page(self, pagename)
+            if '_' in pagename and not self.page.exists():
+                pagename = pagename.replace('_', ' ')
+                page = Page(self, pagename)
+                if page.exists():
+                    url = page.url(self)
+                    return self.http_redirect(url)
+
+        msg = None
+        # Complain about unknown actions
+        if action_name not in get_names(cfg):
+            msg = _("Unknown action %(action_name)s.") % {
+                'action_name': wikiutil.escape(action_name), }
+
+        # Disallow non available actions
+        elif action_name[0].isupper() and action_name not in get_available_actions(cfg, self.page, self.user):
+            msg = _("You are not allowed to do %(action_name)s on this page.") % {
+                'action_name': wikiutil.escape(action_name), }
+            if self.user.valid:
+                log_attempt(action_name + '/action unavailable', False,
+                            self.request, self.user.name, pagename=pagename)
+            else:
+                log_attempt(action_name + '/action unavailable', False, self.request, pagename=pagename)
+                # Suggest non valid user to login
+                msg += " " + _("Login and try again.")
+
+        if msg:
+            self.theme.add_msg(msg, "error")
+            self.page.send_page()
+        # Try action
+        else:
+            from MoinMoin import action
+            handler = action.getHandler(self, action_name)
+            if handler is None:
+                msg = _("You are not allowed to do %(action_name)s on this page.") % {
+                    'action_name': wikiutil.escape(action_name), }
+                if self.user.valid:
+                    log_attempt(action_name + '/no handler', False, self.request, self.user.name,
+                                pagename=pagename)
+                else:
+                    log_attempt(action_name + '/no handler', False, self.request, pagename=pagename)
+                    # Suggest non valid user to login
+                    msg += " " + _("Login and try again.")
+                self.theme.add_msg(msg, "error")
+                self.page.send_page()
+            else:
+                handler(self.page.page_name, self)
+
+        return self
+
 
 class ScriptContext(AllContext):
     """ Context to act in scripting environments (e.g. former request_cli).
@@ -441,8 +625,6 @@ class ScriptContext(AllContext):
         environ['wsgi.input'] = sys.stdin
         request = Request(environ)
         super(ScriptContext, self).__init__(request)
-        from MoinMoin import wsgiapp
-        wsgiapp.init(self)
 
     def write(self, *data):
         for d in data:

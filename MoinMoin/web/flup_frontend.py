@@ -1,4 +1,3 @@
-
 """
     MoinMoin - Flup based WSGI adapters
 
@@ -28,9 +27,11 @@ import sys
 
 try:
     import flup.server.fcgi
+
     have_flup = True
     try:
         import flup.server.fcgi_single
+
         have_singlepatch = True
     except ImportError:
         have_singlepatch = False
@@ -40,6 +41,7 @@ except ImportError:
 from MoinMoin.web.frontend import ServerFrontEnd, FrontEnd, FrontEndNotAvailable
 
 from MoinMoin import log
+
 logging = log.getLogger(__name__)
 
 if have_flup:
@@ -90,7 +92,7 @@ if have_flup:
                         import cgitb
                         req.stdout.write('Content-Type: text/html\r\n\r\n' +
                                          cgitb.html(sys.exc_info()))
-                    else: # 'off'
+                    else:  # 'off'
                         errorpage = """<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
 <html><head>
 <title>Unhandled Exception</title>
@@ -101,7 +103,6 @@ if have_flup:
 """
                         req.stdout.write('Content-Type: text/html\r\n\r\n' + errorpage)
 
-
             kwargs = {}
 
             kwargs['debug'] = options.debug or os.environ.get('MOIN_DEBUGGER', 'off')
@@ -109,7 +110,7 @@ if have_flup:
             if options.port:
                 kwargs['bindAddress'] = (options.interface, options.port)
             elif options.interface and (
-                 options.interface.startswith('/') or options.interface.startswith('./')):
+                    options.interface.startswith('/') or options.interface.startswith('./')):
                 kwargs['bindAddress'] = options.interface
 
             if options.min_spare and multi:
@@ -124,6 +125,7 @@ if have_flup:
             logging.debug("WSGIServer(%r, %r)" % (application, kwargs))
             return WSGIServer(application, **kwargs).run()
 
+
     class CGIFrontEnd(FlupFrontEnd):
         server_types = {'threaded': 'flup.server.fcgi',
                         'forking': 'flup.server.fcgi_fork'}
@@ -135,9 +137,11 @@ if have_flup:
                 sys.argv = []
             super(CGIFrontEnd, self).run(args)
 
+
     class SCGIFrontEnd(FlupFrontEnd):
         server_types = {'threaded': 'flup.server.scgi',
                         'forking': 'flup.server.scgi_fork'}
+
 
     class AJPFrontEnd(FlupFrontEnd):
         server_types = {'threaded': 'flup.server.ajp',
@@ -145,6 +149,7 @@ if have_flup:
 else:
     class CGIFrontEnd(FrontEnd):
         """ Simple WSGI CGI Adapter for fallback if flup is not installed. """
+
         def __init__(self):
             logging.warning("No flup-package installed, only basic CGI "
                             "support is available.")
@@ -159,6 +164,7 @@ else:
             from MoinMoin.web._fallback_cgi import WSGIServer
             return WSGIServer(application).run()
 
+
     _ERROR = """
 The flup package is not installed on your system. To make use of FCGI,
 SCGI or AJP adapters, you have to install it first. The MoinMoin source
@@ -166,7 +172,11 @@ distribution provides a flup package in the contrib/flup-server
 directory. It is also patched to support non-threaded & non-forking
 behaviour. See contrib/flup-server/NOTES.moin for more information.
 """
+
+
     def SCGIFrontEnd():
         raise FrontEndNotAvailable(_ERROR)
+
+
     def AJPFrontEnd():
         raise FrontEndNotAvailable(_ERROR)

@@ -24,18 +24,17 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-
-
-
-import os, gettext, glob
+import gettext
+import glob
+import os
 from io import BytesIO, StringIO
 
+from MoinMoin import caching
 from MoinMoin import log
+from MoinMoin.i18n import strings
+from MoinMoin.decorator import context_timer
 
 logging = log.getLogger(__name__)
-
-from MoinMoin import caching
-from MoinMoin.i18n import strings
 
 # This is a global for a reason: in persistent environments all languages in
 # use will be cached; Note: you have to restart if you update language data.
@@ -61,6 +60,7 @@ def po_filename(request, language, domain, i18n_dir='i18n'):
     return os.path.join(request.cfg.moinmoin_dir, i18n_dir, "%s.%s.po" % (language, domain))
 
 
+@context_timer("i18n_init")
 def i18n_init(request):
     """ this is called early from request initialization and makes sure we
         have metadata (like what languages are available, direction of language)
@@ -69,7 +69,6 @@ def i18n_init(request):
         but next time it will be fast due to caching.
     """
     global languages
-    request.clock.start('i18n_init')
     if languages is None:
         logging.debug("trying to load translations from cache")
         # the scope of the i18n cache needs to be per-wiki, because some translations
@@ -119,7 +118,6 @@ def i18n_init(request):
                     globals().update(d)
             except caching.CacheError:
                 pass
-    request.clock.stop('i18n_init')
 
 
 def bot_translations(request):
@@ -226,8 +224,8 @@ class Translation:
         text = text.strip()
         return text
 
+    @context_timer("loadLanguage")
     def loadLanguage(self, request, trans_dir="i18n"):
-        request.clock.start('loadLanguage')
         # see comment about per-wiki scope above
         cache = caching.CacheEntry(request, arena='i18n', key=self.language, scope='wiki', use_pickle=True)
         langfilename = po_filename(request, self.language, self.domain, i18n_dir=trans_dir)
@@ -255,7 +253,6 @@ class Translation:
 
         self.formatted = {}
         self.raw = unformatted
-        request.clock.stop('loadLanguage')
 
 
 def getDirection(lang):
