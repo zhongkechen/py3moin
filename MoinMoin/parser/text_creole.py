@@ -60,7 +60,7 @@ class Parser:
         """Create a minimal Parser object with required attributes."""
 
         self.request = request
-        self.form = request.form
+        self.form = request.request.form
         self.raw = raw
         self.rules = MoinRules(wiki_words=True,
                                url_protocols=config.url_schemas)
@@ -106,7 +106,7 @@ class Emitter:
         self.root = root
         self.formatter = formatter
         self.request = request
-        self.form = request.form
+        self.form = request.request.form
         self.macro = macro
         self.rules = rules
 

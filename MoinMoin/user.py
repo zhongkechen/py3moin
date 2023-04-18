@@ -263,7 +263,7 @@ def getUserIdentification(request, username=None):
     if username is None:
         username = request.user.name
 
-    return username or (request.cfg.show_hosts and request.remote_addr) or _("<unknown>")
+    return username or (request.cfg.show_hosts and request.request.remote_addr) or _("<unknown>")
 
 
 def encodePassword(cfg, pwd, salt: bytes = None, scheme=None):
@@ -1238,7 +1238,7 @@ class User:
     def host(self):
         """ Return user host """
         _ = self._request.getText
-        host = self.isCurrentUser() and self._cfg.show_hosts and self._request.remote_addr
+        host = self.isCurrentUser() and self._cfg.show_hosts and self._request.request.remote_addr
         return host or _("<unknown>")
 
     def wikiHomeLink(self):

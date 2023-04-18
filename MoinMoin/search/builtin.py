@@ -14,6 +14,7 @@ import time
 from MoinMoin import log
 from MoinMoin import wikiutil, caching
 from MoinMoin.Page import Page
+from MoinMoin.decorator import context_timer
 from MoinMoin.search.results import getSearchResults
 
 logging = log.getLogger(__name__)

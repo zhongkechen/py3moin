@@ -1,4 +1,3 @@
-
 """
     MoinMoin - some common code for testing
 
@@ -55,6 +54,7 @@ def become_superuser(request):
     if su_name not in request.cfg.superuser:
         request.cfg.superuser.append(su_name)
 
+
 def nuke_user(request, username):
     """ completely delete a user """
     user_dir = request.cfg.user_dir
@@ -63,6 +63,7 @@ def nuke_user(request, username):
     fpath = os.path.join(user_dir, user_id)
     os.remove(fpath)
     user.clearLookupCaches(request)
+
 
 # Creating and destroying test pages --------------------------------
 
@@ -75,21 +76,24 @@ def create_page(request, pagename, content, do_editor_backup=False):
     page.saveText(content, 0)
     return page
 
+
 def append_page(request, pagename, content, do_editor_backup=False):
     """ appends some conetent to an existing page """
     # reads the raw text of the existing page
     raw = Page(request, pagename).get_raw_body()
     # adds the new content to the old
-    content = "%s\n%s\n"% (raw, content)
+    content = "%s\n%s\n" % (raw, content)
     page = PageEditor(request, pagename, do_editor_backup=do_editor_backup)
     page.saveText(content, 0)
     return page
+
 
 def nuke_eventlog(request):
     """ removes event-log file """
     fpath = request.rootpage.getPagePath('event-log', isfile=1)
     if os.path.exists(fpath):
         os.remove(fpath)
+
 
 def nuke_page(request, pagename):
     """ completely delete a page, everything in the pagedir """
@@ -102,10 +106,12 @@ def nuke_page(request, pagename):
     fpath = page.getPagePath(check_create=0)
     shutil.rmtree(fpath, True)
 
+
 def create_random_string_list(length=14, count=10):
     """ creates a list of random strings """
     chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
     return [u"%s" % random_string(length, chars) for counter in range(count)]
+
 
 def make_macro(request, page):
     """ creates the macro """
@@ -115,9 +121,10 @@ def make_macro(request, page):
     p.formatter.page = page
     request.page = page
     request.formatter = p.formatter
-    p.form = request.form
+    p.form = request.request.form
     m = macro.Macro(p)
     return m
+
 
 def nuke_xapian_index(request):
     """ completely delete everything in xapian index dir """

@@ -35,8 +35,8 @@ class TestEncodePassword:
         """ user: encode unicode password """
         cfg = req.cfg
         tests = [
-            ('{PASSLIB}', b'12345', "{PASSLIB}$6$rounds=1001$12345$5srFB66ZCu2JgGwPgdfb1lHRmqkjnKC/RxdsFlWn2WzoQh3btIjH6Ai1LJV9iYLDa9kLP/VQYa4DHLkRnaBw8."),
-            ('{SSHA}', b'12345', "{SSHA}YiwfeVWdVW9luqyVn8t2JivlzmUxMjM0NQ=="),
+            ('{PASSLIB}', '12345', "{PASSLIB}$6$rounds=1001$12345$5srFB66ZCu2JgGwPgdfb1lHRmqkjnKC/RxdsFlWn2WzoQh3btIjH6Ai1LJV9iYLDa9kLP/VQYa4DHLkRnaBw8."),
+            ('{SSHA}', '12345', "{SSHA}YiwfeVWdVW9luqyVn8t2JivlzmUxMjM0NQ=="),
             ]
         for scheme, salt, expected in tests:
             result = user.encodePassword(cfg, u'סיסמה סודית בהחלט', salt=salt, scheme=scheme) # Hebrew

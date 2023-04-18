@@ -365,11 +365,11 @@ def _addLogEntry(request, action, pagename, filename):
 
     # Write to global log
     log = editlog.EditLog(request)
-    log.add(request, t, 99999999, action, pagename, request.remote_addr, fname)
+    log.add(request, t, 99999999, action, pagename, request.request.remote_addr, fname)
 
     # Write to local log
     log = editlog.EditLog(request, rootpagename=pagename)
-    log.add(request, t, 99999999, action, pagename, request.remote_addr, fname)
+    log.add(request, t, 99999999, action, pagename, request.request.remote_addr, fname)
 
 
 def _access_file(pagename, context):
@@ -450,7 +450,7 @@ function checkAll(bx, targets_name) {
         html.append(fmt.bullet_list(1))
         for file in files:
             mt = wikiutil.MimeType(filename=file)
-            fullpath = os.path.join(attach_dir, file).encode(config.charset)
+            fullpath = os.path.join(attach_dir, file)
             st = os.stat(fullpath)
             base, ext = os.path.splitext(file)
             parmdict = {'file': wikiutil.escape(file),
@@ -547,8 +547,8 @@ function checkAll(bx, targets_name) {
 
 def _do_multifile(pagename, request):
     _ = request.getText
-    action = request.form.get('multifile')
-    fnames = request.form.getlist('fn')
+    action = request.request.form.get('multifile')
+    fnames = request.request.form.getlist('fn')
     fails = []
     if action == 'rm':
         if not request.user.may.delete(pagename):
@@ -561,7 +561,7 @@ def _do_multifile(pagename, request):
     if action == 'mv':
         if not request.user.may.delete(pagename):
             return _('You are not allowed to move attachments from this page.')
-        dest_pagename = request.form.get('multi_dest_pagename')
+        dest_pagename = request.request.form.get('multi_dest_pagename')
         if not request.user.may.write(dest_pagename):
             return _('You are not allowed to attach a file to this page.')
         for fn in fnames:
@@ -578,7 +578,7 @@ def _do_multifile(pagename, request):
             msg += " " + _("Failed: %s") % ", ".join(fails)
         return upload_form(pagename, request, msg=msg)
     if action == 'cp':
-        dest_pagename = request.form.get('multi_dest_pagename')
+        dest_pagename = request.request.form.get('multi_dest_pagename')
         if not request.user.may.write(dest_pagename):
             return _('You are not allowed to attach a file to this page.')
         for fn in fnames:
@@ -843,7 +843,7 @@ class ContainerItem:
 def _do_del(pagename, request):
     _ = request.getText
 
-    if not wikiutil.checkTicket(request, request.args.get('ticket', '')):
+    if not wikiutil.checkTicket(request, request.request.args.get('ticket', '')):
         return _('Please use the interactive user interface to use action %(actionname)s!') % {
             'actionname': 'AttachFile.del'}
 
@@ -903,20 +903,20 @@ def move_file(request, pagename, new_pagename, attachment, new_attachment):
 def _do_attachment_move(pagename, request):
     _ = request.getText
 
-    if 'cancel' in request.form:
+    if 'cancel' in request.request.form:
         return _('Move aborted!')
-    if not wikiutil.checkTicket(request, request.form.get('ticket', '')):
+    if not wikiutil.checkTicket(request, request.request.form.get('ticket', '')):
         return _('Please use the interactive user interface to use action %(actionname)s!') % {
             'actionname': 'AttachFile.move'}
     if not request.user.may.delete(pagename):
         return _('You are not allowed to move attachments from this page.')
 
-    if 'newpagename' in request.form:
-        new_pagename = request.form.get('newpagename')
+    if 'newpagename' in request.request.form:
+        new_pagename = request.request.form.get('newpagename')
     else:
         upload_form(pagename, request, msg=_("Move aborted because new page name is empty."))
-    if 'newattachmentname' in request.form:
-        new_attachment = request.form.get('newattachmentname')
+    if 'newattachmentname' in request.request.form:
+        new_attachment = request.request.form.get('newattachmentname')
         if new_attachment != wikiutil.taintfilename(new_attachment):
             upload_form(pagename, request, msg=_("Please use a valid filename for attachment '%(filename)s'.") % {
                 'filename': new_attachment})
@@ -924,7 +924,7 @@ def _do_attachment_move(pagename, request):
     else:
         upload_form(pagename, request, msg=_("Move aborted because new attachment name is empty."))
 
-    attachment = request.form.get('oldattachmentname')
+    attachment = request.request.form.get('oldattachmentname')
     if attachment != wikiutil.taintfilename(attachment):
         upload_form(pagename, request, msg=_("Please use a valid filename for attachment '%(filename)s'.") % {
             'filename': attachment})
@@ -943,7 +943,7 @@ def _do_move(pagename, request):
 
     # move file
     d = {'action': action_name,
-         'url': request.href(pagename),
+         'url': request.request.href(pagename),
          'do': 'attachment_move',
          'ticket': wikiutil.createTicket(request),
          'pagename': wikiutil.escape(pagename, 1),
@@ -1039,7 +1039,7 @@ def _do_get(pagename, context):
         context.status_code = 404
         return  # error msg already sent in _access_file
 
-    timestamp = datetime.datetime.utcfromtimestamp(os.path.getmtime(fpath))
+    timestamp = datetime.datetime.utcfromtimestamp(os.path.getmtime(fpath)).replace(tzinfo=datetime.UTC)
     if_modified = context.request.if_modified_since
     if if_modified and if_modified >= timestamp:
         context.response.status_code = 304
@@ -1064,7 +1064,7 @@ def _do_get(pagename, context):
         context.response.headers['Last-Modified'] = http_date(timestamp)
         context.response.headers['Expires'] = http_date(now - 365 * 24 * 3600)
         context.response.headers['Content-Length'] = os.path.getsize(fpath)
-        content_dispo_string = '%s; filename="%s"' % (content_dispo, filename_enc)
+        content_dispo_string = '%s; filename="%s"' % (content_dispo, filename)
         context.response.headers['Content-Disposition'] = content_dispo_string
 
         # send data

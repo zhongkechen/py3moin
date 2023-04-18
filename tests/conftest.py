@@ -21,20 +21,21 @@ use a Config class to define the required configuration within the test class.
 """
 
 import atexit
-import sys
 import os.path
+import sys
 
 import pytest
+from werkzeug.test import Client
 
 from MoinMoin.web.contexts import AllContext
+from MoinMoin.web.request import TestRequest
+from MoinMoin.wsgiapp import Application
+from tests._tests import maketestwiki, wikiconfig
 
 rootdir = os.path.abspath(os.path.dirname(__file__))
 moindir = rootdir.join("..")
 sys.path.insert(0, str(moindir))
 
-from MoinMoin.web.request import TestRequest, Client
-from MoinMoin.wsgiapp import Application
-from tests._tests import maketestwiki, wikiconfig
 
 coverage_modules = set()
 
