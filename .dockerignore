@@ -1,0 +1,5 @@
+mywiki/
+mywiki.tar.gz
+dist/
+wiki/
+.pytest_cache

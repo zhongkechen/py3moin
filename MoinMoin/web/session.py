@@ -118,7 +118,7 @@ def get_cookie_name(context, name, usage, software='MOIN'):
         ]
         name = '_'.join(url_components)
 
-    elif name is 'siteidmagic':
+    elif name == 'siteidmagic':
         name = context.cfg.siteid  # == config name, unique per farm
 
     return "%s_%s_%s" % (software, usage, name)
