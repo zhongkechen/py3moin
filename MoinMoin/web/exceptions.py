@@ -30,7 +30,7 @@ class SurgeProtection(exceptions.ServiceUnavailable):
         exceptions.ServiceUnavailable.__init__(self, description)
         self.retry_after = retry_after
 
-    def get_headers(self, environ):
+    def get_headers(self, environ, scope):
         headers = exceptions.ServiceUnavailable.get_headers(self, environ)
         headers.append(('Retry-After', '%d' % self.retry_after))
         return headers

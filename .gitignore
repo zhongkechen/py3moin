@@ -26,4 +26,4 @@ dist
 .python-version
 mywiki*
 docker-compose.yml
-
+poetry.lock
