@@ -78,7 +78,7 @@ class Navigation:
 
         self.pagename = self.macro.formatter.page.page_name
         self.print_mode = self.macro.request.action == 'print'
-        self.media = self.macro.request.values.get('media')
+        self.media = self.macro.request.request.values.get('media')
         self.querystr = self.print_mode and self.PROJECTION or {}
 
     def dispatch(self):
