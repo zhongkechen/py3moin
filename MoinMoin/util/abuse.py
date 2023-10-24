@@ -35,5 +35,5 @@ def log_attempt(system, success, context=None, username=None, pagename=None):
     level = (logging.WARNING, logging.INFO)[success]
     msg = """: %s: status %s: username "%s": ip %s: page %s"""
     status = ("failure", "success")[success]
-    ip = context and context.request.remote_addr or 'unknown'
+    ip = context.remote_addr if context and hasattr(context, 'remote_addr') else 'unknown'
     logger.log(level, msg, system, status, username, ip, pagename)
