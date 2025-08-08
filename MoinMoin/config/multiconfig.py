@@ -656,8 +656,10 @@ also the spelling of the directory name.
                 # If the module is not loaded, try to load it
                 if modname not in sys.modules:
                     # Find module on disk and try to load - slow!
-                    abspath = os.path.abspath(pdir)
+                    abspath = os.path.abspath(pdir) + ".py"
                     spec = importlib.util.spec_from_file_location(modname, abspath)
+                    if spec is None:
+                        raise ImportError
                     # Load the module and set in sys.modules
                     module = importlib.util.module_from_spec(spec)
                     setattr(sys.modules[self.siteid], 'csum', module)
