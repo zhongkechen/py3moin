@@ -225,24 +225,30 @@ def execute(pagename, request):
             Column('rev', label='#', align='right'),
             Column('mtime', label=_('Date'), align='right'),
             Column('size', label=_('Size'), align='right'),
-            Column('diff', label='<input type="submit" value="%s">' % (_("Diff"))),
+            # both column headers submit the one form around the table, the
+            # pressed button decides which action the form runs
+            Column('diff', label='<button type="submit" name="action" value="diff">%s</button>' % (_("Diff"))),
             Column('editor', label=_('Editor'), hidden=not request.cfg.show_names),
             Column('comment', label=_('Comment')),
-            Column('action', label=_('Action')),
+            Column('action', label='<button type="submit" name="action" value="info">%s</button>' % (_("Do"))),
             ]
 
         # generate history list
 
-        def render_action(text, query, **kw):
-            kw.update(dict(rel='nofollow'))
-            return page.link_to(request, text, querystr=query, **kw)
+        # The actions of a row used to be links, which gave a crawler one url
+        # per revision and per attachment, each of them rendering a complete
+        # page. They are radio buttons of a single group now: picking one and
+        # pressing the button in the column header runs it, and crawlers do not
+        # submit forms. See the rowaction handling in execute() below.
+        def render_action(text, value):
+            return '<input type="radio" name="rowaction" value="%s">%s' % (
+                wikiutil.escape(value, True), wikiutil.escape(text))
 
-        def render_file_action(text, pagename, filename, request, do):
-            url = AttachFile.getAttachUrl(pagename, filename, request, do=do)
-            if url:
-                f = request.formatter
-                link = f.url(1, url) + f.text(text) + f.url(0)
-                return link
+        def render_file_action(text, filename, do):
+            # do not offer what this file has no handler for (as before: the
+            # link was left out when getAttachUrl() had nothing to point to)
+            if AttachFile.get_action(request, filename, do):
+                return render_action(text, u'AttachFile:%s:%s' % (do, filename))
 
         may_write = request.user.may.write(pagename)
         may_delete = request.user.may.delete(pagename)
@@ -259,7 +265,7 @@ def execute(pagename, request):
             actions = []
             if line.action in ('SAVE', 'SAVENEW', 'SAVE/REVERT', 'SAVE/RENAME', ):
                 size = page.size(rev=rev)
-                actions.append(render_action(_('view'), {'action': 'recall', 'rev': '%d' % rev}))
+                actions.append(render_action(_('view'), u'recall:%d' % rev))
                 if pgactioncount == 0:
                     rchecked = ' checked="checked"'
                     lchecked = ''
@@ -291,12 +297,12 @@ def execute(pagename, request):
                 comment = "%s: %s %s" % (line.action, filename, line.comment)
                 if AttachFile.exists(request, pagename, filename):
                     size = AttachFile.size(request, pagename, filename)
-                    actions.append(render_file_action(_('view'), pagename, filename, request, do='view'))
-                    actions.append(render_file_action(_('get'), pagename, filename, request, do='get'))
+                    actions.append(render_file_action(_('view'), filename, 'view'))
+                    actions.append(render_file_action(_('get'), filename, 'get'))
                     if may_delete:
-                        actions.append(render_file_action(_('del'), pagename, filename, request, do='del'))
+                        actions.append(render_file_action(_('del'), filename, 'del'))
                     if may_write:
-                        actions.append(render_file_action(_('edit'), pagename, filename, request, do='modify'))
+                        actions.append(render_file_action(_('edit'), filename, 'modify'))
                 else:
                     size = 0
 
@@ -325,7 +331,6 @@ def execute(pagename, request):
         history_table.setData(history)
 
         div = html.DIV(id="page-history")
-        div.append(html.INPUT(type="hidden", name="action", value="diff"))
         div.append(history_table.render(method="GET"))
 
         form = html.FORM(method="GET", action="")
@@ -348,6 +353,26 @@ def execute(pagename, request):
     # main function
     _ = request.getText
     page = Page(request, pagename)
+
+    # A row action was selected in the history and the form was submitted (see
+    # render_action() above): send the browser to the action it stands for.
+    # The url is built here from a fixed set of actions, the submitted value
+    # only selects one of them and gives its target, so this can not be used to
+    # send anybody somewhere else. The actions check their own permissions, as
+    # they did when these were links.
+    rowaction = request.values.get('rowaction', u'')
+    if rowaction:
+        what = rowaction.split(u':', 2)
+        url = None
+        if len(what) == 2 and what[0] == u'recall' and what[1].isdigit():
+            url = page.url(request, querystr={'action': 'recall', 'rev': str(int(what[1]))})
+        elif len(what) == 3 and what[0] == u'AttachFile' and what[1] in ('view', 'get', 'del', 'modify'):
+            # getAttachUrl() creates the ticket the destructive ones need
+            url = AttachFile.getAttachUrl(pagename, what[2], request, do=what[1])
+        if url:
+            request.http_redirect(url)
+            return
+
     title = page.split_title()
 
     request.setContentLanguage(request.lang)
