@@ -103,78 +103,41 @@ def execute(pagename, request):
                 offset = 0
             offset = max(min(offset, log_size - 1), 0)
 
+            # The Newer / Older buttons say which way to move, the offset they
+            # move from comes from the form they are in (see paging_nav_html
+            # below). Moving is done here so that everything after this - the
+            # "showing entries from ... to ..." line, the buttons and the rows
+            # of the listing - sees the offset that is actually shown.
+            offsetmove = request.values.get('offsetmove', u'')
+            if offsetmove == u'newer':
+                offset = ((offset - 1) / max_count) * max_count
+            elif offsetmove == u'older':
+                offset = ((offset + max_count) / max_count) * max_count
+            offset = max(min(offset, log_size - 1), 0)
+
             paging_info_html += f.paragraph(1, css_class="searchstats info-paging-info") + _("Showing page edit history entries from '''%(start_offset)d''' to '''%(end_offset)d''' out of '''%(total_count)d''' entries total.", wiki=True) % {
                 'start_offset': log_size - min(log_size, offset + max_count) + 1,
                 'end_offset': log_size - offset,
                 'total_count': log_size,
             } + f.paragraph(0)
 
-            # generating offset navigating links
+            # generating offset navigation
             if max_count < log_size or offset != 0:
-                offset_links = []
-                cur_offset = max_count
-                near_count = 5 # request.cfg.pagination_size
+                # This used to be a row of links: "Newer", "Older", the first
+                # and the last page of the log and the numbered pages around
+                # the current one. That is an url per page of the listing, and
+                # crawlers walked all of them. Two buttons reach the same
+                # places, one page at a time - they only say which way to go,
+                # the offset they move from is in the form around them.
+                def offset_button(direction, caption, enabled):
+                    return '<button type="submit" name="offsetmove" value="%s"%s>%s</button> ' % (
+                        direction,
+                        not enabled and ' disabled="disabled"' or '',
+                        wikiutil.escape(caption))
 
-                min_offset = max(0, (offset + max_count - 1) / max_count - near_count)
-                max_offset = min((log_size - 1) / max_count, offset / max_count + near_count)
-                offset_added = False
-
-                def add_offset_link(offset, caption=None):
-                    offset_links.append(f.table_cell(1, css_class="info-offset-item") +
-                        page.link_to(request, on=1, querystr={
-                            'action': 'info',
-                            'offset': str(offset),
-                            'max_count': str(max_count),
-                            }, css_class="info-offset-nav-link", rel="nofollow") + f.text(caption or str(log_size - offset)) + page.link_to(request, on=0) +
-                        f.table_cell(0)
-                    )
-
-                # link to previous page - only if not at start
-                if offset > 0:
-                    add_offset_link(((offset - 1) / max_count) * max_count, _("Newer"))
-
-                # link to beggining of event log - if min_offset is not minimal
-                if min_offset > 0:
-                    add_offset_link(0)
-                    # adding gap only if min_offset not explicitly following beginning
-                    if min_offset > 1:
-                        offset_links.append(f.table_cell(1, css_class="info-offset-gap") + f.text(u'\u2026') + f.table_cell(0))
-
-                # generating near pages links
-                for cur_offset in range(min_offset, max_offset + 1):
-                    # note that current offset may be not multiple of max_count,
-                    # so we check whether we should add current offset marker like this
-                    if not offset_added and offset <= cur_offset * max_count:
-                        # current info history view offset
-                        offset_links.append(f.table_cell(1, css_class="info-offset-item info-cur-offset") + f.text(str(log_size - offset)) + f.table_cell(0))
-                        offset_added = True
-
-                    # add link, if not at this offset
-                    if offset != cur_offset * max_count:
-                        add_offset_link(cur_offset * max_count)
-
-                # link to the last page of event log
-                if max_offset < (log_size - 1) / max_count:
-                    if max_offset < (log_size - 1) / max_count - 1:
-                        offset_links.append(f.table_cell(1, css_class="info-offset-gap") + f.text(u'\u2026') + f.table_cell(0))
-                    add_offset_link(((log_size - 1) / max_count) * max_count)
-
-                # special case - if offset is greater than max_offset * max_count
-                if offset > max_offset * max_count:
-                    offset_links.append(f.table_cell(1, css_class="info-offset-item info-cur-offset") + f.text(str(log_size - offset)) + f.table_cell(0))
-
-                # link to next page
-                if offset < (log_size - max_count):
-                    add_offset_link(((offset + max_count) / max_count) * max_count, _("Older"))
-
-                # generating html
-                paging_nav_html += "".join([
-                    f.table(1, css_class="searchpages"),
-                    f.table_row(1),
-                    "".join(offset_links),
-                    f.table_row(0),
-                    f.table(0),
-                ])
+                paging_nav_html += (
+                    offset_button('newer', _("Newer"), offset > 0) +
+                    offset_button('older', _("Older"), offset < (log_size - max_count)))
 
         # generating max_count switcher
         # we do it only in case history_count has additional values
@@ -196,20 +159,18 @@ def execute(pagename, request):
                     max_count_html.append('<option value="%d">%d</option>' % (count, count))
 
             # This used to be one link per possible count, which gave a crawler
-            # an url per (offset, count) combination. It is a select of the form
-            # around the history table now - the same select-and-press-Do that
-            # the theme uses for its actions menu - so it costs nothing until
-            # somebody actually uses it. The offset has to be carried along, as
-            # it was by those links.
+            # an url per (offset, count) combination. It is a select of the
+            # paging form now - the same select-and-press-Do that the theme
+            # uses for its actions menu - so it costs nothing until somebody
+            # actually uses it. That form carries the action and the offset,
+            # so this button needs no name of its own.
             count_select_html += "".join([
                 f.span(1, css_class="info-count-selector"),
                     f.text(" ("),
                     f.text(_("%s items per page")) % (
-                        '<input type="hidden" name="offset" value="%d">'
                         '<select name="max_count" class="info-count-select">%s</select>'
-                        % (offset, "".join(max_count_html))),
-                    f.rawHTML(' <button type="submit" name="action" value="info">%s</button>'
-                              % wikiutil.escape(_("Do"))),
+                        % "".join(max_count_html)),
+                    f.rawHTML(' <button type="submit">%s</button>' % wikiutil.escape(_("Do"))),
                     f.text(")"),
                 f.span(0),
             ])
@@ -330,22 +291,41 @@ def execute(pagename, request):
         div = html.DIV(id="page-history")
         div.append(history_table.render(method="GET"))
 
-        form = html.FORM(method="GET", action="")
-        if paging:
-            form.append(f.div(1, css_class="info-paging-info") + paging_info_html + count_select_html + f.div(0))
-            form.append("".join([
-                f.div(1, css_class="info-paging-nav info-paging-nav-top"),
-                paging_nav_html,
+        # The paging controls are a form of their own, next to (not inside) the
+        # one around the history table: that one can not have a fixed action,
+        # its buttons each bring their own, while these all mean action=info.
+        # So a hidden input can carry it here, which leaves the buttons free to
+        # say what they do - pick a count, or move a page.
+        def paging_form(css_class, content, hidden_max_count=False):
+            return "".join([
+                '<form method="GET" action="">',
+                f.div(1, css_class=css_class),
+                '<input type="hidden" name="action" value="info">',
+                '<input type="hidden" name="offset" value="%d">' % offset,
+                hidden_max_count and '<input type="hidden" name="max_count" value="%d">' % max_count or '',
+                content,
                 f.div(0),
-            ]))
-        form.append(div)
+                '</form>',
+            ])
+
         if paging:
-            form.append("".join([
-                f.div(1, css_class="info-paging-nav info-paging-nav-bottom"),
-                paging_nav_html,
-                f.div(0)
-            ]))
-        request.write(unicode(form))
+            request.write(paging_form("info-paging-info",
+                                      paging_info_html + count_select_html + paging_nav_html))
+
+        # The table brings its own form - that is what render(method="GET")
+        # does - and the radio buttons and the two column header buttons are
+        # inside it. There used to be another form around it here, holding the
+        # hidden action=diff; now that those buttons carry their action
+        # themselves, that outer form would only be a form nested in a form,
+        # which is not allowed and which browsers resolve by dropping the
+        # inner start tag, so that the inner </form> ends the outer one.
+        request.write(unicode(div))
+
+        if paging:
+            # down here the count select is out of reach, so the count the
+            # buttons move within has to be carried along
+            request.write(paging_form("info-paging-nav info-paging-nav-bottom",
+                                      paging_nav_html, hidden_max_count=True))
 
     # main function
     _ = request.getText
