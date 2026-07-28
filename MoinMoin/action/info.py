@@ -310,7 +310,7 @@ def execute(pagename, request):
 
         if paging:
             request.write(paging_form("info-paging-info",
-                                      paging_info_html + count_select_html + paging_nav_html))
+                                      paging_info_html + count_select_html))
 
         # The table brings its own form - that is what render(method="GET")
         # does - and the radio buttons and the two column header buttons are
