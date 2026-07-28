@@ -184,35 +184,32 @@ def execute(pagename, request):
             max_count_html = []
             cur_count_added = False
 
-
             for count in max_count_possibilities:
                 # max count value can be not in list of predefined values
                 if max_count <= count and not cur_count_added:
-                    max_count_html.append("".join([
-                        f.span(1, css_class="info-count-item info-cur-count"),
-                        f.text(str(max_count)),
-                        f.span(0),
-                    ]))
+                    max_count_html.append('<option value="%d" selected="selected">%d</option>'
+                                          % (max_count, max_count))
                     cur_count_added = True
 
                 # checking for limit_max_count to prevent showing unavailable options
                 if max_count != count and count <= limit_max_count:
-                    max_count_html.append("".join([
-                        f.span(1, css_class="info-count-item"),
-                        page.link_to(request, on=1, querystr={
-                            'action': 'info',
-                            'offset': str(offset),
-                            'max_count': str(count),
-                            }, css_class="info-count-link", rel="nofollow"),
-                        f.text(str(count)),
-                        page.link_to(request, on=0),
-                        f.span(0),
-                    ]))
+                    max_count_html.append('<option value="%d">%d</option>' % (count, count))
 
+            # This used to be one link per possible count, which gave a crawler
+            # an url per (offset, count) combination. It is a select of the form
+            # around the history table now - the same select-and-press-Do that
+            # the theme uses for its actions menu - so it costs nothing until
+            # somebody actually uses it. The offset has to be carried along, as
+            # it was by those links.
             count_select_html += "".join([
                 f.span(1, css_class="info-count-selector"),
                     f.text(" ("),
-                    f.text(_("%s items per page")) % (f.span(1, css_class="info-count-selector info-count-selector-divider") + f.text(" | ") + f.span(0)).join(max_count_html),
+                    f.text(_("%s items per page")) % (
+                        '<input type="hidden" name="offset" value="%d">'
+                        '<select name="max_count" class="info-count-select">%s</select>'
+                        % (offset, "".join(max_count_html))),
+                    f.rawHTML(' <button type="submit" name="action" value="info">%s</button>'
+                              % wikiutil.escape(_("Do"))),
                     f.text(")"),
                 f.span(0),
             ])
