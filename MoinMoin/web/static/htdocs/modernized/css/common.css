@@ -450,7 +450,7 @@ p.searchhint {
 /* MonthCalendar css */
 
 /* days without and with pages linked to them */
-a.cal-emptyday {
+a.cal-emptyday, span.cal-emptyday {
     color: #777777;
     text-align: center;
 }

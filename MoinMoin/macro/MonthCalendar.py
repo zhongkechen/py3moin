@@ -93,6 +93,10 @@
         * limited the range the prev/next navigation can reach, see
           MAX_NAV_OFFSET below. Without such a limit, the navigation offers an
           infinite amount of distinct urls and crawlers walk them endlessly.
+    * 2.5:
+        * days without a page are only linked if the user may create that page.
+          Anonymous visitors (and thus the crawlers) used to get a link per day
+          leading to a "page does not exist" view.
 
     Usage:
         <<MonthCalendar(BasePage,year,month,monthoffset,monthoffset2,height6,anniversary,template)>>
@@ -369,6 +373,11 @@ def execute(macro, text):
             monthcal = monthcal + [[0, 0, 0, 0, 0, 0, 0]]
 
     maketip_js = []
+    # May the user create the day pages of this calendar? A page that does not
+    # exist can not carry an acl of its own, so the answer is the same for every
+    # nonexisting day page here and we only compute it for the first one.
+    # None means "not asked yet".
+    may_create = None
     restrn = []
     for week in monthcal:
         restdn = []
@@ -383,7 +392,9 @@ def execute(macro, text):
                 else:
                     link = "%s/%4d-%02d-%02d" % (page, year, month, day)
                 daypage = Page(request, link)
-                if daypage.exists() and request.user.may.read(link):
+                dayexists = daypage.exists()
+                if dayexists and request.user.may.read(link):
+                    linkday = True
                     csslink = "cal-usedday"
                     query = {}
                     r, g, b, u = (255, 0, 0, 1)
@@ -404,6 +415,19 @@ def execute(macro, text):
                     attrs = {'onMouseOver': "tip('%s')" % tipname_unescaped,
                              'onMouseOut': "untip()"}
                 else:
+                    # nothing to show here yet - only link the day if the user
+                    # could actually create that page. For anonymous visitors
+                    # (and that is what the crawlers are) this usually is not
+                    # the case and we save them a page view each that would
+                    # have rendered a "this page does not exist" view.
+                    if dayexists:
+                        # exists, but is not readable by this user: such a page
+                        # can carry an acl of its own, so we have to ask for it
+                        linkday = request.user.may.write(link)
+                    else:
+                        if may_create is None:
+                            may_create = request.user.may.write(link)
+                        linkday = may_create
                     csslink = "cal-emptyday"
                     if parmtemplate:
                         query = {'action': 'edit', 'template': parmtemplate}
@@ -424,7 +448,12 @@ def execute(macro, text):
                             r, g, b = (r, g+colorstep, b)
                 r, g, b = cliprgb(r, g, b)
                 style = 'background-color:#%02x%02x%02x' % (r, g, b)
-                fmtlink = formatter.url(1, daypage.url(request, query), csslink, **attrs) + str(day) + formatter.url(0)
+                if linkday:
+                    fmtlink = formatter.url(1, daypage.url(request, query), csslink, **attrs) + str(day) + formatter.url(0)
+                else:
+                    # same class as the link would have had, so the themes can
+                    # keep styling the day the same way
+                    fmtlink = '<span class="%s">%d</span>' % (csslink, day)
                 if day == currentday and month == currentmonth and year == currentyear:
                     cssday = "cal-today"
                     fmtlink = "<b>%s</b>" % fmtlink # for browser with CSS probs
