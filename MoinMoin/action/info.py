@@ -268,9 +268,14 @@ def execute(pagename, request):
                     rchecked = ''
                 else:
                     lchecked = rchecked = ''
+                # Note: there used to be a "to previous" diff link per row here.
+                # Those links were the diff urls a crawler picked up from this
+                # page - one per revision, each of them rendering two revisions
+                # and (for fancy diffs) the whole page below the diff. The radio
+                # buttons in this same column do that and more, they compare any
+                # two of the listed revisions, and being a GET form they are not
+                # followed by crawlers.
                 diff = '<input type="radio" name="rev1" value="%d"%s><input type="radio" name="rev2" value="%d"%s>' % (rev, lchecked, rev, rchecked)
-                if rev > 1:
-                    diff += render_action(' ' + _('to previous'), {'action': 'diff', 'rev1': rev-1, 'rev2': rev})
                 comment = line.comment
                 if not comment:
                     if '/REVERT' in line.action:
