@@ -97,6 +97,9 @@
         * days without a page are only linked if the user may create that page.
           Anonymous visitors (and thus the crawlers) used to get a link per day
           leading to a "page does not exist" view.
+    * 2.6:
+        * the prev/next navigation links always are rel=nofollow now, not just
+          for years other than the current one.
 
     Usage:
         <<MonthCalendar(BasePage,year,month,monthoffset,monthoffset2,height6,anniversary,template)>>
@@ -280,10 +283,11 @@ def execute(macro, text):
 
     if request.isSpiderAgent and abs(currentyear - year) > 1:
         return '' # this is a bot and it didn't follow the rules (see below)
-    if currentyear == year:
-        navattrs = {}
-    else:
-        navattrs = {'rel': 'nofollow' } # otherwise even well-behaved bots will index forever
+    # The navigation is never worth indexing: it shows the same day pages the
+    # calendar already links, just arranged by month. Used to be done only for
+    # years other than the current one, but there is nothing to gain from
+    # letting bots crawl the current year's navigation either.
+    navattrs = {'rel': 'nofollow'}
 
     # get the calendar
     monthcal = calendar.monthcalendar(year, month)
