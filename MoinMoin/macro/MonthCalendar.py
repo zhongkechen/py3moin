@@ -100,6 +100,12 @@
     * 2.6:
         * the prev/next navigation links always are rel=nofollow now, not just
           for years other than the current one.
+    * 2.7:
+        * bots (see cfg.ua_spiders) get no navigation links at all and their
+          calparms are ignored, so there is exactly one calendar url per page
+          for them. Replaces the old "return nothing if the bot navigated more
+          than a year away" handling, which also hid calendars an author had
+          deliberately pointed at a far away year.
 
     Usage:
         <<MonthCalendar(BasePage,year,month,monthoffset,monthoffset2,height6,anniversary,template)>>
@@ -242,8 +248,12 @@ def execute(macro, text):
 
     currentyear, currentmonth, currentday, h, m, s, wd, yd, ds = request.user.getTime(time.time())
     thispage = formatter.page.page_name
+    # A bot gets the calendar as the macro was configured, never a navigated
+    # one, and it gets no navigation links at all (see navigation() below).
+    # That way there is exactly one calendar url per page for it to fetch.
+    is_spider = request.isSpiderAgent
     # does the url have calendar params (= somebody has clicked on prev/next links in calendar) ?
-    if 'calparms' in macro.request.args:
+    if 'calparms' in macro.request.args and not is_spider:
         has_calparms = 1 # yes!
         text2 = macro.request.args['calparms']
         cparmpagename, cparmyear, cparmmonth, cparmoffset, cparmoffset2, cparmheight6, cparmanniversary, cparmtemplate = \
@@ -281,8 +291,6 @@ def execute(macro, text):
         parmoffset2 = clampoffset(parmoffset2, max_nav_offset)
         year, month = yearmonthplusoffset(parmyear, parmmonth, parmoffset)
 
-    if request.isSpiderAgent and abs(currentyear - year) > 1:
-        return '' # this is a bot and it didn't follow the rules (see below)
     # The navigation is never worth indexing: it shows the same day pages the
     # calendar already links, just arranged by month. Used to be done only for
     # years other than the current one, but there is nothing to gain from
@@ -310,8 +318,8 @@ def execute(macro, text):
 
     def navigation(offset, label):
         """ a navigation link moving the calendar to navigation offset <offset>,
-            or just <label> if that offset is out of the allowed range """
-        if abs(offset) > max_nav_offset:
+            or just <label> for a bot or if that offset is out of range """
+        if is_spider or abs(offset) > max_nav_offset:
             return label
         url = p.url(request, querystr % (qpagenames, offset, qtemplate))
         return formatter.url(1, url, 'cal-link', **navattrs) + label + formatter.url(0)
