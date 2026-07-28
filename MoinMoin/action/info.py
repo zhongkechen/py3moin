@@ -379,19 +379,29 @@ def execute(pagename, request):
     f = request.formatter
 
     request.theme.send_title(_('Info for "%s"') % (title, ), page=page)
+    # (label, name of the parameter that selects this view - the revision
+    # history is what info shows when neither of the others is asked for)
     menu_items = [
-        (_('Show "%(title)s"') % {'title': _('Revision History')},
-         {'action': 'info'}),
-        (_('Show "%(title)s"') % {'title': _('General Page Infos')},
-         {'action': 'info', 'general': '1'}),
-        (_('Show "%(title)s"') % {'title': _('Page hits and edits')},
-         {'action': 'info', 'hitcounts': '1'}),
+        (_('Show "%(title)s"') % {'title': _('Revision History')}, None),
+        (_('Show "%(title)s"') % {'title': _('General Page Infos')}, 'general'),
+        (_('Show "%(title)s"') % {'title': _('Page hits and edits')}, 'hitcounts'),
     ]
     request.write(f.div(1, id="content")) # start content div
-    request.write(f.paragraph(1))
-    for text, querystr in menu_items:
-        request.write("[%s] " % page.link_to(request, text=text, querystr=querystr, rel='nofollow'))
-    request.write(f.paragraph(0))
+    # These used to be links, giving a crawler three urls on every page of the
+    # wiki - and the first of them leads on to the whole page history. A GET
+    # form shows the same three views to a reader, and crawlers do not submit
+    # forms. The button that shows the history needs no name of its own, it
+    # just leaves general and hitcounts unset.
+    request.write(f.rawHTML('<form method="GET" action="%s"><div>'
+                            '<input type="hidden" name="action" value="info">'
+                            % wikiutil.escape(page.url(request), True)))
+    for text, name in menu_items:
+        if name:
+            button = '<button type="submit" name="%s" value="1">%s</button> ' % (name, wikiutil.escape(text))
+        else:
+            button = '<button type="submit">%s</button> ' % wikiutil.escape(text)
+        request.write(f.rawHTML(button))
+    request.write(f.rawHTML('</div></form>'))
 
     show_hitcounts = int(request.values.get('hitcounts', 0)) != 0
     show_general = int(request.values.get('general', 0)) != 0
