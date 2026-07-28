@@ -89,6 +89,10 @@
         * added template argument for specifying an edit template for new pages
     * 2.3:
         * adapted to moin 1.7 new macro parameter parsing
+    * 2.4:
+        * limited the range the prev/next navigation can reach, see
+          MAX_NAV_OFFSET below. Without such a limit, the navigation offers an
+          infinite amount of distinct urls and crawlers walk them endlessly.
 
     Usage:
         <<MonthCalendar(BasePage,year,month,monthoffset,monthoffset2,height6,anniversary,template)>>
@@ -161,6 +165,15 @@ from MoinMoin.Page import Page
 # XXX change here ----------------vvvvvv
 calendar.setfirstweekday(calendar.MONDAY)
 
+# How many months the prev/next navigation may move away from the month the
+# macro was configured to show. Beyond that limit the arrows are rendered as
+# plain text instead of links, and an offset given in the url is clamped.
+# This is what keeps the amount of urls this macro generates finite: crawlers
+# ignore rel=nofollow and robots meta tags, but they can not follow a link
+# that is not there.
+# May be overridden in the wiki config as monthcalendar_max_nav_offset.
+MAX_NAV_OFFSET = 18 # 1.5 years
+
 def cliprgb(r, g, b):
     """ clip r,g,b values into range 0..254 """
     def clip(x):
@@ -203,6 +216,14 @@ def parseargs(request, args, defpagename, defyear, defmonth, defoffset, defoffse
 
     return parmpagename, parmyear, parmmonth, parmoffset, parmoffset2, parmheight6, parmanniversary, parmtemplate
 
+def clampoffset(offset, maxoffset):
+    """ clip a navigation offset into range -maxoffset..maxoffset """
+    if offset < -maxoffset:
+        return -maxoffset
+    elif offset > maxoffset:
+        return maxoffset
+    return offset
+
 def execute(macro, text):
     request = macro.request
     formatter = macro.formatter
@@ -236,20 +257,29 @@ def execute(macro, text):
     # calendars on the same page)?
     #if has_calparms and (cparmpagename,cparmyear,cparmmonth,cparmoffset) == (parmpagename,parmyear,parmmonth,parmoffset):
 
+    max_nav_offset = getattr(request.cfg, 'monthcalendar_max_nav_offset', MAX_NAV_OFFSET)
+
     # move all calendars when using the navigation:
     if has_calparms and cparmpagename == parmpagename:
-        year, month = yearmonthplusoffset(parmyear, parmmonth, parmoffset + cparmoffset2)
-        parmoffset2 = cparmoffset2
+        # this offset comes from the url query string, so it is controlled by
+        # whoever requests the page - crawlers included. Clamping it (and the
+        # navigation links built from it below) keeps the amount of distinct
+        # urls of this calendar finite.
+        parmoffset2 = clampoffset(cparmoffset2, max_nav_offset)
+        year, month = yearmonthplusoffset(parmyear, parmmonth, parmoffset + parmoffset2)
         parmtemplate = cparmtemplate
     else:
+        # note: parmoffset2 given as macro argument does not move the displayed
+        # month, it only is the starting point of the navigation.
+        parmoffset2 = clampoffset(parmoffset2, max_nav_offset)
         year, month = yearmonthplusoffset(parmyear, parmmonth, parmoffset)
 
     if request.isSpiderAgent and abs(currentyear - year) > 1:
         return '' # this is a bot and it didn't follow the rules (see below)
     if currentyear == year:
-        attrs = {}
+        navattrs = {}
     else:
-        attrs = {'rel': 'nofollow' } # otherwise even well-behaved bots will index forever
+        navattrs = {'rel': 'nofollow' } # otherwise even well-behaved bots will index forever
 
     # get the calendar
     monthcal = calendar.monthcalendar(year, month)
@@ -269,15 +299,19 @@ def execute(macro, text):
     qpagenames = '*'.join([wikiutil.quoteWikinameURL(pn) for pn in parmpagename])
     qtemplate = wikiutil.quoteWikinameURL(parmtemplate)
     querystr = "calparms=%%s,%d,%d,%d,%%d,,,%%s" % (parmyear, parmmonth, parmoffset)
-    prevlink = p.url(request, querystr % (qpagenames, parmoffset2 - 1, qtemplate))
-    nextlink = p.url(request, querystr % (qpagenames, parmoffset2 + 1, qtemplate))
-    prevylink = p.url(request, querystr % (qpagenames, parmoffset2 - 12, qtemplate))
-    nextylink = p.url(request, querystr % (qpagenames, parmoffset2 + 12, qtemplate))
 
-    prevmonth = formatter.url(1, prevlink, 'cal-link', **attrs) + '&lt;' + formatter.url(0)
-    nextmonth = formatter.url(1, nextlink, 'cal-link', **attrs) + '&gt;' + formatter.url(0)
-    prevyear = formatter.url(1, prevylink, 'cal-link', **attrs) + '&lt;&lt;' + formatter.url(0)
-    nextyear = formatter.url(1, nextylink, 'cal-link', **attrs) + '&gt;&gt;' + formatter.url(0)
+    def navigation(offset, label):
+        """ a navigation link moving the calendar to navigation offset <offset>,
+            or just <label> if that offset is out of the allowed range """
+        if abs(offset) > max_nav_offset:
+            return label
+        url = p.url(request, querystr % (qpagenames, offset, qtemplate))
+        return formatter.url(1, url, 'cal-link', **navattrs) + label + formatter.url(0)
+
+    prevmonth = navigation(parmoffset2 - 1, '&lt;')
+    nextmonth = navigation(parmoffset2 + 1, '&gt;')
+    prevyear = navigation(parmoffset2 - 12, '&lt;&lt;')
+    nextyear = navigation(parmoffset2 + 12, '&gt;&gt;')
 
     if parmpagename != [thispage]:
         pagelinks = ''
