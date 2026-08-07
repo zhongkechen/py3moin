@@ -7,7 +7,18 @@
 """
 
 
+import os
+import sys
+
 import pytest
+
+
+def test_plugin_package_is_registered(req):
+    module_name = req.cfg._plugin_modules[0]
+    module = sys.modules[module_name]
+
+    assert module.__name__ == module_name
+    assert module.__path__ == [os.path.abspath(req.cfg.plugin_dir)]
 
 
 class TestPasswordChecker:
@@ -37,4 +48,3 @@ class TestPasswordChecker:
                 assert result == (pw_error is None)
 
 coverage_modules = ['MoinMoin.config.multiconfig']
-

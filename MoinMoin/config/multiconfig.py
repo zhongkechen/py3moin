@@ -637,34 +637,56 @@ also the spelling of the directory name.
         import all plugin modules
 
         To be able to import plugin from arbitrary path, we have to load
-        the base package once using imp.load_module. Later, we can use
+        the base package once using importlib. Later, we can use
         standard __import__ call to load plugins in this package.
 
         Since each configured plugin path has unique plugins, we load the
         plugin packages as "moin_plugin_<sha1(path)>.plugin".
         """
+        import _imp
+        import importlib.util
 
         plugin_dirs = [self.plugin_dir] + self.plugin_dirs
         self._plugin_modules = []
-        import importlib.util
 
         try:
             # Lock other threads while we check and import
-            for pdir in plugin_dirs:
-                csum = 'p_%s' % hashlib.new('sha1', pdir.encode("utf8")).hexdigest()
-                modname = '%s.%s' % (self.siteid, csum)
-                # If the module is not loaded, try to load it
-                if modname not in sys.modules:
-                    # Find module on disk and try to load - slow!
-                    abspath = os.path.abspath(pdir) + ".py"
-                    spec = importlib.util.spec_from_file_location(modname, abspath)
-                    if spec is None:
-                        raise ImportError
-                    # Load the module and set in sys.modules
-                    module = importlib.util.module_from_spec(spec)
-                    setattr(sys.modules[self.siteid], 'csum', module)
-                if modname not in self._plugin_modules:
-                    self._plugin_modules.append(modname)
+            _imp.acquire_lock()
+            try:
+                for pdir in plugin_dirs:
+                    csum = 'p_%s' % hashlib.new('sha1', pdir.encode("utf8")).hexdigest()
+                    modname = '%s.%s' % (self.siteid, csum)
+                    # If the module is not loaded, try to load it
+                    if modname not in sys.modules:
+                        # Find the package on disk and try to load it - slow!
+                        package_dir = os.path.abspath(pdir)
+                        package_init = os.path.join(package_dir, '__init__.py')
+                        if not os.path.isfile(package_init):
+                            raise ImportError('No plugin package at %s' % package_dir)
+                        spec = importlib.util.spec_from_file_location(
+                            modname,
+                            package_init,
+                            submodule_search_locations=[package_dir],
+                        )
+                        if spec is None or spec.loader is None:
+                            raise ImportError('Could not create a module spec for %s' % package_dir)
+
+                        module = importlib.util.module_from_spec(spec)
+                        site_module = sys.modules.get(self.siteid)
+                        sys.modules[modname] = module
+                        try:
+                            if site_module is not None:
+                                setattr(site_module, csum, module)
+                            spec.loader.exec_module(module)
+                        except BaseException:
+                            sys.modules.pop(modname, None)
+                            if site_module is not None and getattr(site_module, csum, None) is module:
+                                delattr(site_module, csum)
+                            raise
+                    if modname not in self._plugin_modules:
+                        self._plugin_modules.append(modname)
+            finally:
+                _imp.release_lock()
         except ImportError as err:
             msg = """
 Could not import plugin package "%(path)s" because of ImportError:
