@@ -18,7 +18,7 @@ concurrency:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: ch3n2k/private
+  IMAGE_NAME: ch3n2k/py3moin
 
 jobs:
   docker:
@@ -46,9 +46,9 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=moinmoin3,enable={{is_default_branch}}
-            type=sha,prefix=moinmoin3-
-            type=ref,event=pr,prefix=moinmoin3-pr-
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=sha-
+            type=ref,event=pr,prefix=pr-
 
       - name: Build and publish
         uses: docker/build-push-action@v6
