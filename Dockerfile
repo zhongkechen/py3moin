@@ -16,6 +16,8 @@ COPY . /app/
 
 RUN pip install --break-system-packages .
 
+RUN python -c "from MoinMoin.support.htmlmarkup import Markup; Markup('<p>ok</p>').sanitize()"
+
 WORKDIR /data
 
 
