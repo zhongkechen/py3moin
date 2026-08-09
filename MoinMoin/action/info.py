@@ -100,127 +100,61 @@ def history(page, pagename, context):
             offset = 0
         offset = max(min(offset, log_size - 1), 0)
 
+        # The buttons say which way to move; the form carries the current
+        # offset. Adjust it before rendering the summary and history rows.
+        offsetmove = context.request.values.get('offsetmove', u'')
+        if offsetmove == u'newer':
+            offset = ((offset - 1) // max_count) * max_count
+        elif offsetmove == u'older':
+            offset = ((offset + max_count) // max_count) * max_count
+        offset = max(min(offset, log_size - 1), 0)
+
         paging_info_html += f.paragraph(1, css_class="searchstats info-paging-info") + _(
             "Showing page edit history entries from '''%(start_offset)d''' to '''%(end_offset)d''' out of '''%(total_count)d''' entries total.",
             wiki=True) % {
-                                'start_offset': log_size - min(log_size, offset + max_count) + 1,
-                                'end_offset': log_size - offset,
-                                'total_count': log_size,
-                            } + f.paragraph(0)
+                'start_offset': log_size - min(log_size, offset + max_count) + 1,
+                'end_offset': log_size - offset,
+                'total_count': log_size,
+            } + f.paragraph(0)
 
-        # generating offset navigating links
+        # Use form buttons so crawlers do not discover a URL for every page of
+        # the history listing.
         if max_count < log_size or offset != 0:
-            offset_links = []
-            cur_offset = max_count
-            near_count = 5  # request.cfg.pagination_size
+            def offset_button(direction, caption, enabled):
+                return '<button type="submit" name="offsetmove" value="%s"%s>%s</button> ' % (
+                    direction,
+                    not enabled and ' disabled="disabled"' or '',
+                    wikiutil.escape(caption))
 
-            min_offset = max(0, ((offset + max_count - 1) // max_count) - near_count)
-            max_offset = min(((log_size - 1) // max_count), (offset // max_count) + near_count)
-            offset_added = False
+            paging_nav_html += (
+                offset_button('newer', _("Newer"), offset > 0) +
+                offset_button('older', _("Older"), offset < (log_size - max_count)))
 
-            def add_offset_link(offset, caption=None):
-                offset_links.append(f.table_cell(1, css_class="info-offset-item") +
-                                    page.link_to(context, on=1, querystr={
-                                        'action': 'info',
-                                        'offset': str(offset),
-                                        'max_count': str(max_count),
-                                    }, css_class="info-offset-nav-link", rel="nofollow") + f.text(
-                    caption or str(log_size - offset)) + page.link_to(context, on=0) +
-                                    f.table_cell(0)
-                                    )
+        # Use a select in the paging form instead of one link per page size.
+        if len(context.cfg.history_count) > 2:
+            max_count_possibilities = sorted(set(context.cfg.history_count))
+            max_count_html = []
+            cur_count_added = False
 
-            # link to previous page - only if not at start
-            if offset > 0:
-                add_offset_link((((offset - 1) // max_count)) * max_count, _("Newer"))
+            for count in max_count_possibilities:
+                if max_count <= count and not cur_count_added:
+                    max_count_html.append('<option value="%d" selected="selected">%d</option>'
+                                          % (max_count, max_count))
+                    cur_count_added = True
 
-            # link to beggining of event log - if min_offset is not minimal
-            if min_offset > 0:
-                add_offset_link(0)
-                # adding gap only if min_offset not explicitly following beginning
-                if min_offset > 1:
-                    offset_links.append(
-                        f.table_cell(1, css_class="info-offset-gap") + f.text(u'\u2026') + f.table_cell(0))
+                if max_count != count and count <= limit_max_count:
+                    max_count_html.append('<option value="%d">%d</option>' % (count, count))
 
-            # generating near pages links
-            for cur_offset in range(min_offset, max_offset + 1):
-                # note that current offset may be not multiple of max_count,
-                # so we check whether we should add current offset marker like this
-                if not offset_added and offset <= cur_offset * max_count:
-                    # current info history view offset
-                    offset_links.append(f.table_cell(1, css_class="info-offset-item info-cur-offset") + f.text(
-                        str(log_size - offset)) + f.table_cell(0))
-                    offset_added = True
-
-                # add link, if not at this offset
-                if offset != cur_offset * max_count:
-                    add_offset_link(cur_offset * max_count)
-
-            # link to the last page of event log
-            if max_offset < ((log_size - 1) // max_count):
-                if max_offset < ((log_size - 1) // max_count) - 1:
-                    offset_links.append(
-                        f.table_cell(1, css_class="info-offset-gap") + f.text(u'\u2026') + f.table_cell(0))
-                add_offset_link((((log_size - 1) // max_count)) * max_count)
-
-            # special case - if offset is greater than max_offset * max_count
-            if offset > max_offset * max_count:
-                offset_links.append(f.table_cell(1, css_class="info-offset-item info-cur-offset") + f.text(
-                    str(log_size - offset)) + f.table_cell(0))
-
-            # link to next page
-            if offset < (log_size - max_count):
-                add_offset_link((((offset + max_count) // max_count)) * max_count, _("Older"))
-
-            # generating html
-            paging_nav_html += "".join([
-                f.table(1, css_class="searchpages"),
-                f.table_row(1),
-                "".join(offset_links),
-                f.table_row(0),
-                f.table(0),
+            count_select_html += "".join([
+                f.span(1, css_class="info-count-selector"),
+                f.text(" ("),
+                f.text(_("%s items per page")) % (
+                    '<select name="max_count" class="info-count-select">%s</select>'
+                    % "".join(max_count_html)),
+                f.rawHTML(' <button type="submit">%s</button>' % wikiutil.escape(_("Do"))),
+                f.text(")"),
+                f.span(0),
             ])
-
-    # generating max_count switcher
-    # we do it only in case history_count has additional values
-    if len(context.cfg.history_count) > 2:
-        max_count_possibilities = list(set(context.cfg.history_count))
-        max_count_possibilities.sort()
-        max_count_html = []
-        cur_count_added = False
-
-        for count in max_count_possibilities:
-            # max count value can be not in list of predefined values
-            if max_count <= count and not cur_count_added:
-                max_count_html.append("".join([
-                    f.span(1, css_class="info-count-item info-cur-count"),
-                    f.text(str(max_count)),
-                    f.span(0),
-                ]))
-                cur_count_added = True
-
-            # checking for limit_max_count to prevent showing unavailable options
-            if max_count != count and count <= limit_max_count:
-                max_count_html.append("".join([
-                    f.span(1, css_class="info-count-item"),
-                    page.link_to(context, on=1, querystr={
-                        'action': 'info',
-                        'offset': str(offset),
-                        'max_count': str(count),
-                    }, css_class="info-count-link", rel="nofollow"),
-                    f.text(str(count)),
-                    page.link_to(context, on=0),
-                    f.span(0),
-                ]))
-
-        count_select_html += "".join([
-            f.span(1, css_class="info-count-selector"),
-            f.text(" ("),
-            f.text(_("%s items per page")) % (
-                    f.span(1, css_class="info-count-selector info-count-selector-divider") + f.text(
-                " | ") + f.span(0)).join(max_count_html),
-            f.text(")"),
-            f.span(0),
-        ])
 
     # open log for this page
     from MoinMoin.util.dataset import TupleDataset, Column
@@ -230,24 +164,21 @@ def history(page, pagename, context):
         Column('rev', label='#', align='right'),
         Column('mtime', label=_('Date'), align='right'),
         Column('size', label=_('Size'), align='right'),
-        Column('diff', label='<input type="submit" value="%s">' % (_("Diff"))),
+        Column('diff', label='<button type="submit" name="action" value="diff">%s</button>' % (_("Diff"))),
         Column('editor', label=_('Editor'), hidden=not context.cfg.show_names),
         Column('comment', label=_('Comment')),
-        Column('action', label=_('Action')),
+        Column('action', label='<button type="submit" name="action" value="info">%s</button>' % (_("Do"))),
     ]
 
-    # generate history list
+    # Row actions are radio buttons in the history form, keeping their target
+    # URLs out of crawler-visible links.
+    def render_action(text, value):
+        return '<input type="radio" name="rowaction" value="%s">%s' % (
+            wikiutil.escape(value, True), wikiutil.escape(text))
 
-    def render_action(text, query, **kw):
-        kw.update(dict(rel='nofollow'))
-        return page.link_to(context, text, querystr=query, **kw)
-
-    def render_file_action(text, pagename, filename, context, do):
-        url = AttachFile.getAttachUrl(pagename, filename, context, do=do)
-        if url:
-            f = context.formatter
-            link = f.url(1, url) + f.text(text) + f.url(0)
-            return link
+    def render_file_action(text, filename, do):
+        if AttachFile.get_action(context, filename, do):
+            return render_action(text, u'AttachFile:%s:%s' % (do, filename))
 
     may_write = context.user.may.write(pagename)
     may_delete = context.user.may.delete(pagename)
@@ -264,7 +195,7 @@ def history(page, pagename, context):
         actions = []
         if line.action in ('SAVE', 'SAVENEW', 'SAVE/REVERT', 'SAVE/RENAME',):
             size = page.size(rev=rev)
-            actions.append(render_action(_('view'), {'action': 'recall', 'rev': '%d' % rev}))
+            actions.append(render_action(_('view'), u'recall:%d' % rev))
             if pgactioncount == 0:
                 rchecked = ' checked="checked"'
                 lchecked = ''
@@ -275,8 +206,6 @@ def history(page, pagename, context):
                 lchecked = rchecked = ''
             diff = '<input type="radio" name="rev1" value="%d"%s><input type="radio" name="rev2" value="%d"%s>' % (
                 rev, lchecked, rev, rchecked)
-            if rev > 1:
-                diff += render_action(' ' + _('to previous'), {'action': 'diff', 'rev1': rev - 1, 'rev2': rev})
             comment = line.comment
             if not comment:
                 if '/REVERT' in line.action:
@@ -292,12 +221,12 @@ def history(page, pagename, context):
             comment = "%s: %s %s" % (line.action, filename, line.comment)
             if AttachFile.exists(context, pagename, filename):
                 size = AttachFile.size(context, pagename, filename)
-                actions.append(render_file_action(_('view'), pagename, filename, context, do='view'))
-                actions.append(render_file_action(_('get'), pagename, filename, context, do='get'))
+                actions.append(render_file_action(_('view'), filename, 'view'))
+                actions.append(render_file_action(_('get'), filename, 'get'))
                 if may_delete:
-                    actions.append(render_file_action(_('del'), pagename, filename, context, do='del'))
+                    actions.append(render_file_action(_('del'), filename, 'del'))
                 if may_write:
-                    actions.append(render_file_action(_('edit'), pagename, filename, context, do='modify'))
+                    actions.append(render_file_action(_('edit'), filename, 'modify'))
             else:
                 size = 0
 
@@ -326,25 +255,31 @@ def history(page, pagename, context):
     history_table.setData(history)
 
     div = html.DIV(id="page-history")
-    div.append(html.INPUT(type="hidden", name="action", value="diff"))
     div.append(history_table.render(method="GET"))
 
-    form = html.FORM(method="GET", action="")
-    if paging:
-        form.append(f.div(1, css_class="info-paging-info") + paging_info_html + count_select_html + f.div(0))
-        form.append("".join([
-            f.div(1, css_class="info-paging-nav info-paging-nav-top"),
-            paging_nav_html,
+    # Paging controls live in forms beside the table form. Their hidden inputs
+    # carry the current position while each button says what to change.
+    def paging_form(css_class, content, hidden_max_count=False):
+        return "".join([
+            '<form method="GET" action="">',
+            f.div(1, css_class=css_class),
+            '<input type="hidden" name="action" value="info">',
+            '<input type="hidden" name="offset" value="%d">' % offset,
+            hidden_max_count and '<input type="hidden" name="max_count" value="%d">' % max_count or '',
+            content,
             f.div(0),
-        ]))
-    form.append(div)
+            '</form>',
+        ])
+
     if paging:
-        form.append("".join([
-            f.div(1, css_class="info-paging-nav info-paging-nav-bottom"),
-            paging_nav_html,
-            f.div(0)
-        ]))
-    context.write(str(form))
+        context.write(paging_form("info-paging-info",
+                                  paging_info_html + count_select_html))
+
+    context.write(str(div))
+
+    if paging:
+        context.write(paging_form("info-paging-nav info-paging-nav-bottom",
+                                  paging_nav_html, hidden_max_count=True))
 
 
 def execute(pagename, context):
@@ -356,6 +291,21 @@ def execute(pagename, context):
     # main function
     _ = context.getText
     page = Page(context, pagename)
+
+    # Resolve a selected history row action through a fixed set of local
+    # actions, then redirect to the generated URL.
+    rowaction = context.request.values.get('rowaction', u'')
+    if rowaction:
+        what = rowaction.split(u':', 2)
+        url = None
+        if len(what) == 2 and what[0] == u'recall' and what[1].isdigit():
+            url = page.url(context, querystr={'action': 'recall', 'rev': str(int(what[1]))})
+        elif len(what) == 3 and what[0] == u'AttachFile' and what[1] in ('view', 'get', 'del', 'modify'):
+            url = AttachFile.getAttachUrl(pagename, what[2], context, do=what[1])
+        if url:
+            context.http_redirect(url)
+            return
+
     title = page.split_title()
 
     context.setContentLanguage(context.lang)
@@ -363,18 +313,22 @@ def execute(pagename, context):
 
     context.theme.send_title(_('Info for "%s"') % (title,), page=page)
     menu_items = [
-        (_('Show "%(title)s"') % {'title': _('Revision History')},
-         {'action': 'info'}),
-        (_('Show "%(title)s"') % {'title': _('General Page Infos')},
-         {'action': 'info', 'general': '1'}),
-        (_('Show "%(title)s"') % {'title': _('Page hits and edits')},
-         {'action': 'info', 'hitcounts': '1'}),
+        (_('Show "%(title)s"') % {'title': _('Revision History')}, None),
+        (_('Show "%(title)s"') % {'title': _('General Page Infos')}, 'general'),
+        (_('Show "%(title)s"') % {'title': _('Page hits and edits')}, 'hitcounts'),
     ]
     context.write(f.div(1, id="content"))  # start content div
-    context.write(f.paragraph(1))
-    for text, querystr in menu_items:
-        context.write("[%s] " % page.link_to(context, text=text, querystr=querystr, rel='nofollow'))
-    context.write(f.paragraph(0))
+    context.write(f.rawHTML('<form method="GET" action="%s"><div>'
+                            '<input type="hidden" name="action" value="info">'
+                            % wikiutil.escape(page.url(context), True)))
+    for text, name in menu_items:
+        if name:
+            button = '<button type="submit" name="%s" value="1">%s</button> ' % (
+                name, wikiutil.escape(text))
+        else:
+            button = '<button type="submit">%s</button> ' % wikiutil.escape(text)
+        context.write(f.rawHTML(button))
+    context.write(f.rawHTML('</div></form>'))
 
     show_hitcounts = int(context.request.values.get('hitcounts', 0)) != 0
     show_general = int(context.request.values.get('general', 0)) != 0

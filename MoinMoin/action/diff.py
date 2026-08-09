@@ -164,9 +164,6 @@ def execute(pagename, context):
 """ % {'button': other_diff_button_html}
 
     prev_oldrev = (oldrev > 1) and (oldrev - 1) or 1
-    next_oldrev = (oldrev < currentrev) and (oldrev + 1) or currentrev
-
-    prev_newrev = (newrev > 1) and (newrev - 1) or 1
     next_newrev = (newrev < currentrev) and (newrev + 1) or currentrev
 
     navigation_html = navigation_html % (title,
@@ -178,23 +175,20 @@ def execute(pagename, context):
 
     context.write(f.rawHTML(navigation_html))
 
-    def rev_nav_link(enabled, old_rev, new_rev, caption, css_classes, enabled_title, disabled_title):
-        if enabled:
-            return currentpage.link_to(context, on=1, querystr={
-                'action': 'diff',
-                'rev1': old_rev,
-                'rev2': new_rev,
-            }, css_class="diff-nav-link %s" % css_classes, title=enabled_title) + context.formatter.text(
-                caption) + currentpage.link_to(context, on=0)
-        else:
-            return '<span class="diff-no-nav-link %(css_classes)s" title="%(disabled_title)s">%(caption)s</span>' % {
-                'css_classes': css_classes,
-                'disabled_title': disabled_title,
-                'caption': caption,
-            }
+    # Note: there used to be a per-pane navigation of <= < > >= links here,
+    # moving rev1 and rev2 independently. As both sides could be moved on
+    # their own, following those links reached every (rev1, rev2) combination,
+    # which is rev_count*(rev_count-1)/2 distinct urls for a single page - and
+    # each of them renders two revisions plus (for fancy diffs) the whole page
+    # below the diff. Crawlers ignore rel=nofollow and walked all of them.
+    # The same diffs are still available without offering that many urls:
+    # the "Previous change" / "Next change" buttons above step through the
+    # revisions, and the info action has a radio button per revision to
+    # compare any two of them. Both are GET forms, so they cost us nothing
+    # unless somebody actually clicks.
 
     rev_info_html = """
-  <div class="diff-info diff-info-header">%%(rev_first_link)s %%(rev_prev_link)s %(rev_header)s %%(rev_next_link)s %%(rev_last_link)s</div>
+  <div class="diff-info diff-info-header">%(rev_header)s</div>
   <div class="diff-info diff-info-rev-size"><span class="diff-info-caption">%(rev_size_caption)s:</span> <span class="diff-info-value">%%(rev_size)d</span></div>
   <div class="diff-info diff-info-rev-author"><span class="diff-info-caption">%(rev_author_caption)s:</span> <span class="diff-info-value">%%(rev_author)s</span></div>
   <div class="diff-info diff-info-rev-comment"><span class="diff-info-caption">%(rev_comment_caption)s:</span> <span class="diff-info-value">%%(rev_comment)s</span></div>
@@ -207,16 +201,6 @@ def execute(pagename, context):
     }
 
     rev_info_old_html = rev_info_html % {
-        'rev_first_link': rev_nav_link(oldrev > 1, 1, newrev, u'\u21e4', 'diff-first-link diff-old-rev',
-                                       _('Diff with oldest revision in left pane'),
-                                       _("No older revision available for diff")),
-        'rev_prev_link': rev_nav_link(oldrev > 1, prev_oldrev, newrev, u'\u2190', 'diff-prev-link diff-old-rev',
-                                      _('Diff with older revision in left pane'),
-                                      _("No older revision available for diff")),
-        'rev_next_link': rev_nav_link((oldrev < currentrev) and (next_oldrev < newrev), next_oldrev, newrev, u'\u2192',
-                                      'diff-next-link diff-old-rev', _('Diff with newer revision in left pane'),
-                                      _("Can't change to revision newer than in right pane")),
-        'rev_last_link': '',
         'rev': oldrev,
         'rev_size': oldpage.size(),
         'rev_author': oldlog.getEditor(context) or _('N/A'),
@@ -225,16 +209,6 @@ def execute(pagename, context):
     }
 
     rev_info_new_html = rev_info_html % {
-        'rev_first_link': '',
-        'rev_prev_link': rev_nav_link((newrev > 1) and (oldrev < prev_newrev), oldrev, prev_newrev, u'\u2190',
-                                      'diff-prev-link diff-new-rev', _('Diff with older revision in right pane'),
-                                      _("Can't change to revision older than revision in left pane")),
-        'rev_next_link': rev_nav_link(newrev < currentrev, oldrev, next_newrev, u'\u2192',
-                                      'diff-next-link diff-new-rev', _('Diff with newer revision in right pane'),
-                                      _("No newer revision available for diff")),
-        'rev_last_link': rev_nav_link(newrev < currentrev, oldrev, currentrev, u'\u21e5', 'diff-last-link diff-old-rev',
-                                      _('Diff with newest revision in right pane'),
-                                      _("No newer revision available for diff")),
         'rev': newrev,
         'rev_size': newpage.size(),
         'rev_author': newlog.getEditor(context) or _('N/A'),
