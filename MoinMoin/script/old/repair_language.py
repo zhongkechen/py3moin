@@ -68,7 +68,7 @@ def listdir(path):
 
 
 def repairText(text):
-    """ Repair page text
+    r""" Repair page text
 
     We change only this type of lines that currently are in moinmaster
     ##language:\s*xx
@@ -159,7 +159,6 @@ if __name__ == '__main__':
         sys.exit(1)
 
     processPages(path, repair=options[sys.argv[1]])
-
 
 
 

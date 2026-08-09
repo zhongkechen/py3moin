@@ -28,7 +28,7 @@ def formathttpdate(tmsecs=None):
     """
     stamp = formatdate(tmsecs, False)
     # replace non-standard "-0000" at end with http-mandated "GMT"
-    stamp = re.match('^(.*) [\-\+]0000$', stamp).group(1) + " GMT"
+    stamp = re.match(r'^(.*) [\-\+]0000$', stamp).group(1) + " GMT"
     return stamp
 
 

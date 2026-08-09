@@ -121,7 +121,7 @@ General syntax: moin [options] account check [check-options]
                     self.emails[u.email] = [uid]
 
             # collect account with no or invalid email address set:
-            if not u.email or not re.match(".*@.*\..*", u.email):
+            if not u.email or not re.match(r".*@.*\..*", u.email):
                 self.uids_noemail[uid] = u.name
 
     def hasmagicpage(self, uid):

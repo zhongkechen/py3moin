@@ -14,7 +14,7 @@ import time
 
 import pytest
 
-from MoinMoin.util.lock import ExclusiveLock
+from MoinMoin.util.lock import ExclusiveLock, WriteLock
 
 
 class TestExclusiveLock:
@@ -127,5 +127,20 @@ class TestExclusiveLock:
         time.sleep(delay)
         lock.release()
 
-coverage_modules = ['MoinMoin.util.lock']
 
+def test_write_lock_releases_exclusive_lock_on_error(tmp_path, monkeypatch):
+    lock_dir = str(tmp_path / 'lock')
+    lock = WriteLock(lock_dir)
+
+    def fail():
+        raise RuntimeError('read lock check failed')
+
+    monkeypatch.setattr(lock, '_expireReadLocks', fail)
+
+    with pytest.raises(RuntimeError, match='read lock check failed'):
+        lock.acquire(0.1)
+
+    assert not lock.isLocked()
+
+
+coverage_modules = ['MoinMoin.util.lock']
