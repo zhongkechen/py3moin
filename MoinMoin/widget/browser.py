@@ -6,6 +6,8 @@
                 2010 MoinMoin:EugeneSyromyatnikov
     @license: GNU GPL, see COPYING for details.
 """
+from itertools import chain
+
 from MoinMoin.widget import base
 from MoinMoin import wikiutil
 
@@ -128,21 +130,20 @@ class DataBrowserWidget(base.Widget):
             given by idx
         """
         self.data.reset()
-        row = next(self.data)
         # [empty] is a special already
         unique = ['']
 
         value = None
         name = '%sfilter%d' % (self.data_id, idx)
-        if name in self.request.values:
-            value = self.request.values.getlist(name)
-        while row:
+        values = self.request.request.values
+        if name in values:
+            value = values.getlist(name)
+        for row in self.data:
             option = row[idx]
             if isinstance(option, tuple):
                 option = option[1]
             if option not in unique:
                 unique.append(option)
-            row = next(self.data)
 
         # fill in the empty field we left blank
         del unique[0]
@@ -211,19 +212,25 @@ class DataBrowserWidget(base.Widget):
 
         # add data
         self.data.reset()
-        row = next(self.data)
-        if row is not None:
-            filters = [None] * len(row)
+        try:
+            first_row = next(self.data)
+        except StopIteration:
+            rows = ()
+            filters = []
+        else:
+            rows = chain((first_row,), self.data)
+            filters = [None] * len(first_row)
 
-            if havefilters:
-                for idx in range(len(row)):
-                    name = '%sfilter%d' % (self.data_id, idx)
-                    if name in self.request.values:
-                        filters[idx] = self.request.getlist(name)
-                        if filters[idx] == self._all:
-                            filters[idx] = None
+        if havefilters:
+            values = self.request.request.values
+            for idx in range(len(filters)):
+                name = '%sfilter%d' % (self.data_id, idx)
+                if name in values:
+                    filters[idx] = values.getlist(name)
+                    if filters[idx] == self._all:
+                        filters[idx] = None
 
-        while row:
+        for row in rows:
             hidden = False
 
             if havefilters:
@@ -256,8 +263,6 @@ class DataBrowserWidget(base.Widget):
                         result.append(str(row[idx]))
                     result.append(fmt.table_cell(0))
                 result.append(fmt.table_row(0))
-
-            row = next(self.data)
 
         result.append(fmt.table(0))
         result.append(fmt.div(0))

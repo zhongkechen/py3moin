@@ -57,11 +57,14 @@ class Dataset:
         """
         self._pos = 0
 
+    def __iter__(self):
+        return self
+
     def __next__(self):
         """ Return next row as a tuple, ordered by columns.
         """
         if self._pos >= len(self):
-            return None
+            raise StopIteration
 
         row = self.data[self._pos]
         self._pos += 1
@@ -83,10 +86,9 @@ class DictDataset(Dataset):
     """
 
     def __next__(self):
-        row = Dataset.next(self)
-        return tuple([row[col.name] for col in self.columns])
+        row = super().__next__()
+        return tuple(row[col.name] for col in self.columns)
 
 
 class DbDataset(Dataset):
     pass
-

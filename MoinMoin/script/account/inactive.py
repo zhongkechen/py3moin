@@ -6,11 +6,17 @@ MoinMoin - find inactive users (and disable / remove them)
 @license: GNU GPL, see COPYING for details.
 """
 
-from past.builtins import execfile
-
 from MoinMoin.logfile import editlog
 from MoinMoin.script import MoinScript
 from MoinMoin.user import getUserList, User
+
+
+def _load_editlog_uids(filename):
+    namespace = {'editlog_uids': set()}
+    with open(filename, encoding='utf-8') as source_file:
+        source = source_file.read()
+    exec(compile(source, filename, 'exec'), {}, namespace)
+    return namespace['editlog_uids']
 
 
 class PluginScript(MoinScript):
@@ -96,12 +102,12 @@ General syntax: moin [options] account inactive [inactive-options]
             editlog_uids = set()
             for log in logs(request):
                 editlog_uids |= set(uids(log))
-            with open(fn, "a") as f:
+            with open(fn, "a", encoding='utf-8') as f:
                 for uid in editlog_uids:
                     u = User(request, uid)
                     code = u'editlog_uids.add(%r)  # %r %r %r\n' % (
                                uid, u.name, u.email, u.jid)
-                    f.write(code.encode('utf-8'))
+                    f.write(code)
 
         elif self.options.py_exec_file:
             def check_interactive(u):
@@ -112,9 +118,7 @@ General syntax: moin [options] account inactive [inactive-options]
                     return True
 
             fn = self.options.py_exec_file
-            locs = dict(editlog_uids=set())
-            execfile(fn, {}, locs)
-            editlog_uids = locs.get('editlog_uids')
+            editlog_uids = _load_editlog_uids(fn)
 
             profile_uids = set(getUserList(request))
 
@@ -130,4 +134,3 @@ General syntax: moin [options] account inactive [inactive-options]
                 elif self.options.remove:
                     if check_interactive(u):
                         u.remove()
-

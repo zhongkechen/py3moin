@@ -16,6 +16,10 @@ parsedatetime = "^2.6"
 flup = "^1.0"
 pygments = "^2.15"
 secure-cookie = "^0.2.0"
+python3-openid = { version = "^3.2", optional = true }
+
+[tool.poetry.extras]
+openid = ["python3-openid"]
 
 [tool.poetry.scripts]
 moin = "MoinMoin.script.moin:run"

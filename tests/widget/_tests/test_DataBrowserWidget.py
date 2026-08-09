@@ -101,3 +101,19 @@ class Test_DataBrowserWidget_sort_table:
         test_run = self.table.data.data
         result = [result[0] for result in test_run]
         assert result == ['L4', 'L1', 'L5', 'L2', 'L3']
+
+    def test_render_with_autofilter(self):
+        data = TupleDataset()
+        data.columns = [
+            Column('name', label='Name', autofilter=1),
+            Column('count', label='Count'),
+        ]
+        data.addRow(('L1', '1'))
+        data.addRow(('L5', '5'))
+        self.table.setData(data)
+
+        result = self.table.render()
+
+        assert '<table' in result
+        assert 'L1' in result
+        assert '<option value="L5">L5</option>' in result
