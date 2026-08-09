@@ -178,6 +178,7 @@ class Page:
         @keyword include_self: if 1, include current user (default: 0)
         """
         self.context = context
+        self.request = context  # Compatibility for legacy Page consumers.
         self.cfg = context.cfg
         self.page_name = page_name
         self.rev = kw.get('rev', 0)  # revision of this page

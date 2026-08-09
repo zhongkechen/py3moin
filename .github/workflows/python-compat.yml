@@ -53,4 +53,13 @@ jobs:
             tests/util/_tests/test_lock.py \
             tests/_tests/test_packages.py \
             tests/macro/_tests/test_Action.py \
-            tests/_tests/test_account_inactive.py
+            tests/_tests/test_account_inactive.py \
+            tests/web/_tests/test_contexts.py \
+            tests/_tests/test_Page.py::TestPage::testRequestCompatibilityAlias \
+            tests/action/_tests/test_cache.py \
+            tests/parser/_tests/test_unicode.py \
+            tests/search/_tests/test_search.py::TestMoinSearch \
+            tests/datastruct/backends/_tests/test_config_groups.py \
+            tests/datastruct/backends/_tests/test_composite_groups.py \
+            tests/datastruct/backends/_tests/test_wiki_groups.py \
+            tests/datastruct/backends/_tests/test_lazy_config_groups.py

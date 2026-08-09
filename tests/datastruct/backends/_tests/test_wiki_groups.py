@@ -12,10 +12,12 @@ import pytest
 
 from tests.datastruct.backends._tests import GroupsBackendTest
 from MoinMoin import security
+from MoinMoin.datastruct import WikiGroups
 from MoinMoin.user import User
 from tests._tests import append_page, become_trusted, create_page, create_random_string_list, nuke_page, nuke_user
 
 
+@pytest.mark.wiki_config(groups=lambda s, r: WikiGroups(r))
 class TestWikiGroupBackend(GroupsBackendTest):
 
     # Suppose that default configuration for the groups is used which

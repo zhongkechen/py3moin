@@ -91,15 +91,16 @@ def pytest_funcarg__request(request):
 
 @pytest.fixture
 def req(request):
+    config_base = getattr(request.cls, 'Config', wikiconfig.Config)
     marker = request.node.get_closest_marker("wiki_config")
     if marker:
-        class config(wikiconfig.Config):
+        class config(config_base):
             pass
 
         for k, v in marker.kwargs.items():
             setattr(config, k, v)
     else:
-        config = wikiconfig.Config
+        config = config_base
 
     return init_test_request(config)
 

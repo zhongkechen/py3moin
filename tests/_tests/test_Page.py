@@ -17,6 +17,11 @@ from MoinMoin.Page import Page, _PAGE_CODE_CACHE_HEADER
 
 
 class TestPage:
+    def testRequestCompatibilityAlias(self, req):
+        page = Page(req, u'FrontPage')
+
+        assert page.request is req
+
     def testCodeCacheHeaderIdentifiesRuntime(self):
         implementation = sys.implementation
         version = implementation.version
