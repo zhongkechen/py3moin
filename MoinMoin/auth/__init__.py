@@ -133,13 +133,10 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from werkzeug.exceptions import abort
-from werkzeug.urls import url_quote, url_quote_plus
-from werkzeug.utils import redirect
-
 from MoinMoin import log
 from MoinMoin import user, wikiutil
 from MoinMoin.util.abuse import log_attempt
+from MoinMoin.web.http import abort, redirect, url_quote, url_quote_plus
 from MoinMoin.web.utils import check_surge_protect
 
 logging = log.getLogger(__name__)

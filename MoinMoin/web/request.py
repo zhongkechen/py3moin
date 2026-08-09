@@ -5,19 +5,23 @@
     @license: GNU GPL, see COPYING for details.
 """
 import sys
-from io import StringIO
+from io import BytesIO
 
 from passlib.utils import to_unicode
-from werkzeug import Request as RequestBase
-from werkzeug import Response as WerkzeugResponseBase
-from werkzeug.datastructures import EnvironHeaders
-from werkzeug.test import create_environ
-from werkzeug.urls import url_encode, url_join, url_quote
-from werkzeug.utils import cached_property
-from werkzeug.wrappers import ResponseStream
 
 from MoinMoin import config
 from MoinMoin import log
+from MoinMoin.web.http import (
+    EnvironHeaders,
+    Request as RequestBase,
+    Response as WerkzeugResponseBase,
+    ResponseStream,
+    cached_property,
+    create_environ,
+    url_encode,
+    url_join,
+    url_quote,
+)
 
 logging = log.getLogger(__name__)
 
@@ -185,8 +189,9 @@ class TestRequest(Request):
         if form_data is not None:
             form_data = url_encode(form_data)
             content_type = 'application/x-www-form-urlencoded'
+            form_data = form_data.encode(config.charset)
             content_length = len(form_data)
-            input_stream = StringIO(form_data)
+            input_stream = BytesIO(form_data)
         environ = create_environ(path=path, query_string=query_string,
                                  method=method, input_stream=input_stream,
                                  content_type=content_type,

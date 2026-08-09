@@ -7,7 +7,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from werkzeug import exceptions
+from MoinMoin.web.http import exceptions
 
 HTTPException = exceptions.HTTPException
 
@@ -27,13 +27,8 @@ class SurgeProtection(exceptions.ServiceUnavailable):
     )
 
     def __init__(self, description=None, retry_after=3600):
-        exceptions.ServiceUnavailable.__init__(self, description)
-        self.retry_after = retry_after
-
-    def get_headers(self, environ, scope):
-        headers = exceptions.ServiceUnavailable.get_headers(self, environ)
-        headers.append(('Retry-After', '%d' % self.retry_after))
-        return headers
+        exceptions.ServiceUnavailable.__init__(
+            self, description, retry_after=retry_after)
 
 
 class Forbidden(exceptions.Forbidden):

@@ -14,8 +14,8 @@ from xml.dom import Node
 
 from MoinMoin import config, wikiutil
 from MoinMoin.error import ConvertError
-from werkzeug.urls import url_decode
 from MoinMoin.parser.text_moin_wiki import Parser as WikiParser
+from MoinMoin.web.http import url_decode
 interwiki_re = re.compile(WikiParser.interwiki_rule, re.VERBOSE|re.UNICODE)
 
 
@@ -1457,4 +1457,3 @@ def convert(request, pagename, text):
     text = convert_tree(request, pagename).do(tree)
     text = '\n'.join([s.rstrip() for s in text.splitlines()] + ['']) # remove trailing blanks
     return text
-

@@ -49,8 +49,7 @@
 from os.path import join, abspath, dirname, isdir
 
 from MoinMoin import config
-
-from werkzeug.middleware.shared_data import SharedDataMiddleware
+from MoinMoin.web.http import SharedDataMiddleware
 
 STATIC_FILES_PATH = join(abspath(dirname(__file__)), 'htdocs')
 
@@ -77,4 +76,3 @@ def make_static_serving_app(application, shared):
         else:
             raise ValueError("Invalid path given for shared parameter")
     return SharedDataMiddleware(application, shared)
-

@@ -25,8 +25,8 @@ import os.path
 import sys
 
 import pytest
-from werkzeug.test import Client
 
+from MoinMoin.web.http import Client
 from MoinMoin.web.contexts import AllContext
 from MoinMoin.web.request import TestRequest
 from MoinMoin.wsgiapp import Application
