@@ -10,7 +10,8 @@ from pathlib import Path
 import sys
 
 import pytest
-from werkzeug.test import EnvironBuilder
+
+from MoinMoin.web.http import EnvironBuilder
 
 
 CONNECTOR_DIR = (

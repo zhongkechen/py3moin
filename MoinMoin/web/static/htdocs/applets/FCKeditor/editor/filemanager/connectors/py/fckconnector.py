@@ -29,7 +29,7 @@ import os
 import sys
 from urllib.parse import parse_qs
 
-from werkzeug.formparser import parse_form_data
+from MoinMoin.web.http import parse_form_data
 
 from fckcommands import *  # default command's implementation
 

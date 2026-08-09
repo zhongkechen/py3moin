@@ -6,16 +6,15 @@ authors = ["Zhongke Chen <ch3n2k@gmail.com>"]
 packages = [{ include = "MoinMoin" }]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 pytest = "^7.2"
 passlib = "^1.7"
 future = "^0.18"
 html-sanitizer = "^2.6"
-werkzeug = "^2.2.3"
+werkzeug = "^3.1.8"
 parsedatetime = "^2.6"
 flup = "^1.0"
 pygments = "^2.15"
-secure-cookie = "^0.2.0"
 python3-openid = { version = "^3.2", optional = true }
 
 [tool.poetry.extras]

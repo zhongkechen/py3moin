@@ -63,7 +63,7 @@ else:
 fix_apache_win32 = False  # <-- adapt here as needed
 
 if fix_apache_win32:
-    from werkzeug.contrib.fixers import PathInfoFromRequestUriFix
+    from MoinMoin.web.http import PathInfoFromRequestUriFix
     application = PathInfoFromRequestUriFix(application)
 
 
@@ -78,4 +78,3 @@ except ImportError:
     from MoinMoin.web._fallback_cgi import WSGIServer
 
 WSGIServer(application).run()
-

@@ -11,9 +11,12 @@
                 2009 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
+import os
+import pickle
+import re
+import secrets
+import tempfile
 import time
-
-from secure_cookie.session import Session, FilesystemSessionStore
 
 from MoinMoin import config
 from MoinMoin.util import filesys
@@ -22,15 +25,172 @@ from MoinMoin import log
 logging = log.getLogger(__name__)
 
 
-class MoinSession(Session):
-    """ Compatibility interface to Werkzeug-sessions for old Moin-code.
+_missing = object()
+_session_id_re = re.compile(r'^[a-f0-9]{40}$')
+_transaction_suffix = '.__session'
+
+
+class MoinSession(dict):
+    """Server-side session dictionary that tracks direct changes.
 
         is_new is DEPRECATED and will go away soon.
     """
+    def __init__(self, data, sid, new=False):
+        dict.__init__(self, data)
+        self.sid = sid
+        self.new = new
+        self.modified = False
+
+    def __setitem__(self, key, value):
+        dict.__setitem__(self, key, value)
+        self.modified = True
+
+    def __delitem__(self, key):
+        dict.__delitem__(self, key)
+        self.modified = True
+
+    def clear(self):
+        dict.clear(self)
+        self.modified = True
+
+    def pop(self, key, default=_missing):
+        if default is _missing:
+            value = dict.pop(self, key)
+        else:
+            value = dict.pop(self, key, default)
+        self.modified = True
+        return value
+
+    def popitem(self):
+        value = dict.popitem(self)
+        self.modified = True
+        return value
+
+    def setdefault(self, key, default=None):
+        if key not in self:
+            self.modified = True
+        return dict.setdefault(self, key, default)
+
+    def update(self, *args, **kwargs):
+        dict.update(self, *args, **kwargs)
+        self.modified = True
+
+    def __ior__(self, values):
+        self.update(values)
+        return self
+
+    @property
+    def should_save(self):
+        return self.modified
+
+    def __repr__(self):
+        return "<%s %s%s>" % (
+            self.__class__.__name__,
+            dict.__repr__(self),
+            "*" if self.should_save else "",
+        )
+
     def _get_is_new(self):
         logging.warning("Deprecated use of MoinSession.is_new, please use .new")
         return self.new
     is_new = property(_get_is_new)
+
+
+class FilesystemSessionStore:
+    """Persist sessions using the historical Moin pickle file format."""
+
+    def __init__(self, path=None,
+                 filename_template='secure_cookie_%s.session',
+                 session_class=MoinSession, renew_missing=False, mode=0o644):
+        if path is None:
+            path = tempfile.gettempdir()
+        if filename_template.count('%s') != 1:
+            raise ValueError("filename_template must contain exactly one %s")
+        if filename_template.endswith(_transaction_suffix):
+            raise ValueError(
+                "filename_template may not end with %s" %
+                _transaction_suffix)
+        self.path = path
+        self.filename_template = filename_template
+        self.session_class = session_class
+        self.renew_missing = renew_missing
+        self.mode = mode
+
+    @staticmethod
+    def is_valid_key(key):
+        return (
+            isinstance(key, str) and
+            _session_id_re.fullmatch(key) is not None
+        )
+
+    @staticmethod
+    def generate_key():
+        return secrets.token_hex(20)
+
+    def get_session_filename(self, sid):
+        return os.path.join(self.path, self.filename_template % sid)
+
+    def new(self):
+        return self.session_class({}, self.generate_key(), True)
+
+    def get(self, sid):
+        if not self.is_valid_key(sid):
+            return self.new()
+        try:
+            with open(self.get_session_filename(sid), 'rb') as session_file:
+                data = pickle.load(session_file)
+        except OSError:
+            if self.renew_missing:
+                return self.new()
+            data = {}
+        except Exception:
+            data = {}
+        if not isinstance(data, dict):
+            data = {}
+        return self.session_class(data, sid, False)
+
+    def save(self, session):
+        if not self.is_valid_key(session.sid):
+            raise ValueError("invalid session id")
+        filename = self.get_session_filename(session.sid)
+        fd, temporary = tempfile.mkstemp(
+            suffix=_transaction_suffix, dir=self.path)
+        try:
+            with os.fdopen(fd, 'wb') as session_file:
+                pickle.dump(
+                    dict(session), session_file, pickle.HIGHEST_PROTOCOL)
+            os.replace(temporary, filename)
+            os.chmod(filename, self.mode)
+        except OSError:
+            try:
+                os.unlink(temporary)
+            except OSError:
+                pass
+        except Exception:
+            try:
+                os.unlink(temporary)
+            except OSError:
+                pass
+            raise
+
+    def delete(self, session):
+        try:
+            os.unlink(self.get_session_filename(session.sid))
+        except OSError:
+            pass
+
+    def list(self):
+        before, after = self.filename_template.split('%s', 1)
+        filename_re = re.compile(
+            r'%s(.{5,})%s$' % (re.escape(before), re.escape(after)))
+        result = []
+        for filename in os.listdir(self.path):
+            if filename.endswith(_transaction_suffix):
+                continue
+            match = filename_re.fullmatch(filename)
+            if match is not None:
+                result.append(match.group(1))
+        return result
 
 
 class SessionService:
@@ -128,9 +288,8 @@ class FileSessionService(SessionService):
     """
     This sample session service stores session information in a temporary
     directory and identifies the session via a cookie in the request/response
-    cycle. It is based on werkzeug's FilesystemSessionStore, that implements
-    the whole logic for creating the actual session objects (which are
-    inherited from the builtin `dict`)
+    cycle. Session files retain their historical pickle format, so existing
+    sessions remain readable after upgrading.
     """
     def __init__(self, cookie_usage='SESSION'):
         self.cookie_usage = cookie_usage
@@ -264,4 +423,3 @@ class FileSessionService(SessionService):
             # we killed the cookie (see above), so we can kill the session store, too
             logging.debug("destroying session: %r" % session)
             self.destroy_session(context, session)
-

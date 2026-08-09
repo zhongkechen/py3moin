@@ -5,7 +5,7 @@
     This package contains everything related to interfacing the wiki with
     the actual request from the web. It replaces the former packages
     `MoinMoin.request` and `MoinMoin.server`. There is code for convenient
-    access to the supplied request parameters (using the werkzeug library),
+    access to the supplied request parameters (through MoinMoin.web.http),
     wrappers (called contexts) that try to capture the use of the former
     Request-objects in MoinMoin, session handling and interfaces to
     common webserver deployment methods.
@@ -18,7 +18,7 @@ def _fixup_deps():
     """
     Alter the system path to import some 3rd party dependencies from
     inside the MoinMoin.support package. This is meant for deps
-    used inside this package, which are mainly werkzeug and flup.
+    used inside this package.
     """
     import sys, os
     from MoinMoin import support

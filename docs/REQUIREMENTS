@@ -105,14 +105,9 @@ minimum: 0.8.7(?)
 
 werkzeug (WSGI toolkit)
 =======================
-shipped: 1.0.1
-minimum: 1.0.0
+minimum: 3.1.8
 
-
-secure-cookie
-=============
-shipped: 0.1.0
-minimum: 0.1.0
+MoinMoin provides its own filesystem session store.
 
 
 xappy (High-Level Python library for Xapian)
@@ -146,4 +141,3 @@ required: see shipped
 D) MoinMoin/web/static/htdocs/applets/anywikidraw/
 shipped: 0.14
 required: 0.14
-

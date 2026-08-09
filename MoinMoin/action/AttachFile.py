@@ -34,8 +34,6 @@ import time
 import zipfile
 from io import BytesIO
 
-from werkzeug.http import http_date
-
 from MoinMoin import config, packages
 from MoinMoin import log
 from MoinMoin import wikiutil
@@ -43,6 +41,7 @@ from MoinMoin.Page import Page
 from MoinMoin.events import FileAttachedEvent, FileRemovedEvent, send_event
 from MoinMoin.security.textcha import TextCha
 from MoinMoin.util import filesys
+from MoinMoin.web.http import http_date
 
 logging = log.getLogger(__name__)
 action_name = __name__.split('.')[-1]

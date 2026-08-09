@@ -3,7 +3,7 @@ MoinMoin
 
 MoinMoin is a wiki engine - a software you can use to run your own wiki site.
 
-This is a fork of MoinMoin 1.x that runs on Python 3.x
+This is a fork of MoinMoin 1.x that runs on Python 3.10 and newer.
 
 Documentation
 =============

@@ -7,15 +7,12 @@
 """
 import time
 
-from werkzeug.utils import redirect
-from werkzeug.exceptions import abort
-from werkzeug.wrappers import Response
-
 from MoinMoin import caching
 from MoinMoin import log
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
 from MoinMoin.web.exceptions import Forbidden, SurgeProtection
+from MoinMoin.web.http import Response, abort, redirect
 
 logging = log.getLogger(__name__)
 

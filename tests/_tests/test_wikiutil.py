@@ -11,7 +11,7 @@ import pytest
 
 from MoinMoin import config, wikiutil
 
-from werkzeug.datastructures import MultiDict
+from MoinMoin.web.http import MultiDict
 
 
 class TestQueryStringSupport:
@@ -1092,4 +1092,3 @@ class TestVersion:
 
 
 coverage_modules = ['MoinMoin.wikiutil']
-

@@ -12,11 +12,6 @@ import sys
 import time
 import warnings
 
-from werkzeug.datastructures import Headers, HeaderSet
-from werkzeug.exceptions import abort, Unauthorized, NotFound
-from werkzeug.test import create_environ
-from werkzeug.utils import redirect
-
 from MoinMoin import auth
 from MoinMoin import i18n, user, config
 from MoinMoin import log
@@ -30,6 +25,15 @@ from MoinMoin.theme import load_theme_fallback
 from MoinMoin.util.abuse import log_attempt
 from MoinMoin.util.clock import Clock
 from MoinMoin.web.exceptions import Forbidden, SurgeProtection
+from MoinMoin.web.http import (
+    HeaderSet,
+    Headers,
+    NotFound,
+    Unauthorized,
+    abort,
+    create_environ,
+    redirect,
+)
 from MoinMoin.web.request import Request, MoinMoinFinish
 from MoinMoin.web.request import ResponseBase
 from MoinMoin.web.utils import UniqueIDGenerator
