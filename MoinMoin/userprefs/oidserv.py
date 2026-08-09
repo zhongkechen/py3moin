@@ -78,7 +78,7 @@ class Settings(UserPrefBase):
         _ = self.request.getText
         form = self._make_form()
         for root in self.request.user.openid_trusted_roots:
-            display = base64.decodestring(root)
+            display = base64.b64decode(root).decode('utf-8')
             name = 'rm-%s' % root
             form.append(html.INPUT(type="checkbox", name=name, id=name))
             form.append(html.LABEL(for_=name).append(html.Text(display)))

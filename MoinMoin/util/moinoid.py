@@ -5,6 +5,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 import hashlib
+import base64
 from random import randint
 import time
 
@@ -25,8 +26,7 @@ def log(msg, level=0):
 oidutil.log = log
 
 def strbase64(value):
-    from base64 import encodestring
-    return encodestring(str(value)).replace('\n', '')
+    return base64.b64encode(str(value).encode('utf-8')).decode('ascii')
 
 
 def _cleanup_nonces(request):
@@ -52,6 +52,8 @@ class MoinOpenIDStore(OpenIDStore):
 
     def key(self, url):
         '''return cache key'''
+        if isinstance(url, str):
+            url = url.encode('utf-8')
         return hashlib.new('sha1', url).hexdigest()
 
     def storeAssociation(self, server_url, association):

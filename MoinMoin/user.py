@@ -266,7 +266,7 @@ def getUserIdentification(request, username=None):
     return username or (request.cfg.show_hosts and request.request.remote_addr) or _("<unknown>")
 
 
-def encodePassword(cfg, pwd, salt: bytes = None, scheme=None):
+def encodePassword(cfg, pwd, salt=None, scheme=None):
     """ Encode a cleartext password using the default algorithm.
 
     @param cfg: the wiki config
@@ -283,12 +283,15 @@ def encodePassword(cfg, pwd, salt: bytes = None, scheme=None):
     else:
         configured_scheme = False
     if scheme == '{PASSLIB}':
+        if isinstance(salt, bytes):
+            salt = salt.decode('ascii')
         return '{PASSLIB}' + cfg.cache.pwd_context.encrypt(pwd, salt=salt)
     elif scheme == '{SSHA}':
         pwd = pwd.encode('utf-8')
         if salt is None:
-            salt = random_string(20)
-        assert isinstance(salt, bytes)
+            salt = random_string(20).encode('latin-1')
+        elif isinstance(salt, str):
+            salt = salt.encode('utf-8')
         hash = hashlib.new('sha1', pwd)
         hash.update(salt)
         return '{SSHA}' + base64.encodebytes(hash.digest() + salt).decode("ascii").rstrip()
@@ -1273,7 +1276,7 @@ class User:
     def generate_recovery_token(self):
         key = random_string(64, "abcdefghijklmnopqrstuvwxyz0123456789")
         msg = str(int(time.time()))
-        h = hmac.new(key, msg, digestmod=hashlib.sha1).hexdigest()
+        h = hmac.new(key.encode('ascii'), msg.encode('ascii'), digestmod=hashlib.sha1).hexdigest()
         self.recoverpass_key = key
         self.save()
         return msg + '-' + h
@@ -1289,9 +1292,10 @@ class User:
         lifetime = self._request.cfg.recovery_token_lifetime * 3600
         if time.time() > stamp + lifetime:
             return False
-        # check hmac
-        # key must be of type string
-        h = hmac.new(str(self.recoverpass_key), str(stamp), digestmod=hashlib.sha1).hexdigest()
+        # Check the token using the same ASCII representation used when it was generated.
+        key = str(self.recoverpass_key).encode('ascii')
+        msg = str(stamp).encode('ascii')
+        h = hmac.new(key, msg, digestmod=hashlib.sha1).hexdigest()
         if not safe_str_cmp(h, parts[1]):
             return False
         self.recoverpass_key = ""

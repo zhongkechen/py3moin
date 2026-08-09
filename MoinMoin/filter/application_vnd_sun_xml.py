@@ -20,16 +20,10 @@ rx_stripxml = re.compile("<[^>]*?>", re.DOTALL|re.MULTILINE)
 def execute(indexobj, filename):
     try:
         zf = zipfile.ZipFile(filename, "r")
-        data = zf.read("content.xml")
+        data = zf.read("content.xml").decode('utf-8')
         zf.close()
         data = " ".join(rx_stripxml.sub(" ", data).split())
-    except (zipfile.BadZipfile, RuntimeError) as err:
+    except (UnicodeDecodeError, zipfile.BadZipfile, RuntimeError) as err:
         logging.error("%s [%s]" % (str(err), filename))
-        data = ""
-    try:
-        data = data.decode('utf-8')
-    except UnicodeDecodeError:
-        # protected with password? no valid OpenOffice file?
         data = u''
     return data
-

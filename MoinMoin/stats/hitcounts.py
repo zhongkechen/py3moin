@@ -215,7 +215,7 @@ def draw(pagename, context):
     edits = [x * scalefactor for x in edits]
 
     # create image
-    image = io.StringIO()
+    image = io.BytesIO()
     c = Chart()
     c.addData(ChartData(views, color='green'))
     c.addData(ChartData(edits, color='red'))
@@ -253,5 +253,5 @@ def draw(pagename, context):
     context.response.content_length = len(image.getvalue())
 
     # copy the image
-    image.reset()
+    image.seek(0)
     shutil.copyfileobj(image, context, 8192)

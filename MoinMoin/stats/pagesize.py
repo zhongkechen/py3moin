@@ -85,7 +85,7 @@ def draw(pagename, request):
             '<br>'.join([wikiutil.escape(repr(x)) for x in [labels, data]])
 
     # create image
-    image = io.StringIO()
+    image = io.BytesIO()
     c = Chart()
     ##c.addData(ChartData(data, 'magenta'))
     c.addData(ChartData(_slice(data, 0, 7), 'blue'))
@@ -116,5 +116,5 @@ def draw(pagename, request):
     request.content_length = len(image.getvalue())
 
     # copy the image
-    image.reset()
+    image.seek(0)
     shutil.copyfileobj(image, request, 8192)

@@ -128,8 +128,8 @@ newpassword:
         if text_file:
             text_intro = ''
             text_msg = ''
-            with open(text_file) as f:
-                text_data = f.read().decode('utf-8')
+            with open(text_file, encoding='utf-8') as f:
+                text_data = f.read()
 
         if self.options.uid:
             try:

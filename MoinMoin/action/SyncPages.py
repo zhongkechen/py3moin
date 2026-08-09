@@ -42,9 +42,9 @@ class ActionClass:
 
     def log_status(self, level, message=u"", substitutions=(), raw_suffix=u""):
         """ Appends the message with a given importance level to the internal log. """
-        if isinstance(message, str):
+        if isinstance(message, bytes):
             message = message.decode("utf-8")
-        if isinstance(raw_suffix, str):
+        if isinstance(raw_suffix, bytes):
             raw_suffix = raw_suffix.decode("utf-8")
         self.status.append((level, message, substitutions, raw_suffix))
 

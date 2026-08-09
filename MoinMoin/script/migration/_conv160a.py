@@ -114,7 +114,7 @@ class EventLog:
                 kvpairs = wikiutil.makeQueryString(kvdict)
                 fields = str(timestamp), action, kvpairs
                 line = '\t'.join(fields) + '\n'
-                f.write(line)
+                f.write(line.encode(config.charset))
             f.close()
 
     def copy(self, destfname, renames):
@@ -172,9 +172,9 @@ class EditLog:
                 timestamp, rev, action, pagename, ip, hostname, userid, extra, comment = fields
                 if action.startswith('ATT'):
                     try:
-                        fname = urllib.parse.unquote(extra).decode('utf-8')
+                        fname = urllib.parse.unquote_to_bytes(extra).decode('utf-8')
                     except UnicodeDecodeError:
-                        fname = urllib.parse.unquote(extra).decode('iso-8859-1')
+                        fname = urllib.parse.unquote_to_bytes(extra).decode('iso-8859-1')
                     if ('FILE', pagename, fname) in self.renames:
                         fname = self.renames[('FILE', pagename, fname)]
                     extra = urllib.parse.quote(fname.encode('utf-8'))
@@ -187,7 +187,7 @@ class EditLog:
                 pagename = wikiutil.quoteWikinameFS(pagename)
                 fields = timestamp, revstr, action, pagename, ip, hostname, userid, extra, comment
                 log_str = '\t'.join(fields) + '\n'
-                f.write(log_str)
+                f.write(log_str.encode(config.charset))
             if create_rev and not deleted:
                 timestamp = str(wikiutil.timestamp2version(time.time()))
                 revstr = '%08d' % (max_rev + 1)
@@ -199,7 +199,7 @@ class EditLog:
                 comment = "converted to 1.6 markup"
                 fields = timestamp, revstr, action, pagename, ip, hostname, userid, extra, comment
                 log_str = '\t'.join(fields) + '\n'
-                f.write(log_str)
+                f.write(log_str.encode(config.charset))
             f.close()
 
     def copy(self, destfname, renames, deleted=False):
@@ -248,12 +248,11 @@ class Attachment:
     def __init__(self, request, attach_dir, attfile):
         self.request = request
         self.path = opj(attach_dir, attfile)
-        self.name = attfile.decode('utf-8', 'replace')
+        self.name = attfile
 
     def copy(self, attach_dir):
         """ copy attachment file from orig path to new destination """
-        attfile = self.name.encode('utf-8')
-        dest = opj(attach_dir, attfile)
+        dest = opj(attach_dir, self.name)
         copy_file(self.path, dest)
 
 

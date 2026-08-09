@@ -49,9 +49,7 @@ class NewPage:
             template = self.nametemplate.replace('%s', repl)
         else:
             template = self.nametemplate
-        template = template.encode('utf-8')
         template = time.strftime(template, self.request.user.getTime(time.time()))
-        template = template.decode('utf-8')
         if need_replace:
             self.pagename = template.replace(repl, self.pagename)
         else:

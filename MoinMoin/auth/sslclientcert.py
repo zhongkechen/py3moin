@@ -13,6 +13,13 @@
 from MoinMoin import config, user
 from MoinMoin.auth import BaseAuth
 
+
+def _decode(value):
+    if isinstance(value, bytes):
+        return value.decode(config.charset)
+    return value
+
+
 class SSLClientCertAuth(BaseAuth):
     """ authenticate via SSL client certificate """
 
@@ -44,11 +51,11 @@ class SSLClientCertAuth(BaseAuth):
 
             email_lower = None
             if self.email_key:
-                email = env.get('SSL_CLIENT_S_DN_Email', '').decode(config.charset)
+                email = _decode(env.get('SSL_CLIENT_S_DN_Email', ''))
                 email_lower = email.lower()
             commonname_lower = None
             if self.name_key:
-                commonname = env.get('SSL_CLIENT_S_DN_CN', '').decode(config.charset)
+                commonname = _decode(env.get('SSL_CLIENT_S_DN_CN', ''))
                 commonname_lower = commonname.lower()
             if email_lower or commonname_lower:
                 for uid in user.getUserList(request):

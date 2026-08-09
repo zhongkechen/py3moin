@@ -43,6 +43,17 @@ class TestEncodePassword:
             assert result == expected
 
 
+def test_recovery_token_roundtrip(req, monkeypatch):
+    account = user.User(req)
+    monkeypatch.setattr(user.User, 'save', lambda self: None)
+
+    token = account.generate_recovery_token()
+
+    assert account.apply_recovery_token(token, 'new password')
+    assert account.recoverpass_key == ''
+    assert account.enc_password.startswith(req.cfg.password_scheme)
+
+
 class TestLoginWithPassword:
     """user: login tests"""
 
@@ -341,4 +352,3 @@ class TestIsValidName:
 
 
 coverage_modules = ['MoinMoin.user']
-

@@ -20,13 +20,13 @@ from MoinMoin import log
 from MoinMoin import user
 from MoinMoin.auth import BaseAuth, CancelLogin, ContinueLogin
 
+logging = log.getLogger(__name__)
+
 try:
     import ldap
 except ImportError as err:
     logging.error("You need to have python-ldap installed (%s)." % str(err))
     raise
-
-logging = log.getLogger(__name__)
 
 
 class LDAPAuth(BaseAuth):
@@ -211,7 +211,9 @@ class LDAPAuth(BaseAuth):
 
                 if self.email_callback is None:
                     if self.email_attribute:
-                        email = ldap_dict.get(self.email_attribute, [''])[0].decode(coding)
+                        email = ldap_dict.get(self.email_attribute, [b''])[0]
+                        if isinstance(email, bytes):
+                            email = email.decode(coding)
                     else:
                         email = None
                 else:
@@ -223,13 +225,18 @@ class LDAPAuth(BaseAuth):
                 except (KeyError, IndexError):
                     pass
                 if not aliasname:
-                    sn = ldap_dict.get(self.surname_attribute, [''])[0]
-                    gn = ldap_dict.get(self.givenname_attribute, [''])[0]
+                    sn = ldap_dict.get(self.surname_attribute, [b''])[0]
+                    gn = ldap_dict.get(self.givenname_attribute, [b''])[0]
+                    if isinstance(sn, bytes):
+                        sn = sn.decode(coding)
+                    if isinstance(gn, bytes):
+                        gn = gn.decode(coding)
                     if sn and gn:
                         aliasname = "%s, %s" % (sn, gn)
                     elif sn:
                         aliasname = sn
-                aliasname = aliasname.decode(coding)
+                if isinstance(aliasname, bytes):
+                    aliasname = aliasname.decode(coding)
 
                 if self.name_callback:
                     username = self.name_callback(ldap_dict)

@@ -85,7 +85,8 @@ class TextCha:
 
     def _compute_signature(self, question, timestamp):
         signature = u"%s%d" % (question, timestamp)
-        return hmac.new(self.secret, signature.encode('utf-8'), digestmod=hashlib.sha1).hexdigest()
+        secret = self.secret.encode('utf-8') if isinstance(self.secret, str) else self.secret
+        return hmac.new(secret, signature.encode('utf-8'), digestmod=hashlib.sha1).hexdigest()
 
     def _init_qa(self, question=None):
         """ Initialize the question / answer.

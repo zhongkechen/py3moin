@@ -6,6 +6,9 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+import io
+import zipfile
+
 
 class TestFilters:
 
@@ -54,9 +57,19 @@ class TestFilters:
             fname = self.make_file(data)
             assert _filter(None, fname) == expected
 
+    def testOpenDocument(self):
+        from MoinMoin.filter.application_vnd_oasis_opendocument import execute as _filter
+
+        output = io.BytesIO()
+        with zipfile.ZipFile(output, 'w') as archive:
+            archive.writestr('content.xml', '<doc>Hello <b>Wörld</b></doc>'.encode('utf-8'))
+
+        fname = self.make_file(output.getvalue())
+        assert _filter(None, fname) == 'Hello Wörld'
+
 coverage_modules = ['MoinMoin.filter.text',
                     'MoinMoin.filter.text_html',
                     'MoinMoin.filter.text_xml',
                     'MoinMoin.filter.application_octet_stream',
+                    'MoinMoin.filter.application_vnd_oasis_opendocument',
                    ]
-
