@@ -34,8 +34,11 @@
 """
 
 import codecs
+import importlib.util
+import marshal
 import os
 import re
+import sys
 from logging import NOTSET
 
 from MoinMoin import config, caching, user, util, wikiutil
@@ -44,6 +47,30 @@ from MoinMoin.logfile import eventlog
 from MoinMoin.decorator import context_timer
 
 logging = log.getLogger(__name__)
+
+
+def _page_code_cache_header():
+    implementation = sys.implementation
+    version = implementation.version
+    runtime = '%s:%d.%d.%d:%s:%d:%s:%d' % (
+        implementation.name,
+        version.major,
+        version.minor,
+        version.micro,
+        version.releaselevel,
+        version.serial,
+        implementation.cache_tag or '',
+        marshal.version,
+    )
+    return (
+        b'MoinMoin.Page.code-cache\0' +
+        runtime.encode('ascii') +
+        b'\0' +
+        importlib.util.MAGIC_NUMBER
+    )
+
+
+_PAGE_CODE_CACHE_HEADER = _page_code_cache_header()
 
 
 def is_cache_exception(e):
@@ -1473,9 +1500,13 @@ class Page:
         if cache.needsUpdate(self._text_filename(), attachmentsPath):
             raise Exception('CacheNeedsUpdate')
 
-        import marshal
         try:
-            return marshal.loads(cache.content())
+            content = cache.content()
+            # Marshalled code objects are only valid for the runtime that
+            # created them.
+            if not content.startswith(_PAGE_CODE_CACHE_HEADER):
+                raise ValueError('incompatible page code cache')
+            return marshal.loads(content[len(_PAGE_CODE_CACHE_HEADER):])
         except (EOFError, ValueError, TypeError):
             # Bad marshal data, must update the cache.
             # See http://docs.python.org/lib/module-marshal.html
@@ -1487,7 +1518,6 @@ class Page:
 
     def makeCache(self, request, parser):
         """ Format content into code, update cache and return code """
-        import marshal
         from MoinMoin.formatter.text_python import Formatter
         formatter = Formatter(request, ["page"], self.formatter)
 
@@ -1502,7 +1532,7 @@ class Page:
         code = compile(src.encode(config.charset),
                        self.page_name.encode(config.charset), 'exec')
         cache = caching.CacheEntry(request, self, self.getFormatterName(), scope='item')
-        cache.update(marshal.dumps(code))
+        cache.update(_PAGE_CODE_CACHE_HEADER + marshal.dumps(code))
         return code
 
     def _specialPageText(self, request, special_type):

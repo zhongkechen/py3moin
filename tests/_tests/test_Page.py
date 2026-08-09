@@ -7,11 +7,30 @@
 """
 
 
+import importlib.util
+import io
+import marshal
+import sys
 
-from MoinMoin.Page import Page
+from MoinMoin import caching
+from MoinMoin.Page import Page, _PAGE_CODE_CACHE_HEADER
 
 
 class TestPage:
+    def testCodeCacheHeaderIdentifiesRuntime(self):
+        implementation = sys.implementation
+        version = implementation.version
+
+        assert implementation.name.encode('ascii') in _PAGE_CODE_CACHE_HEADER
+        assert ('%d.%d.%d' % (
+            version.major,
+            version.minor,
+            version.micro,
+        )).encode('ascii') in _PAGE_CODE_CACHE_HEADER
+        if implementation.cache_tag:
+            assert implementation.cache_tag.encode('ascii') in _PAGE_CODE_CACHE_HEADER
+        assert _PAGE_CODE_CACHE_HEADER.endswith(importlib.util.MAGIC_NUMBER)
+
     def testMeta(self, req):
         page = Page(req, u'FrontPage')
         meta = page.meta
@@ -55,7 +74,6 @@ class TestPage:
 
     def testSendPage(self, req):
         page = Page(req, u"FrontPage")
-        import io
         out = io.StringIO()
         req.redirect(out)
         page.send_page(msg=u'Done', emit_headers=False)
@@ -64,6 +82,26 @@ class TestPage:
         del out
         assert result.strip().endswith('</html>')
         assert result.strip().startswith('<!DOCTYPE HTML PUBLIC')
+
+    def testSendPageRebuildsUnversionedCodeCache(self, req):
+        page = Page(req, u"FrontPage")
+        cache = caching.CacheEntry(req, page, 'text_html', scope='item')
+        stale_code = compile(
+            "raise RuntimeError('unversioned cache was executed')",
+            'stale-page-cache',
+            'exec',
+        )
+        cache.update(marshal.dumps(stale_code))
+
+        out = io.StringIO()
+        req.redirect(out)
+        try:
+            page.send_page(emit_headers=False)
+        finally:
+            req.redirect()
+
+        assert out.getvalue().strip().endswith('</html>')
+        assert cache.content().startswith(_PAGE_CODE_CACHE_HEADER)
 
 
 class TestRootPage:
@@ -76,4 +114,3 @@ class TestRootPage:
 
 
 coverage_modules = ['MoinMoin.Page']
-
