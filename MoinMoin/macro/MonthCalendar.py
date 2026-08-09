@@ -89,6 +89,23 @@
         * added template argument for specifying an edit template for new pages
     * 2.3:
         * adapted to moin 1.7 new macro parameter parsing
+    * 2.4:
+        * limited the range the prev/next navigation can reach, see
+          MAX_NAV_OFFSET below. Without such a limit, the navigation offers an
+          infinite amount of distinct urls and crawlers walk them endlessly.
+    * 2.5:
+        * days without a page are only linked if the user may create that page.
+          Anonymous visitors (and thus the crawlers) used to get a link per day
+          leading to a "page does not exist" view.
+    * 2.6:
+        * the prev/next navigation links always are rel=nofollow now, not just
+          for years other than the current one.
+    * 2.7:
+        * bots (see cfg.ua_spiders) get no navigation links at all and their
+          calparms are ignored, so there is exactly one calendar url per page
+          for them. Replaces the old "return nothing if the bot navigated more
+          than a year away" handling, which also hid calendars an author had
+          deliberately pointed at a far away year.
 
     Usage:
         <<MonthCalendar(BasePage,year,month,monthoffset,monthoffset2,height6,anniversary,template)>>
@@ -162,6 +179,14 @@ Dependencies = ['namespace', 'time', ]
 # XXX change here ----------------vvvvvv
 calendar.setfirstweekday(calendar.MONDAY)
 
+# How many months the prev/next navigation may move away from the month the
+# macro was configured to show. Beyond that limit the arrows are rendered as
+# plain text instead of links, and an offset given in the url is clamped.
+# This is what keeps the amount of urls this macro generates finite: crawlers
+# ignore rel=nofollow and robots meta tags, but they can not follow a link
+# that is not there.
+# May be overridden in the wiki config as monthcalendar_max_nav_offset.
+MAX_NAV_OFFSET = 18  # 1.5 years
 
 def cliprgb(r, g, b):
     """ clip r,g,b values into range 0..254 """
@@ -210,6 +235,13 @@ def parseargs(request, args, defpagename, defyear, defmonth, defoffset, defoffse
 
     return parmpagename, parmyear, parmmonth, parmoffset, parmoffset2, parmheight6, parmanniversary, parmtemplate
 
+def clampoffset(offset, maxoffset):
+    """ clip a navigation offset into range -maxoffset..maxoffset """
+    if offset < -maxoffset:
+        return -maxoffset
+    elif offset > maxoffset:
+        return maxoffset
+    return offset
 
 def execute(macro, text):
     request = macro.request
@@ -222,8 +254,12 @@ def execute(macro, text):
 
     currentyear, currentmonth, currentday, h, m, s, wd, yd, ds = request.user.getTime(time.time())
     thispage = formatter.page.page_name
+    # A bot gets the calendar as the macro was configured, never a navigated
+    # one, and it gets no navigation links at all (see navigation() below).
+    # That way there is exactly one calendar url per page for it to fetch.
+    is_spider = request.isSpiderAgent
     # does the url have calendar params (= somebody has clicked on prev/next links in calendar) ?
-    if 'calparms' in macro.request.args:
+    if 'calparms' in macro.request.args and not is_spider:
         has_calparms = 1  # yes!
         text2 = macro.request.args['calparms']
         cparmpagename, cparmyear, cparmmonth, cparmoffset, cparmoffset2, cparmheight6, cparmanniversary, cparmtemplate = \
@@ -244,20 +280,28 @@ def execute(macro, text):
     # calendars on the same page)?
     # if has_calparms and (cparmpagename,cparmyear,cparmmonth,cparmoffset) == (parmpagename,parmyear,parmmonth,parmoffset):
 
+    max_nav_offset = getattr(request.cfg, 'monthcalendar_max_nav_offset', MAX_NAV_OFFSET)
+
     # move all calendars when using the navigation:
     if has_calparms and cparmpagename == parmpagename:
-        year, month = yearmonthplusoffset(parmyear, parmmonth, parmoffset + cparmoffset2)
-        parmoffset2 = cparmoffset2
+        # this offset comes from the url query string, so it is controlled by
+        # whoever requests the page - crawlers included. Clamping it (and the
+        # navigation links built from it below) keeps the amount of distinct
+        # urls of this calendar finite.
+        parmoffset2 = clampoffset(cparmoffset2, max_nav_offset)
+        year, month = yearmonthplusoffset(parmyear, parmmonth, parmoffset + parmoffset2)
         parmtemplate = cparmtemplate
     else:
+        # note: parmoffset2 given as macro argument does not move the displayed
+        # month, it only is the starting point of the navigation.
+        parmoffset2 = clampoffset(parmoffset2, max_nav_offset)
         year, month = yearmonthplusoffset(parmyear, parmmonth, parmoffset)
 
-    if request.isSpiderAgent and abs(currentyear - year) > 1:
-        return ''  # this is a bot and it didn't follow the rules (see below)
-    if currentyear == year:
-        attrs = {}
-    else:
-        attrs = {'rel': 'nofollow'}  # otherwise even well-behaved bots will index forever
+    # The navigation is never worth indexing: it shows the same day pages the
+    # calendar already links, just arranged by month. Used to be done only for
+    # years other than the current one, but there is nothing to gain from
+    # letting bots crawl the current year's navigation either.
+    navattrs = {'rel': 'nofollow'}
 
     # get the calendar
     monthcal = calendar.monthcalendar(year, month)
@@ -279,15 +323,19 @@ def execute(macro, text):
     qpagenames = '*'.join([wikiutil.quoteWikinameURL(pn) for pn in parmpagename])
     qtemplate = wikiutil.quoteWikinameURL(parmtemplate)
     querystr = "calparms=%%s,%d,%d,%d,%%d,,,%%s" % (parmyear, parmmonth, parmoffset)
-    prevlink = p.url(request, querystr % (qpagenames, parmoffset2 - 1, qtemplate))
-    nextlink = p.url(request, querystr % (qpagenames, parmoffset2 + 1, qtemplate))
-    prevylink = p.url(request, querystr % (qpagenames, parmoffset2 - 12, qtemplate))
-    nextylink = p.url(request, querystr % (qpagenames, parmoffset2 + 12, qtemplate))
 
-    prevmonth = formatter.url(1, prevlink, 'cal-link', **attrs) + '&lt;' + formatter.url(0)
-    nextmonth = formatter.url(1, nextlink, 'cal-link', **attrs) + '&gt;' + formatter.url(0)
-    prevyear = formatter.url(1, prevylink, 'cal-link', **attrs) + '&lt;&lt;' + formatter.url(0)
-    nextyear = formatter.url(1, nextylink, 'cal-link', **attrs) + '&gt;&gt;' + formatter.url(0)
+    def navigation(offset, label):
+        """ a navigation link moving the calendar to navigation offset <offset>,
+            or just <label> for a bot or if that offset is out of range """
+        if is_spider or abs(offset) > max_nav_offset:
+            return label
+        url = p.url(request, querystr % (qpagenames, offset, qtemplate))
+        return formatter.url(1, url, 'cal-link', **navattrs) + label + formatter.url(0)
+
+    prevmonth = navigation(parmoffset2 - 1, '&lt;')
+    nextmonth = navigation(parmoffset2 + 1, '&gt;')
+    prevyear = navigation(parmoffset2 - 12, '&lt;&lt;')
+    nextyear = navigation(parmoffset2 + 12, '&gt;&gt;')
 
     if parmpagename != [thispage]:
         pagelinks = ''
@@ -347,6 +395,11 @@ def execute(macro, text):
             monthcal = monthcal + [[0, 0, 0, 0, 0, 0, 0]]
 
     maketip_js = []
+    # May the user create the day pages of this calendar? A page that does not
+    # exist can not carry an acl of its own, so the answer is the same for every
+    # nonexisting day page here and we only compute it for the first one.
+    # None means "not asked yet".
+    may_create = None
     restrn = []
     for week in monthcal:
         restdn = []
@@ -361,7 +414,9 @@ def execute(macro, text):
                 else:
                     link = "%s/%4d-%02d-%02d" % (page, year, month, day)
                 daypage = Page(request, link)
-                if daypage.exists() and request.user.may.read(link):
+                dayexists = daypage.exists()
+                if dayexists and request.user.may.read(link):
+                    linkday = True
                     csslink = "cal-usedday"
                     query = {}
                     r, g, b, u = (255, 0, 0, 1)
@@ -382,6 +437,19 @@ def execute(macro, text):
                     attrs = {'onMouseOver': "tip('%s')" % tipname_unescaped,
                              'onMouseOut': "untip()"}
                 else:
+                    # nothing to show here yet - only link the day if the user
+                    # could actually create that page. For anonymous visitors
+                    # (and that is what the crawlers are) this usually is not
+                    # the case and we save them a page view each that would
+                    # have rendered a "this page does not exist" view.
+                    if dayexists:
+                        # exists, but is not readable by this user: such a page
+                        # can carry an acl of its own, so we have to ask for it
+                        linkday = request.user.may.write(link)
+                    else:
+                        if may_create is None:
+                            may_create = request.user.may.write(link)
+                        linkday = may_create
                     csslink = "cal-emptyday"
                     if parmtemplate:
                         query = {'action': 'edit', 'template': parmtemplate}
@@ -402,7 +470,12 @@ def execute(macro, text):
                             r, g, b = (r, g + colorstep, b)
                 r, g, b = cliprgb(r, g, b)
                 style = 'background-color:#%02x%02x%02x' % (r, g, b)
-                fmtlink = formatter.url(1, daypage.url(request, query), csslink, **attrs) + str(day) + formatter.url(0)
+                if linkday:
+                    fmtlink = formatter.url(1, daypage.url(request, query), csslink, **attrs) + str(day) + formatter.url(0)
+                else:
+                    # same class as the link would have had, so the themes can
+                    # keep styling the day the same way
+                    fmtlink = '<span class="%s">%d</span>' % (csslink, day)
                 if day == currentday and month == currentmonth and year == currentyear:
                     cssday = "cal-today"
                     fmtlink = "<b>%s</b>" % fmtlink  # for browser with CSS probs
