@@ -12,6 +12,8 @@ import sys
 
 import pytest
 
+from MoinMoin.config import multiconfig
+
 
 def test_plugin_package_is_registered(req):
     module_name = req.cfg._plugin_modules[0]
@@ -19,6 +21,24 @@ def test_plugin_package_is_registered(req):
 
     assert module.__name__ == module_name
     assert module.__path__ == [os.path.abspath(req.cfg.plugin_dir)]
+
+
+def test_iwid_generation_uses_hex_text(req, monkeypatch):
+    class MetaDict(dict):
+        def sync(self):
+            self.synced = True
+
+    meta = MetaDict()
+    monkeypatch.setattr(req.cfg, '_meta_dict', meta)
+    monkeypatch.setattr(multiconfig.util, 'random_string',
+                        lambda length: ''.join(chr(value) for value in range(length)))
+    monkeypatch.setattr(multiconfig.time, 'time', lambda: 1234567890)
+
+    req.cfg.load_IWID()
+
+    assert req.cfg.iwid == '000102030405060708090a0b0c0d0e0f-1234567890'
+    assert meta['IWID'] == req.cfg.iwid
+    assert meta.synced
 
 
 class TestPasswordChecker:

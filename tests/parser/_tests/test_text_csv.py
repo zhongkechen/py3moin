@@ -18,7 +18,7 @@ PAGENAME = u'ThisPageDoesNotExistsAndWillNeverBeReally'
 class ParserTestCase:
     """ Helper class that provide a parsing method """
 
-    def parse(self, req, body):
+    def parse(self, req, body, **parser_kwargs):
         """Parse body and return html
 
         Create a page with body, then parse it and format using html formatter
@@ -34,7 +34,7 @@ class ParserTestCase:
         page.formatter = formatter
         request.page = page
         request.formatter = formatter
-        parser = CSV_Parser(body, request, line_anchors=False)
+        parser = CSV_Parser(body, request, line_anchors=False, **parser_kwargs)
         formatter.startContent('') # needed for _include_stack init
         output = request.redirectedOutput(parser.format, formatter)
         formatter.endContent('')
@@ -57,5 +57,9 @@ class TestDelimiters(ParserTestCase):
         result = self.parse(req, 'ABCDEFGHIJ')
         assert '<td class="hcolumn0"><strong>ABCDEFGHIJ</strong></td>' in  result
 
-coverage_modules = ['MoinMoin.parser.text_csv']
+    def test_format_arguments_are_text(self, req):
+        result = self.parse(req, 'left|right', format_args='separator=|')
+        assert '<strong>left</strong>' in result
+        assert '<strong>right</strong>' in result
 
+coverage_modules = ['MoinMoin.parser.text_csv']

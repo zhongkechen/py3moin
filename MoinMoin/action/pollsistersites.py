@@ -39,9 +39,9 @@ def execute(pagename, request):
             for line in f:
                 line = line.strip()
                 try:
-                    page_url, page_name = line.split(' ', 1)
-                    sisterpages[page_name.decode('utf-8')] = page_url
-                except:
+                    page_url, page_name = line.decode('utf-8').split(' ', 1)
+                    sisterpages[page_name] = page_url
+                except (UnicodeDecodeError, ValueError):
                     pass  # ignore invalid lines
             try:
                 lastmod = f.info()["Last-Modified"]

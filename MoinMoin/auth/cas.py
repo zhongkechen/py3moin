@@ -57,7 +57,7 @@ class PyCAS:
         """Validate the given ticket against the given service."""
         f = urllib.request.urlopen(self.validate_url(service, ticket))
         valid = f.readline()
-        valid = valid.strip() == 'yes'
+        valid = valid.strip() == b'yes'
         user = f.readline().strip()
         user = user.decode(self.coding)
         return valid, user
@@ -119,4 +119,3 @@ class CASAuth(BaseAuth):
             user_obj.valid = False
 
         return user_obj, True
-

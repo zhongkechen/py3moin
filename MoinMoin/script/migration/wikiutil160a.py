@@ -6,7 +6,6 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import cgi
 import codecs
 import hashlib
 import os
@@ -150,18 +149,12 @@ def url_unquote(s, want_unicode=True):
 def parseQueryString(qstr, want_unicode=True):
     """ Parse a querystring "key=value&..." into a dict.
     """
-    is_unicode = isinstance(qstr, str)
-    if is_unicode:
-        qstr = qstr.encode(config.charset)
+    if isinstance(qstr, bytes):
+        qstr = qstr.decode(config.charset)
     values = {}
-    for key, value in list(cgi.parse_qs(qstr).items()):
+    for key, value in urllib.parse.parse_qs(qstr).items():
         if len(value) < 2:
             v = ''.join(value)
-            if want_unicode:
-                try:
-                    v = str(v, config.charset)
-                except UnicodeDecodeError:
-                    v = str(v, 'iso-8859-1', 'replace')
             values[key] = v
     return values
 

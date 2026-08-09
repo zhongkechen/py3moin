@@ -82,7 +82,7 @@ class Parser:
                         self.supportedSchemes.append(base_scheme)
 
                 # setting up vars for xslt Processor
-                out_file = io.StringIO()
+                out_file = io.BytesIO()
                 wiki_resolver = MoinResolver(
                     handlers={self.base_scheme: self._resolve_page, },
                     base_scheme=self.base_scheme)
@@ -115,7 +115,7 @@ class Parser:
                 before = _('%(errortype)s processing error') % {'errortype': etype, }
                 title = u"<strong>%s: %s</strong><p>" % (before, msg)
                 self.request.write(title)
-                self.request.write(text.decode(config.charset))
+                self.request.write(text)
             else:
                 self.request.write(result)
                 cache = caching.CacheEntry(self.request, formatter.page, self.key, scope='item')
@@ -130,7 +130,7 @@ class Parser:
             pagename = uri[len(base_uri):]
             page = Page.Page(self.request, pagename)
             if page.exists():
-                result = io.StringIO(page.getPageText().encode(config.charset))
+                result = io.BytesIO(page.getPageText().encode(config.charset))
             else:
                 raise Uri.UriException(Uri.UriException.RESOURCE_ERROR, loc=uri,
                                        msg='Page does not exist')

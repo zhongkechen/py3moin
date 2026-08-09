@@ -332,7 +332,7 @@ class GivenAuth(BaseAuth):
 
     def decode_username(self, name):
         """ decode the name we got from the environment var to unicode """
-        if isinstance(name, str):
+        if isinstance(name, bytes):
             if self.coding:
                 name = name.decode(self.coding)
             else:

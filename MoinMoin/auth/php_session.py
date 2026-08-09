@@ -48,14 +48,14 @@ class PHPSessionAuth(BaseAuth):
             name = user_info.get('fullname', '')
             email = user_info.get('email', '')
 
-            dec = lambda x: x and x.decode("iso-8859-1")
+            dec = lambda x: x.decode("iso-8859-1") if isinstance(x, bytes) else x
 
             return dec(username), dec(email), dec(name)
 
         cookie = kw.get('cookie')
         if not cookie is None:
             for cookiename in cookie:
-                cookievalue = urllib.parse.unquote(cookie[cookiename].value).decode('iso-8859-1')
+                cookievalue = urllib.parse.unquote_to_bytes(cookie[cookiename].value).decode('iso-8859-1')
                 session = _PHPsessionParser.loadSession(cookievalue, path=self.s_path, prefix=self.s_prefix)
                 if session:
                     if "egw" in self.apps and session.get('egw_session', None):
@@ -80,4 +80,3 @@ class PHPSessionAuth(BaseAuth):
             if u and u.valid:
                 return u, True # True to get other methods called, too
         return user_obj, True # continue with next method in auth list
-

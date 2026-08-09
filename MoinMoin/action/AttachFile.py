@@ -32,7 +32,7 @@ import os
 import tarfile
 import time
 import zipfile
-from io import StringIO
+from io import BytesIO
 
 from werkzeug.http import http_date
 
@@ -816,13 +816,17 @@ class ContainerItem:
     def put(self, member, content, content_length=None):
         """ save data into a container's member """
         tf = tarfile.TarFile(self.container_filename, mode='a')
-        if isinstance(member, str):
-            member = member.encode('utf-8')
+        if isinstance(member, bytes):
+            member = member.decode('utf-8')
         ti = tarfile.TarInfo(member)
         if isinstance(content, str):
+            content = content.encode('utf-8')
+            content_length = len(content)
+            content = BytesIO(content)
+        elif isinstance(content, bytes):
             if content_length is None:
                 content_length = len(content)
-            content = StringIO(content)  # we need a file obj
+            content = BytesIO(content)
         elif not hasattr(content, 'read'):
             msg = "unsupported content object: %r" % content
             logging.error(msg)
@@ -833,8 +837,8 @@ class ContainerItem:
         tf.close()
 
     def truncate(self):
-        f = open(self.container_filename, 'w')
-        f.close()
+        with tarfile.open(self.container_filename, mode='w'):
+            pass
 
     def exists(self):
         return os.path.exists(self.container_filename)
@@ -1143,7 +1147,6 @@ def _do_unzip(pagename, request, overwrite=False):
                     mapping = []  # zip is not acceptable
                     break
                 finalname = name[fname_index:]  # remove common path prefix
-                finalname = finalname.decode(config.charset, 'replace')  # replaces trash with \uFFFD char
                 mapping.append((name, finalname))
                 new_fsizes[finalname] = zi.file_size
 
@@ -1367,7 +1370,7 @@ def do_admin_browser(request):
                 data.addRow((
                     (Page(request, pagename).link_to(request,
                                                      querystr="action=AttachFile"), wikiutil.escape(pagename, 1)),
-                    wikiutil.escape(filename.decode(config.charset)),
+                    wikiutil.escape(filename),
                     os.path.getsize(filepath),
                 ))
 

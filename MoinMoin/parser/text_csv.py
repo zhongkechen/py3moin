@@ -53,7 +53,6 @@ class Parser:
         self._first_row = None
         formatter = request.formatter
 
-        # workaround csv.reader deficiency by encoding to utf-8
         # removes empty lines in front of the csv table
         data = raw.lstrip('\n').split('\n')
 
@@ -85,7 +84,6 @@ class Parser:
         args = next(hdr)
 
         for arg in args:
-            arg = arg.decode('utf-8')
             try:
                 key, val = arg.split('=', 1)
             except:
@@ -96,13 +94,17 @@ class Parser:
                     except ValueError:
                         pass
                 else:
-                    delimiter = arg.encode('utf-8')
+                    delimiter = arg
                 continue
             if key == 'separator' or key == 'delimiter':
-                delimiter = val.encode('utf-8')
+                delimiter = val
             if key == 'quotechar':
-                if val == val.encode('utf-8'):
-                    quotechar = val.encode('utf-8')
+                try:
+                    val.encode('ascii')
+                except UnicodeEncodeError:
+                    pass
+                else:
+                    quotechar = val
                     quoting = QUOTE_MINIMAL
             elif key == 'show':
                 visible = val.split(',')

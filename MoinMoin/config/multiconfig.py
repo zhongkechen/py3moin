@@ -518,7 +518,8 @@ class ConfigFunctionality:
         try:
             iwid = self.meta_dict['IWID']
         except KeyError:
-            iwid = util.random_string(16).encode("hex") + "-" + str(int(time.time()))
+            random_part = util.random_string(16).encode('latin-1').hex()
+            iwid = random_part + "-" + str(int(time.time()))
             self.meta_dict['IWID'] = iwid
             self.meta_dict.sync()
 

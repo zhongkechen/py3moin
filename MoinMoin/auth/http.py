@@ -45,6 +45,7 @@ from MoinMoin import log
 logging = log.getLogger(__name__)
 
 from MoinMoin import user
+from MoinMoin import wikiutil
 from MoinMoin.auth import BaseAuth, GivenAuth
 
 
@@ -81,8 +82,8 @@ class HTTPAuthMoin(BaseAuth):
             logging.debug("http basic auth, received username: %r password: %r" % (
                           auth.username, auth.password))
             u = user.User(request,
-                          name=auth.username.decode(self.coding),
-                          password=auth.password.decode(self.coding),
+                          name=wikiutil.decodeUserInput(auth.username, [self.coding]),
+                          password=wikiutil.decodeUserInput(auth.password, [self.coding]),
                           auth_method=self.name, auth_attribs=[])
             logging.debug("user: %r" % u)
 
@@ -103,4 +104,3 @@ class HTTPAuthMoin(BaseAuth):
         else:
             logging.debug("returning %r" % user_obj)
             return user_obj, True
-

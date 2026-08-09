@@ -22,10 +22,9 @@ def execute(indexobj, filename):
             del tags["EXIF MakerNote"]
         except:
             pass
-        data = str(tags).decode('utf-8')
+        data = str(tags)
     except (ValueError, TypeError, KeyError): # EXIF throws ValueError on unknown tags
                                               # TypeError on other occassions
                                               # KeyError too
         data = u''
     return data
-

@@ -2,8 +2,8 @@
 
 
 
+import base64
 import xmlrpc.client, http.client
-from base64 import encodestring
 
 class BasicAuthTransport(xmlrpc.client.Transport):
     def __init__(self, username=None, password=None):
@@ -26,7 +26,8 @@ class BasicAuthTransport(xmlrpc.client.Transport):
 
         # basic auth
         if self.username is not None and self.password is not None:
-            authhdr = "Basic %s" % encodestring("%s:%s" % (self.username, self.password)).replace("\012", "")
+            credentials = ("%s:%s" % (self.username, self.password)).encode('utf-8')
+            authhdr = "Basic %s" % base64.b64encode(credentials).decode('ascii')
             h.putheader("Authorization", authhdr)
         h.endheaders()
 
@@ -43,4 +44,3 @@ class BasicAuthTransport(xmlrpc.client.Transport):
                 )
 
         return self.parse_response(h.getfile())
-

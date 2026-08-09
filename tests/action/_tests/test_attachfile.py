@@ -67,4 +67,15 @@ class TestAttachFile:
 
         assert file_exists
 
+    def test_container_accepts_unicode_text(self, req):
+        become_trusted(req)
+        container = AttachFile.ContainerItem(req, self.pagename, 'drawing.tar')
+        container.truncate()
+
+        container.put('drawing.map', 'Grüße')
+
+        assert container.get('drawing.map').read() == 'Grüße'.encode('utf-8')
+        nuke_page(req, self.pagename)
+
+
 coverage_modules = ['MoinMoin.action.AttachFile']

@@ -29,8 +29,6 @@ def run():
         f.close()
         sys.exit(0)
 
-    data = data.decode('utf-8')
-
     cutpos = data.index(u"msgid")
     data = data[cutpos:] # remove comments at top
 
@@ -64,4 +62,3 @@ def run():
 
 if __name__ == "__main__":
     run()
-

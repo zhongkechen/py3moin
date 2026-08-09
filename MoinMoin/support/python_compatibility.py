@@ -8,9 +8,7 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-import string
-
-rsplit = string.rsplit
+rsplit = str.rsplit
 
 sorted = sorted
 
@@ -24,4 +22,8 @@ import hashlib, hmac
 hash_new = hashlib.new
 
 def hmac_new(key, msg, digestmod=hashlib.sha1):
+    if isinstance(key, str):
+        key = key.encode('utf-8')
+    if isinstance(msg, str):
+        msg = msg.encode('utf-8')
     return hmac.new(key, msg, digestmod)

@@ -12,6 +12,7 @@
 import pytest
 
 from MoinMoin import security
+from MoinMoin.security.textcha import TextCha
 acliter = security.ACLStringIterator
 AccessControlList = security.AccessControlList
 
@@ -19,6 +20,16 @@ from MoinMoin.datastruct import ConfigGroups
 from MoinMoin.user import User
 
 from tests._tests import create_page, nuke_page, wikiconfig
+
+
+@pytest.mark.parametrize('secret', ['shared secret', b'shared secret'])
+def test_textcha_signature_accepts_text_and_byte_secrets(secret):
+    textcha = TextCha.__new__(TextCha)
+    textcha.secret = secret
+
+    assert textcha._compute_signature('What is 2 + 2?', 1234567890) == (
+        '91c29839c7fb295b70964ed86123e828620b16f1'
+    )
 
 
 class TestACLStringIterator:

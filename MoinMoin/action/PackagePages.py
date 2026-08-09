@@ -81,7 +81,7 @@ class PackagePages:
             raise ActionError
 
         request = self.request
-        filelike = io.StringIO()
+        filelike = io.BytesIO()
         package = self.collectpackage(unpackLine(pagelist, ","), filelike, target, include_attachments)
         request.headers['Content-Type'] = 'application/zip'
         request.headers['Content-Length'] = filelike.tell()
