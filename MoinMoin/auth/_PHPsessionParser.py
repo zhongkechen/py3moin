@@ -143,12 +143,12 @@ if __name__ == '__main__':
     # testing code
     import time
 
-    a = time.clock()
+    a = time.perf_counter()
 
     # print s
     p_s = loadSession("...")
     import pprint
 
     pprint.pprint(p_s)
-    print(time.clock() - a)
+    print(time.perf_counter() - a)
     print(listSessions())

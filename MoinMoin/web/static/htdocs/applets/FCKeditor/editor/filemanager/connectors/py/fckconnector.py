@@ -25,7 +25,11 @@ Base Connector for Python (CGI and WSGI).
 See config.py for configuration settings
 
 """
-import cgi
+import os
+import sys
+from urllib.parse import parse_qs
+
+from werkzeug.formparser import parse_form_data
 
 from fckcommands import *  # default command's implementation
 
@@ -51,38 +55,29 @@ class FCKeditorConnectorBase( object ):
 class FCKeditorRequest:
 	"A wrapper around the request object"
 	def __init__(self, environ):
-		if environ: # WSGI
-			self.request = cgi.FieldStorage(fp=environ['wsgi.input'],
-							environ=environ,
-							keep_blank_values=1)
-			self.environ = environ
-		else: # plain old cgi
-			self.environ = os.environ
-			self.request = cgi.FieldStorage()
-		if 'REQUEST_METHOD' in self.environ and 'QUERY_STRING' in self.environ:
-			if self.environ['REQUEST_METHOD'].upper()=='POST':
-				# we are in a POST, but GET query_string exists
-				# cgi parses by default POST data, so parse GET QUERY_STRING too
-				self.get_request = cgi.FieldStorage(fp=None,
-							environ={
-							'REQUEST_METHOD':'GET',
-							'QUERY_STRING':self.environ['QUERY_STRING'],
-							},
-							)
-		else:
-			self.get_request={}
+		if environ is None: # plain old CGI
+			environ = dict(os.environ)
+			environ['wsgi.input'] = getattr(sys.stdin, 'buffer', sys.stdin)
+		self.environ = environ
+		unused_stream, self.form, self.files = parse_form_data(environ)
+		self.query = parse_qs(
+			environ.get('QUERY_STRING', ''),
+			keep_blank_values=True,
+		)
 
 	def has_key(self, key):
-		return key in self.request or key in self.get_request
+		return key in self
 
 	def get(self, key, default=None):
-		if key in list(self.request.keys()):
-			field = self.request[key]
-		elif key in list(self.get_request.keys()):
-			field = self.get_request[key]
-		else:
-			return default
-		if hasattr(field,"filename") and field.filename: #file upload, do not convert return value
+		if key in self.files:
+			field = self.files[key]
+			field.file = field.stream
 			return field
-		else:
-			return field.value
+		if key in self.form:
+			return self.form.get(key)
+		if key in self.query:
+			return self.query[key][0]
+		return default
+
+	def __contains__(self, key):
+		return key in self.files or key in self.form or key in self.query

@@ -748,7 +748,7 @@ class PrefixedTermIter:
             term = self._termiter.skip_to(self._prefix).term
             self._started = True
         else:
-            term = self._termiter.next().term
+            term = next(self._termiter).term
         if len(term) < self._prefixlen or term[:self._prefixlen] != self._prefix:
             raise StopIteration
         return term[self._prefixlen:]

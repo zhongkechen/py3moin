@@ -24,7 +24,7 @@ Utility functions for the File Manager Connector for Python
 
 """
 
-import string, re
+import re
 import os
 import config as Config
 
@@ -40,11 +40,11 @@ def getExtension(fileName):
 	fileExtension = fileName[index:]
 	return fileExtension
 
-def removeFromStart(string, char):
-	return string.lstrip(char)
+def removeFromStart(text, char):
+	return text.lstrip(char)
 
-def removeFromEnd(string, char):
-	return string.rstrip(char)
+def removeFromEnd(text, char):
+	return text.rstrip(char)
 
 # Path functions
 

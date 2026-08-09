@@ -25,6 +25,8 @@ Connector for Python (CGI and WSGI).
 See config.py for configuration settings
 
 """
+import traceback
+
 from fckcommands import *  # default command's implementation
 from fckconnector import FCKeditorConnectorBase  # import base connector
 from fckoutput import *  # base http, xml and html output mixins
@@ -115,9 +117,7 @@ if __name__ == '__main__':
             print('%s: %s' % header)
         print()
         print(data)
-    except:
+    except Exception:
         print("Content-Type: text/plain")
         print()
-        import cgi
-
-        cgi.print_exception()
+        traceback.print_exc()

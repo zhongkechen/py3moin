@@ -23,6 +23,8 @@ http://www.mozilla.org/MPL/MPL-1.1.html
 This is the "File Uploader" for Python
 
 """
+import traceback
+
 import config as Config
 from fckcommands import *  # default command's implementation
 from fckconnector import FCKeditorConnectorBase  # import base connector
@@ -82,9 +84,7 @@ if __name__ == '__main__':
                 print('%s: %s' % header)
         print()
         print(data)
-    except:
+    except Exception:
         print("Content-Type: text/plain")
         print()
-        import cgi
-
-        cgi.print_exception()
+        traceback.print_exc()

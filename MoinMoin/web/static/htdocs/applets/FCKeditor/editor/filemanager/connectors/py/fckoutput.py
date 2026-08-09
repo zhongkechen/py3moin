@@ -25,20 +25,15 @@ Connector for Python (CGI and WSGI).
 """
 
 from time import gmtime, strftime
-import string
 
-def escape(text, replace=string.replace):
+def escape(text):
 	"""
 	Converts the special characters '<', '>', and '&'.
-
-	RFC 1866 specifies that these characters be represented
-	in HTML as &lt; &gt; and &amp; respectively. In Python
-	1.5 we use the new string.replace() function for speed.
 	"""
-	text = replace(text, '&', '&amp;') # must be done 1st
-	text = replace(text, '<', '&lt;')
-	text = replace(text, '>', '&gt;')
-	text = replace(text, '"', '&quot;')
+	text = text.replace('&', '&amp;') # must be done 1st
+	text = text.replace('<', '&lt;')
+	text = text.replace('>', '&gt;')
+	text = text.replace('"', '&quot;')
 	return text
 
 def convertToXmlAttribute(value):
@@ -107,7 +102,7 @@ class BaseHtmlMixin:
 
 		"Minified version of the document.domain automatic fix script (#1919)."
 		"The original script can be found at _dev/domain_fix_template.js"
-		return """<script type="text/javascript">
+		return r"""<script type="text/javascript">
 			(function(){var d=document.domain;while (true){try{var A=window.parent.document.domain;break;}catch(e) {};d=d.replace(/.*?(?:\.|$)/,'');if (d.length==0) break;try{document.domain=d;}catch (e){break;}}})();
 
 			window.parent.OnUploadCompleted(%(errorNumber)s,"%(fileUrl)s","%(fileName)s","%(customMsg)s");
