@@ -23,20 +23,15 @@ This is the integration file for Python.
 
 import os
 import re
-import string
 
-def escape(text, replace=string.replace):
+def escape(text):
     """Converts the special characters '<', '>', and '&'.
-
-    RFC 1866 specifies that these characters be represented
-    in HTML as &lt; &gt; and &amp; respectively. In Python
-    1.5 we use the new string.replace() function for speed.
     """
-    text = replace(text, '&', '&amp;') # must be done 1st
-    text = replace(text, '<', '&lt;')
-    text = replace(text, '>', '&gt;')
-    text = replace(text, '"', '&quot;')
-    text = replace(text, "'", '&#39;')
+    text = text.replace('&', '&amp;') # must be done 1st
+    text = text.replace('<', '&lt;')
+    text = text.replace('>', '&gt;')
+    text = text.replace('"', '&quot;')
+    text = text.replace("'", '&#39;')
     return text
 
 # The FCKeditor class
@@ -82,7 +77,7 @@ class FCKeditor:
                     )
 
             # Render the editor iframe
-            Html += "<iframe id=\"%s\__Frame\" src=\"%s\" width=\"%s\" height=\"%s\" frameborder=\"0\" scrolling=\"no\"></iframe>" % (
+            Html += "<iframe id=\"%s___Frame\" src=\"%s\" width=\"%s\" height=\"%s\" frameborder=\"0\" scrolling=\"no\"></iframe>" % (
                     self.InstanceName,
                     Link,
                     self.Width,
@@ -132,9 +127,9 @@ class FCKeditor:
                 return True
             return False
         elif (sAgent.find("AppleWebKit/") >= 0):
-            p = re.compile('AppleWebKit\/(\d+)', re.IGNORECASE)
+            p = re.compile(r'AppleWebKit/(\d+)', re.IGNORECASE)
             m = p.search(sAgent)
-            if (m.group(1) >= 522):
+            if int(m.group(1)) >= 522:
                 return True
             return False
         else:

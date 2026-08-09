@@ -31,8 +31,7 @@ See config.py for configuration settings
 from connector import FCKeditorConnector
 from upload import FCKeditorQuickUpload
 
-import cgitb
-from io import StringIO
+import traceback
 
 # Running from WSGI capable server (recomended)
 def App(environ, start_response):
@@ -43,8 +42,8 @@ def App(environ, start_response):
 		conn = FCKeditorQuickUpload(environ)
 	else:
 		start_response ("200 Ok", [('Content-Type','text/html')])
-		yield "Unknown page requested: "
-		yield environ['SCRIPT_NAME']
+		yield b"Unknown page requested: "
+		yield environ['SCRIPT_NAME'].encode('utf-8')
 		return
 	try:
 		# run the connector
@@ -52,9 +51,12 @@ def App(environ, start_response):
 		# Start WSGI response:
 		start_response ("200 Ok", conn.headers)
 		# Send response text
+		if data is None:
+			data = b''
+		elif isinstance(data, str):
+			data = data.encode('utf-8')
 		yield data
-	except:
-		start_response("500 Internal Server Error",[("Content-type","text/html")])
-		file = StringIO()
-		cgitb.Hook(file = file).handle()
-		yield file.getvalue()
+	except Exception:
+		start_response("500 Internal Server Error",
+					   [("Content-type", "text/plain; charset=utf-8")])
+		yield traceback.format_exc().encode('utf-8')

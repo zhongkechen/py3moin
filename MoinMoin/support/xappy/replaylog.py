@@ -62,7 +62,8 @@ class ReplayLog:
         """
         # Mutex used to protect all access to _fd
         self._fd_mutex = threading.Lock()
-        self._fd = open(logpath, 'wb')
+        self._fd = open(logpath, 'w', encoding='utf-8',
+                        errors='surrogateescape')
 
         # Mutex used to protect all access to members other than _fd
         self._mutex = threading.Lock()
@@ -203,19 +204,12 @@ class ReplayLog:
         if xapargname is not None:
             return xapargname
 
-        if isinstance(arg, (str, bytes)):
-            if isinstance(arg, str):
-                arg = arg.encode('utf-8')
-            return 'str(%d,%s)' % (len(arg), arg)
+        if isinstance(arg, bytes):
+            text = arg.decode('utf-8', errors='surrogateescape')
+            return 'str(%d,%s)' % (len(arg), text)
 
-        if isinstance(arg, int):
-            try:
-                arg = int(arg)
-            except OverFlowError:
-                pass
-
-        if isinstance(arg, int):
-            return 'long(%d)' % arg
+        if isinstance(arg, str):
+            return 'str(%d,%s)' % (len(arg.encode('utf-8')), arg)
 
         if isinstance(arg, int):
             return 'int(%d)' % arg
@@ -262,7 +256,7 @@ class ReplayLog:
             self._thread_ids[thread_id] = thread_num
             self._next_thread += 1
 
-        if thread_num is 0:
+        if thread_num == 0:
             return "%s" % call_num
         return "%dT%d" % (call_num, thread_num)
 
