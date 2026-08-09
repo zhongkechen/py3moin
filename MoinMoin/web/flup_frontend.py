@@ -24,6 +24,8 @@
 
 import os
 import sys
+import traceback
+from html import escape
 
 try:
     import flup.server.fcgi
@@ -43,6 +45,16 @@ from MoinMoin.web.frontend import ServerFrontEnd, FrontEnd, FrontEndNotAvailable
 from MoinMoin import log
 
 logging = log.getLogger(__name__)
+
+
+def format_web_error(exc_info):
+    """Return an HTML error page for the current exception."""
+    error = ''.join(traceback.format_exception(*exc_info))
+    return """<!DOCTYPE html>
+<html><head><title>Unhandled Exception</title></head>
+<body><h1>Unhandled Exception</h1><pre>%s</pre></body></html>
+""" % escape(error)
+
 
 if have_flup:
     class FlupFrontEnd(ServerFrontEnd):
@@ -89,9 +101,8 @@ if have_flup:
                     if self.debug == 'external':
                         raise
                     elif self.debug == 'web':
-                        import cgitb
                         req.stdout.write('Content-Type: text/html\r\n\r\n' +
-                                         cgitb.html(sys.exc_info()))
+                                         format_web_error(sys.exc_info()))
                     else:  # 'off'
                         errorpage = """<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
 <html><head>

@@ -27,16 +27,13 @@ import os
 import time
 from copy import deepcopy
 
+from passlib.hash import des_crypt
+
 from MoinMoin import config, caching, wikiutil, i18n, events
 from MoinMoin import log
 from MoinMoin.support import md5crypt
 from MoinMoin.util import timefuncs, random_string
 from MoinMoin.wikiutil import url_quote_plus, safe_str_cmp
-
-try:
-    import crypt
-except ImportError:
-    crypt = None
 
 logging = log.getLogger(__name__)
 # for efficient lookup <attr> -> userid, we keep an index of this in the cache.
@@ -750,11 +747,9 @@ class User:
                         enc = md5crypt.unix_md5_crypt(password.encode('utf-8'),
                                                       salt.encode('ascii'))
                     elif scheme == '{DES}':
-                        if crypt is None:
-                            return False, False
                         # d is 2 characters salt + 11 characters hash
                         salt = d[:2]
-                        enc = crypt.crypt(password, salt).encode("utf8")
+                        enc = des_crypt.using(salt=salt).hash(password).encode("ascii")
 
                     else:
                         logging.error(

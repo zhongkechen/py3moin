@@ -239,7 +239,7 @@ class ActionBase:
 
 # Builtin Actions ------------------------------------------------------------
 
-MIMETYPE_CRE = re.compile('[a-zA-Z0-9.+\-]{1,100}/[a-zA-Z0-9.+\-]{1,100}')
+MIMETYPE_CRE = re.compile(r'[a-zA-Z0-9.+\-]{1,100}/[a-zA-Z0-9.+\-]{1,100}')
 
 
 def do_raw(pagename, context):

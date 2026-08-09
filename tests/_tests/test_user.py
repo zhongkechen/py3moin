@@ -152,16 +152,12 @@ class TestLoginWithPassword:
         pw_hash = '{DES}gArsfn7O5Yqfo'
         self.createUser(req, name, pw_hash, True)
 
-        try:
-            import crypt
-            # Try to "login"
-            theuser = user.User(req, name=name, password=password)
-            assert theuser.valid
-            # Check if the stored password was auto-upgraded on login and saved
-            theuser = user.User(req, name=name, password=password)
-            assert theuser.enc_password.startswith(self.password_scheme)
-        except ImportError:
-            pytest.skip("Platform does not provide crypt module!")
+        # Try to "login"
+        theuser = user.User(req, name=name, password=password)
+        assert theuser.valid
+        # Check if the stored password was auto-upgraded on login and saved
+        theuser = user.User(req, name=name, password=password)
+        assert theuser.enc_password.startswith(self.password_scheme)
 
     def test_auth_with_sha_stored_password(self, req):
         """

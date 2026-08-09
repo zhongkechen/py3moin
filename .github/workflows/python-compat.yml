@@ -1,0 +1,56 @@
+name: Python compatibility
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: python-compat-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compatibility:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.13"
+          - "3.14"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install project
+        run: python -m pip install .
+
+      - name: Compile with strict syntax warnings
+        env:
+          PYTHONWARNINGS: error::SyntaxWarning
+        run: python -m compileall -q -f MoinMoin
+
+      - name: Run compatibility tests
+        run: |
+          pytest -q \
+            tests/_tests/test_user.py::TestLoginWithPassword::test_auth_with_des_stored_password \
+            tests/web/_tests/test_flup_frontend.py \
+            tests/util/_tests/test_lock.py \
+            tests/_tests/test_packages.py \
+            tests/macro/_tests/test_Action.py \
+            tests/_tests/test_account_inactive.py
