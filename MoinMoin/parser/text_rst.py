@@ -11,6 +11,7 @@
 import re
 import io
 import sys
+from types import MethodType
 
 # docutils imports are below
 from MoinMoin.parser.text_moin_wiki import Parser as WikiParser
@@ -208,7 +209,7 @@ Lists: * bullets; 1., a. numbered items.
     def __init__(self, raw, request, **kw):
         self.raw = raw
         self.request = request
-        self.form = request.form
+        self.form = request.request.form
 
     def format(self, formatter, **kw):
         # Create our simple parser
@@ -497,8 +498,8 @@ class MoinTranslator(html4css1.HTMLTranslator):
         }
         for rest_func, moin_func in list(handlers.items()):
             visit_func, depart_func = self.create_wiki_functor(moin_func)
-            visit_func = new.instancemethod(visit_func, self, MoinTranslator)
-            depart_func = new.instancemethod(depart_func, self, MoinTranslator)
+            visit_func = MethodType(visit_func, self)
+            depart_func = MethodType(depart_func, self)
             setattr(self, 'visit_%s' % (rest_func), visit_func)
             setattr(self, 'depart_%s' % (rest_func), depart_func)
 
@@ -547,8 +548,8 @@ class MoinTranslator(html4css1.HTMLTranslator):
         ]
         for adm in handled_admonitions:
             visit_func, depart_func = self.create_admonition_functor(adm)
-            visit_func = new.instancemethod(visit_func, self, MoinTranslator)
-            depart_func = new.instancemethod(depart_func, self, MoinTranslator)
+            visit_func = MethodType(visit_func, self)
+            depart_func = MethodType(depart_func, self)
             setattr(self, 'visit_%s' % (adm), visit_func)
             setattr(self, 'depart_%s' % (adm), depart_func)
 

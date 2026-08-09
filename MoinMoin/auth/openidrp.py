@@ -206,10 +206,10 @@ username and leave the password field blank.""")))
         return MultistageFormLogin(assoc)
 
     def _handle_associate_continuation(self, request):
+        _ = request.getText
         if 'openid.id' not in request.session:
             return CancelLogin(_('No OpenID found in session.'))
 
-        _ = request.getText
         username = request.form.get('username', '')
         password = request.form.get('password', '')
         if not password:

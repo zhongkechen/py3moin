@@ -394,10 +394,15 @@ class Tag:
     def __repr__(self):
         return u"<Tag normalised_pagename=%r remote_wiki=%r remote_rev=%r current_rev=%r>" % (getattr(self, "normalised_name", "UNDEF"), self.remote_wiki, self.remote_rev, self.current_rev)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         if not isinstance(other, Tag):
             return NotImplemented
-        return cmp(self.current_rev, other.current_rev)
+        return self.current_rev == other.current_rev
+
+    def __lt__(self, other):
+        if not isinstance(other, Tag):
+            return NotImplemented
+        return self.current_rev < other.current_rev
 
 
 class AbstractTagStore:
@@ -518,4 +523,3 @@ class PickleTagStore(AbstractTagStore):
 # currently we just have one implementation, so we do not need
 # a factory method
 TagStore = PickleTagStore
-

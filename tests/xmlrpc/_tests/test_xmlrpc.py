@@ -9,9 +9,11 @@
 
 
 
+from types import SimpleNamespace
 from xmlrpc.client import Fault
 
 from MoinMoin.xmlrpc import XmlRpcBase
+from MoinMoin.xmlrpc import WhoAmI
 
 
 def test_fault_serialization(req):
@@ -39,5 +41,13 @@ def test_getAuthToken(req):
     assert xmlrpc.xmlrpc_getAuthToken("Foo", "bar") == ""
 
 
-coverage_modules = ['MoinMoin.xmlrpc']
+def test_whoami_returns_unicode_username():
+    request = SimpleNamespace(
+        user=SimpleNamespace(name='Jörg', valid=True),
+    )
+    xmlrpc = SimpleNamespace(request=request, _outstr=lambda value: value)
 
+    assert WhoAmI.execute(xmlrpc) == 'You are Jörg. valid=1.'
+
+
+coverage_modules = ['MoinMoin.xmlrpc']

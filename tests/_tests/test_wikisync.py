@@ -27,13 +27,14 @@ class TestUnsafeSync:
         tags = TagStore(self.page)
         assert not tags.get_all_tags()
         tags.add(remote_wiki="foo", remote_rev=1, current_rev=2, direction=BOTH, normalised_name="FrontPage")
+        tags.add(remote_wiki="foo", remote_rev=2, current_rev=3, direction=BOTH, normalised_name="FrontPage")
         tags = TagStore(self.page) # reload
         dummy = repr(tags.get_all_tags()) # this should not raise
         assert tags.get_all_tags()[0].remote_rev == 1
+        assert tags.get_last_tag().current_rev == 3
 
     def teardown_method(self, method):
         tags = TagStore(self.page)
         tags.clear()
 
 coverage_modules = ['MoinMoin.wikisync']
-
