@@ -15,10 +15,9 @@ from pytest import raises
 
 from MoinMoin import security
 from tests._tests import become_trusted, create_page, nuke_page
-from MoinMoin.datastruct import GroupDoesNotExistError, ConfigGroups
+from MoinMoin.datastruct import GroupDoesNotExistError
 
 
-@pytest.mark.wiki_config(groups=lambda s, r: ConfigGroups(r, GroupsBackendTest.test_groups))
 class GroupsBackendTest:
 
     test_groups = {u'EditorGroup': [u'AdminGroup', u'John', u'JoeDoe', u'Editor1', u'John'],

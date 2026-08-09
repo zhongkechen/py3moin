@@ -177,6 +177,16 @@ class HTTPContext(BaseContext):
     cacheable = EnvironProxy('old.cacheable', 0)
     writestack = EnvironProxy('old.writestack', lambda o: list())
 
+    @property
+    def form(self):
+        """Expose submitted form data to legacy context consumers."""
+        return self.request.form
+
+    @property
+    def href(self):
+        """Expose the request URL builder to legacy context consumers."""
+        return self.request.href
+
     # methods regarding manipulation of HTTP related data
     def read(self, n=None):
         """ Read n bytes (or everything) from input stream. """

@@ -13,7 +13,7 @@ from MoinMoin.datastruct import ConfigGroups, CompositeGroups
 from tests._tests import wikiconfig
 
 
-@pytest.mark.wiki_config(groups=lambda s, r: ConfigGroups(r, TestLazyConfigGroups.test_groups))
+@pytest.mark.wiki_config(groups=lambda s, r: ConfigLazyGroups(r, TestLazyConfigGroups.test_groups))
 class TestLazyConfigGroups(GroupsBackendTest):
 
     test_groups = {u'EditorGroup': [u'John', u'JoeDoe', u'Editor1'],
