@@ -55,8 +55,13 @@ jobs:
             tests/_tests/test_packages.py \
             tests/macro/_tests/test_Action.py \
             tests/_tests/test_account_inactive.py \
+            tests/_tests/test_check_i18n.py \
             tests/_tests/test_cli_show.py \
+            tests/_tests/test_example_config_encoding.py \
+            tests/_tests/test_gugiel.py \
+            tests/_tests/test_print_stats.py \
             tests/web/_tests/test_http.py \
+            tests/web/_tests/test_profile.py \
             tests/web/_tests/test_session.py \
             tests/web/_tests/test_contexts.py \
             tests/converter/_tests/test_text_html_text_moin_wiki.py::TestConvertBlockRepeatable::testPreSuccess6 \
