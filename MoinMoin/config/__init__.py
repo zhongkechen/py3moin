@@ -48,6 +48,9 @@ use_threads = False
 # benefit for the user. IMPORTANT: use only lowercase 'utf-8'!
 charset = 'utf-8'
 
+# Maximum memory used for non-file form fields before rejecting a request.
+form_max_memory_size = 10 * 1024 * 1024
+
 # Regex to find lower->upper transitions (word boundaries in WikiNames), used by split_title
 split_regex = re.compile('([%s])([%s])' % (chars_lower, chars_upper), re.UNICODE)
 

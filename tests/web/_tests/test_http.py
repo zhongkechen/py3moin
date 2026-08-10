@@ -7,13 +7,18 @@ MoinMoin HTTP facade compatibility tests.
 import ast
 from base64 import b64encode
 from pathlib import Path
+from types import SimpleNamespace
 
+import pytest
+
+from MoinMoin.config.multiconfig import DefaultConfig
 from MoinMoin.web.exceptions import SurgeProtection
 from MoinMoin.web.http import (
     Client,
     MultiDict,
     PathInfoFromRequestUriFix,
     Response,
+    exceptions,
     url_decode,
     url_encode,
     url_quote,
@@ -59,6 +64,28 @@ def test_test_request_builds_binary_form_body():
 
     assert request.form['name'] == 'Jürgen'
     assert request.form.getlist('tag') == ['one']
+
+
+def test_request_defaults_to_ten_megabyte_form_memory_limit():
+    request = MoinTestRequest()
+
+    assert DefaultConfig.form_max_memory_size == 10 * 1024 * 1024
+    assert request.max_form_memory_size == 10 * 1024 * 1024
+
+
+def test_request_accepts_forms_larger_than_werkzeug_legacy_default():
+    value = 'x' * 501_000
+    request = MoinTestRequest(method='POST', form_data={'text': value})
+
+    assert request.form['text'] == value
+
+
+def test_request_uses_loaded_wiki_form_memory_limit():
+    request = MoinTestRequest(method='POST', form_data={'text': 'x' * 2_000})
+    request.environ['moin.cfg'] = SimpleNamespace(form_max_memory_size=1_000)
+
+    with pytest.raises(exceptions.RequestEntityTooLarge):
+        request.form
 
 
 def test_request_parses_basic_authorization():
