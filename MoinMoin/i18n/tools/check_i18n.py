@@ -15,8 +15,7 @@ names.
 The script will run from the moin root directory, where the MoinMoin
 package lives, or from MoinMoin/i18n where this script lives.
 
-TextFinder class based on code by Seo Sanghyeon and the python compiler
-package.
+TextFinder class based on code by Seo Sanghyeon.
 
 TODO: fix it for the changed i18n stuff of moin 1.6
 
@@ -34,14 +33,17 @@ output_encoding = 'utf-8'
 blacklist_files = []
 blacklist_langs = []
 
-import sys, os, compiler
-from compiler.ast import Name, Const, CallFunc, Getattr
+import ast
+import os
+import sys
+import tokenize
 
-class TextFinder:
+
+class TextFinder(ast.NodeVisitor):
     """ Walk through AST tree and collect text from gettext calls
 
     Find all calls to gettext function in the source tree and collect
-    the texts in a dict. Use compiler to create an abstract syntax tree
+    the texts in a dict. Use ast to create an abstract syntax tree
     from each source file, then find the nodes for gettext function
     call, and get the text from the call.
 
@@ -77,50 +79,33 @@ class TextFinder:
     def visitModule(self, node):
         """ Start the search from the top node of a module
 
-        This is the entry point into the search. When compiler.walk is
-        called it calls this method with the module node.
+        This is the entry point into the search.
 
         This is the place to initialize module specific data.
         """
-        self._visited = {}  # init node cache - we will visit each node once
         self._lineno = 'NA' # init line number
 
-        # Start walking in the module node
-        self.walk(node)
+        self.visit(node)
 
-    def walk(self, node):
-        """ Walk through all nodes """
-        if node in self._visited:
-            # We visited this node already
-            return
-
-        self._visited[node] = 1
-        if not self.parseNode(node):
-            for child in node.getChildNodes():
-                self.walk(child)
-
-    def parseNode(self, node):
+    def visit_Call(self, node):
         """ Parse function call nodes and collect text """
 
-        # Get the current line number. Since not all nodes have a line number
-        # we save the last line number - it should be close to the gettext call
-        if node.lineno is not None:
-            self._lineno = node.lineno
+        self._lineno = node.lineno
+        function = node.func
+        is_gettext_call = (
+            isinstance(function, ast.Name) and function.id == self._name
+        ) or (
+            isinstance(function, ast.Attribute) and function.attr == self._name
+        )
+        if not is_gettext_call or not node.args:
+            self.generic_visit(node)
+            return
 
-        if node.__class__ == CallFunc and node.args:
-            child = node.node
-            klass = child.__class__
-            if (# Standard call _('text')
-                (klass == Name and child.name == self._name) or
-                # A call to an object attribute: object._('text')
-                (klass == Getattr and child.attrname == self._name)):
-                if node.args[0].__class__ == Const:
-                    # Good call with a constant _('text')
-                    self.addText(node.args[0].value)
-                else:
-                    self.addBadCall(node)
-                return 1
-        return 0
+        argument = node.args[0]
+        if isinstance(argument, ast.Constant):
+            self.addText(argument.value)
+        else:
+            self.addBadCall(node)
 
     def addText(self, text):
         """ Add text to dictionary and count found texts.
@@ -172,8 +157,9 @@ class TextFinder:
 
 def visit(path, visitor):
     visitor.setFilename(path)
-    tree = compiler.parseFile(path)
-    compiler.walk(tree, visitor)
+    with tokenize.open(path) as source_file:
+        tree = ast.parse(source_file.read(), filename=os.fspath(path))
+    visitor.visitModule(tree)
 
 
 # MoinMoin specific stuff follows
@@ -370,5 +356,3 @@ userprefs options, from Icon titles etc.!
 """)
             for text in report[lang].unused():
                 print(" 1. `%r`" % text)
-
-

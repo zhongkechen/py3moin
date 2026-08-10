@@ -6,6 +6,8 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+from io import StringIO
+
 from MoinMoin.theme import ThemeBase
 from MoinMoin import wikiutil
 from MoinMoin.Page import Page
@@ -319,8 +321,7 @@ class Theme(ThemeBase):
         page = Page(request, sidebar)
         if not page.exists():
             return u""
-        import StringIO
-        buff = StringIO.StringIO()
+        buff = StringIO()
         request.redirect(buff)
         try:
             page.send_page(content_only=1, content_id="sidebar")
@@ -337,4 +338,3 @@ def execute(request):
     @return: Theme object
     """
     return Theme(request)
-
