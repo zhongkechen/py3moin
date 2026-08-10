@@ -154,6 +154,11 @@ class Request(RequestBase):
     # get rid of some inherited descriptors
     headers = None
 
+    @property
+    def max_form_memory_size(self):
+        cfg = self.environ.get('moin.cfg')
+        return getattr(cfg, 'form_max_memory_size', config.form_max_memory_size)
+
     def __init__(self, environ, populate_request=True, shallow=False, given_config=None):
         super().__init__(environ, populate_request, shallow)
         self.href = Href(self.script_root or '/', self.charset)

@@ -55,9 +55,13 @@ jobs:
             tests/_tests/test_packages.py \
             tests/macro/_tests/test_Action.py \
             tests/_tests/test_account_inactive.py \
+            tests/_tests/test_cli_show.py \
             tests/web/_tests/test_http.py \
             tests/web/_tests/test_session.py \
             tests/web/_tests/test_contexts.py \
+            tests/converter/_tests/test_text_html_text_moin_wiki.py::TestConvertBlockRepeatable::testPreSuccess6 \
+            tests/converter/_tests/test_text_html_text_moin_wiki.py::TestConvertBlockRepeatable::testPreSuccess8 \
+            tests/converter/_tests/test_text_html_text_moin_wiki.py::TestConvertBlockRepeatable::testPreSuccess12 \
             tests/_tests/test_Page.py::TestPage::testRequestCompatibilityAlias \
             tests/action/_tests/test_cache.py \
             tests/parser/_tests/test_unicode.py \

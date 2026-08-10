@@ -958,8 +958,8 @@ class convert_tree(visitor):
             for i in node.childNodes:
                 if i.nodeType == Node.TEXT_NODE:
                     # get longest pre tag({{{ or }}}) from content
-                    delimiters.extend(re.compile("((?u){+)").findall(i.data))
-                    delimiters.extend(re.compile("((?u)}+)").findall(i.data))
+                    delimiters.extend(re.compile(r"(\{+)").findall(i.data))
+                    delimiters.extend(re.compile(r"(\}+)").findall(i.data))
                     # when first line is empty, start iteration second line of i.data
                     data_lines = i.data.rstrip().split('\n')
                     if data_lines[0].strip() == '':

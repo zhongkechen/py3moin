@@ -6,7 +6,6 @@ MoinMoin - cli show script
 """
 
 from MoinMoin.script import MoinScript
-from MoinMoin.wsgiapp import run
 
 
 class PluginScript(MoinScript):
@@ -28,4 +27,4 @@ General syntax: moin [options] cli show
 
     def mainloop(self):
         self.init_request()
-        run(self.request)
+        self.request.run()

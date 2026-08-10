@@ -909,6 +909,9 @@ options_no_group_name = {
                             "Surge protection tries to deny clients causing too much load/traffic, see HelpOnConfiguration/SurgeProtection."),
                            ('surge_lockout_time', 3600, "time [s] someone gets locked out when ignoring the warnings"),
 
+                           ('form_max_memory_size', config.form_max_memory_size,
+                            "maximum memory used for non-file form fields before rejecting the request [bytes]"),
+
                            ('textchas', None,
                             "Spam protection setup using site-specific questions/answers, see HelpOnSpam."),
                            ('textchas_disabled_group', None,

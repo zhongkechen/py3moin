@@ -642,8 +642,8 @@ class ScriptContext(AllContext):
 
     def write(self, *data):
         for d in data:
-            if isinstance(d, str):
-                d = d.encode(config.charset)
-            else:
+            if isinstance(d, bytes):
+                d = d.decode(config.charset, 'replace')
+            elif not isinstance(d, str):
                 d = str(d)
             sys.stdout.write(d)
