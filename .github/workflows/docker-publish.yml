@@ -11,14 +11,15 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 concurrency:
   group: docker-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  REGISTRY: docker.io
-  IMAGE_NAME: ch3n2k/py3moin
+  DOCKERHUB_IMAGE: docker.io/ch3n2k/py3moin
+  GHCR_IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
   docker:
@@ -36,15 +37,25 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: docker.io
           username: ch3n2k
           password: ${{ secrets.DOCKER_PAT }}
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate image metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: |
+            ${{ env.DOCKERHUB_IMAGE }}
+            ${{ env.GHCR_IMAGE }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix=sha-
