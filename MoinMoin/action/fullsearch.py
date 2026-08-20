@@ -72,13 +72,13 @@ def execute(pagename, context, fieldname='value', titlesearch=0, statistic=0):
 
     form = context.request.values
 
-    # context is relevant only for full search
+    # Result context is relevant only for full search.
     if titlesearch:
-        context = 0
+        context_lines = 0
     elif advancedsearch:
-        context = 180  # XXX: hardcoded context count for advancedsearch
+        context_lines = 180  # XXX: hardcoded context count for advancedsearch
     else:
-        context = int(form.get('context', 0))
+        context_lines = int(form.get('context', 0))
 
     # Get other form parameters
     needle = form.get(fieldname, '')
@@ -273,9 +273,9 @@ def execute(pagename, context, fieldname='value', titlesearch=0, statistic=0):
 
     # Then search results
     info = not titlesearch
-    if context:
+    if context_lines:
         output = results.pageListWithContext(context, context.formatter,
-                                             info=info, context=context, hitsFrom=hitsFrom, hitsInfo=1,
+                                             info=info, context=context_lines, hitsFrom=hitsFrom, hitsInfo=1,
                                              highlight_titles=highlight_titles,
                                              highlight_pages=highlight_pages)
     else:
