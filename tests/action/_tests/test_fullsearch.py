@@ -77,3 +77,25 @@ def test_execute_passes_context_lines_to_result_renderer(req, monkeypatch):
 
     assert render_call['context'] is context
     assert render_call['context_lines'] == 180
+
+
+def test_execute_handles_title_search_without_results(req, monkeypatch):
+    request = MoinTestRequest(
+        path='/FrontPage',
+        query_string='value=Missing&titlesearch=Titles&context=180',
+    )
+    request.given_config = req.cfg.__class__
+    context = AllContext(request)
+    context.page = Page(context, 'FrontPage')
+    sent_pages = []
+
+    class SearchResults:
+        hits = []
+
+    monkeypatch.setattr(search, 'searchPages', lambda *args: SearchResults())
+    monkeypatch.setattr(
+        Page, 'send_page', lambda page: sent_pages.append(page.page_name))
+
+    fullsearch.execute('FrontPage', context)
+
+    assert sent_pages == ['FrontPage']
