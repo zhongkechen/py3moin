@@ -217,7 +217,8 @@ def execute(pagename, context, fieldname='value', titlesearch=0, statistic=0):
             return
     if not results.hits:  # no hits?
         f = context.formatter
-        querydict = wikiutil.parseQueryString(context.query_string).to_dict()
+        querydict = wikiutil.parseQueryString(
+            context.request.query_string).to_dict()
         querydict.update({'titlesearch': 0})
 
         context.theme.add_msg(_('Your search query {{{"%s"}}} didn\'t return any results. '
