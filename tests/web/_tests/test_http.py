@@ -6,6 +6,7 @@ MoinMoin HTTP facade compatibility tests.
 
 import ast
 from base64 import b64encode
+from io import BytesIO
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -18,14 +19,16 @@ from MoinMoin.web.http import (
     MultiDict,
     PathInfoFromRequestUriFix,
     Response,
+    create_environ,
     exceptions,
     url_decode,
     url_encode,
     url_quote,
     url_unquote,
 )
-from MoinMoin.web.request import Href, TestRequest as MoinTestRequest
+from MoinMoin.web.request import Href, Request, TestRequest as MoinTestRequest
 from MoinMoin.web.static import make_static_serving_app
+from MoinMoin.wsgiapp import Application
 
 
 def test_url_helpers_preserve_legacy_query_semantics():
@@ -86,6 +89,41 @@ def test_request_uses_loaded_wiki_form_memory_limit():
 
     with pytest.raises(exceptions.RequestEntityTooLarge):
         request.form
+
+
+@pytest.mark.parametrize('value_size', [995, 996])
+def test_request_limits_streamed_urlencoded_form(value_size):
+    value = b'x' * value_size
+    environ = create_environ(method='POST', data=b'text=' + value,
+                             content_type='application/x-www-form-urlencoded')
+    del environ['CONTENT_LENGTH']
+    environ['wsgi.input_terminated'] = True
+    environ['moin.cfg'] = SimpleNamespace(form_max_memory_size=1_000)
+    request = Request(environ)
+
+    if value_size == 995:
+        assert request.form['text'] == value.decode('ascii')
+    else:
+        with pytest.raises(exceptions.RequestEntityTooLarge):
+            request.form
+
+
+def test_application_rejects_urlencoded_form_above_wiki_limit(req, monkeypatch):
+    monkeypatch.setattr(req.cfg, 'form_max_memory_size', 1_000)
+    client = Client(Application(lambda name: req.cfg), Response)
+
+    response = client.post('/', data={'text': 'x' * 2_000})
+
+    assert response.status_code == 413
+
+
+def test_request_allows_multipart_file_above_form_memory_limit():
+    data = b'x' * 110_000
+    environ = create_environ(method='POST', data={'file': (BytesIO(data), 'test.txt')})
+    environ['moin.cfg'] = SimpleNamespace(form_max_memory_size=100_000)
+
+    with Request(environ) as request:
+        assert request.files['file'].read() == data
 
 
 def test_request_parses_basic_authorization():

@@ -6,6 +6,7 @@ changes stay isolated at the WSGI boundary.
 """
 
 from collections.abc import Mapping
+from io import BytesIO
 from urllib.parse import (
     quote,
     quote_from_bytes,
@@ -29,13 +30,30 @@ from werkzeug.exceptions import (
     Unauthorized,
     abort,
 )
-from werkzeug.formparser import parse_form_data
+from werkzeug.formparser import FormDataParser, parse_form_data
 from werkzeug.http import http_date
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 from werkzeug.serving import WSGIRequestHandler, run_simple
 from werkzeug.test import Client, EnvironBuilder, create_environ
 from werkzeug.utils import cached_property, redirect
 from werkzeug.wrappers import ResponseStream
+from werkzeug.wsgi import LimitedStream
+
+
+class MoinFormDataParser(FormDataParser):
+    def parse(self, stream, mimetype, content_length, options=None):
+        # Werkzeug 3.1.9 stopped applying the form memory limit to URL-encoded bodies.
+        limit = self.max_form_memory_size
+        if mimetype == 'application/x-www-form-urlencoded' and limit is not None:
+            if content_length is None:
+                # Read one extra byte to detect overflow without truncating the form.
+                body = LimitedStream(stream, limit + 1, is_max=True).readall()
+                content_length = len(body)
+                stream = BytesIO(body)
+            if content_length > limit:
+                raise exceptions.RequestEntityTooLarge()
+
+        return super().parse(stream, mimetype, content_length, options)
 
 
 def url_quote(value, charset="utf-8", errors="strict", safe="/:"):
