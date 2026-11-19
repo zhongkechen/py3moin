@@ -13,6 +13,7 @@ from MoinMoin import config
 from MoinMoin import log
 from MoinMoin.web.http import (
     EnvironHeaders,
+    MoinFormDataParser,
     Request as RequestBase,
     Response as WerkzeugResponseBase,
     ResponseStream,
@@ -150,6 +151,7 @@ class Request(RequestBase):
     charset = config.charset
     encoding_errors = 'replace'
     default_mimetype = 'text/html'
+    form_data_parser_class = MoinFormDataParser
 
     # get rid of some inherited descriptors
     headers = None
