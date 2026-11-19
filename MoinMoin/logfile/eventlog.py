@@ -61,10 +61,11 @@ class EventLog(LogFile):
         """ parse a event-log line into its components """
         try:
             time_usecs, eventtype, kvpairs = line.rstrip().split('\t')
+            return int(time_usecs), eventtype, wikiutil.parseQueryString(kvpairs)
         except ValueError:
-            # badly formatted line in file, skip it
+            # Skip damaged records, including invalid timestamps, so statistics
+            # can finish scanning the log and update their caches.
             return None
-        return int(time_usecs), eventtype, wikiutil.parseQueryString(kvpairs)
 
     def set_filter(self, event_types=None):
         """ optionally filter log for specific event types """

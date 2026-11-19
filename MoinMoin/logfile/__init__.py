@@ -52,19 +52,24 @@ class LineBuffer:
             file.seek(begin)
             lines = file.readlines(size)
         else:
-            if offset < 2 * size:
-                begin = 0
-                size = offset
-            else:
-                begin = offset - size
-            logging.log(self.loglevel, "LineBuffer.init: backward seek %d read %d" % (begin, size))
-            file.seek(begin)
-            lines = file.read(size).splitlines(True)
-            if begin != 0:
-                # remove potentially incomplete first line
-                begin += len(lines[0])
-                lines = lines[1:]
-                # XXX check for min one line read
+            while True:
+                if offset < 2 * size:
+                    begin = 0
+                    size = offset
+                else:
+                    begin = offset - size
+                logging.log(self.loglevel, "LineBuffer.init: backward seek %d read %d" % (begin, size))
+                file.seek(begin)
+                lines = file.read(size).splitlines(True)
+                if begin != 0:
+                    # remove potentially incomplete first line
+                    begin += len(lines[0])
+                    lines = lines[1:]
+                if lines or begin == 0:
+                    break
+                # A line can exceed the buffer size. Read farther back instead
+                # of returning an empty buffer at the unchanged offset.
+                size *= 2
 
         linecount = len(lines)
 
