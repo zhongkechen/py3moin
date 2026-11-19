@@ -259,9 +259,9 @@ def execute(macro, text):
     # That way there is exactly one calendar url per page for it to fetch.
     is_spider = request.isSpiderAgent
     # does the url have calendar params (= somebody has clicked on prev/next links in calendar) ?
-    if 'calparms' in macro.request.args and not is_spider:
+    if not is_spider and 'calparms' in request.request.args:
         has_calparms = 1  # yes!
-        text2 = macro.request.args['calparms']
+        text2 = request.request.args['calparms']
         cparmpagename, cparmyear, cparmmonth, cparmoffset, cparmoffset2, cparmheight6, cparmanniversary, cparmtemplate = \
             parseargs(request, text2, thispage, currentyear, currentmonth, 0, 0, False, False, u'')
         # Note: cparmheight6 and cparmanniversary are not used, they are just there

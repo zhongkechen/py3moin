@@ -67,6 +67,8 @@ def get_data(pagename, request, filterpage=None):
             cache_date, cache_days, cache_views, cache_edits = cache.content()
         except:
             cache.remove()  # cache gone bad
+    if cache_date is None:
+        cache_date = 0  # older versions cached None for an empty event log
 
     # Get new results from the log
     log = eventlog.EventLog(request)
@@ -132,7 +134,8 @@ def get_data(pagename, request, filterpage=None):
     cache_views.extend(views)
     cache_edits.extend(edits)
     if new_date is not None:
-        cache.update((latest, cache_days, cache_views, cache_edits))
+        cache.update((latest if latest is not None else cache_date,
+                      cache_days, cache_views, cache_edits))
 
     return cache_days, cache_views, cache_edits
 
