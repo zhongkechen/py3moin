@@ -71,6 +71,7 @@ jobs:
             tests/converter/_tests/test_text_html_text_moin_wiki.py::TestConvertBlockRepeatable::testPreSuccess12 \
             tests/_tests/test_Page.py::TestPage::testRequestCompatibilityAlias \
             tests/action/_tests/test_cache.py \
+            tests/action/_tests/test_attachfile_download.py \
             tests/action/_tests/test_fullsearch.py \
             tests/parser/_tests/test_unicode.py \
             tests/search/_tests/test_search.py::TestMoinSearch \

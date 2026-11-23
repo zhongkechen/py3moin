@@ -41,7 +41,7 @@ from MoinMoin.Page import Page
 from MoinMoin.events import FileAttachedEvent, FileRemovedEvent, send_event
 from MoinMoin.security.textcha import TextCha
 from MoinMoin.util import filesys
-from MoinMoin.web.http import http_date
+from MoinMoin.web.http import content_disposition_header, http_date
 
 logging = log.getLogger(__name__)
 action_name = __name__.split('.')[-1]
@@ -998,20 +998,16 @@ def _do_box(pagename, request):
     if not filename:
         return  # error msg already sent in _access_file
 
-    timestamp = datetime.datetime.fromtimestamp(os.path.getmtime(fpath))
-    if_modified = request.if_modified_since
+    timestamp = datetime.datetime.fromtimestamp(os.path.getmtime(fpath), tz=datetime.timezone.utc)
+    if_modified = request.request.if_modified_since
     if if_modified and if_modified >= timestamp:
-        request.status_code = 304
+        request.response.status_code = 304
     else:
         ci = ContainerItem(request, pagename, filename)
-        filename = wikiutil.taintfilename(request.values['member'])
+        filename = wikiutil.taintfilename(request.request.values['member'])
         mt = wikiutil.MimeType(filename=filename)
         content_type = mt.content_type()
         mime_type = mt.mime_type()
-
-        # TODO: fix the encoding here, plain 8 bit is not allowed according to the RFCs
-        # There is no solution that is compatible to IE except stripping non-ascii chars
-        filename_enc = filename.encode(config.charset)
 
         # for dangerous files (like .html), when we are in danger of cross-site-scripting attacks,
         # we just let the user store them to disk ('attachment').
@@ -1020,13 +1016,12 @@ def _do_box(pagename, request):
         content_dispo = dangerous and 'attachment' or 'inline'
 
         now = time.time()
-        request.headers['Date'] = http_date(now)
-        request.headers['Content-Type'] = content_type
-        request.headers['Last-Modified'] = http_date(timestamp)
-        request.headers['Expires'] = http_date(now - 365 * 24 * 3600)
-        # request.headers['Content-Length'] = os.path.getsize(fpath)
-        content_dispo_string = '%s; filename="%s"' % (content_dispo, filename_enc)
-        request.headers['Content-Disposition'] = content_dispo_string
+        request.response.headers['Date'] = http_date(now)
+        request.response.headers['Content-Type'] = content_type
+        request.response.headers['Last-Modified'] = http_date(timestamp)
+        request.response.headers['Expires'] = http_date(now - 365 * 24 * 3600)
+        # request.response.headers['Content-Length'] = os.path.getsize(fpath)
+        request.response.headers['Content-Disposition'] = content_disposition_header(content_dispo, filename)
 
         # send data
         request.send_file(ci.get(filename))
@@ -1039,10 +1034,10 @@ def _do_get(pagename, context):
     if not context.user.may.read(pagename):
         return _('You are not allowed to get attachments from this page.')
     if not filename:
-        context.status_code = 404
+        context.response.status_code = 404
         return  # error msg already sent in _access_file
 
-    timestamp = datetime.datetime.utcfromtimestamp(os.path.getmtime(fpath)).replace(tzinfo=datetime.UTC)
+    timestamp = datetime.datetime.fromtimestamp(os.path.getmtime(fpath), tz=datetime.timezone.utc)
     if_modified = context.request.if_modified_since
     if if_modified and if_modified >= timestamp:
         context.response.status_code = 304
@@ -1050,10 +1045,6 @@ def _do_get(pagename, context):
         mt = wikiutil.MimeType(filename=filename)
         content_type = mt.content_type()
         mime_type = mt.mime_type()
-
-        # TODO: fix the encoding here, plain 8 bit is not allowed according to the RFCs
-        # There is no solution that is compatible to IE except stripping non-ascii chars
-        filename_enc = filename.encode(config.charset)
 
         # for dangerous files (like .html), when we are in danger of cross-site-scripting attacks,
         # we just let the user store them to disk ('attachment').
@@ -1066,9 +1057,8 @@ def _do_get(pagename, context):
         context.response.headers['Content-Type'] = content_type
         context.response.headers['Last-Modified'] = http_date(timestamp)
         context.response.headers['Expires'] = http_date(now - 365 * 24 * 3600)
-        context.response.headers['Content-Length'] = os.path.getsize(fpath)
-        content_dispo_string = '%s; filename="%s"' % (content_dispo, filename)
-        context.response.headers['Content-Disposition'] = content_dispo_string
+        context.response.headers['Content-Length'] = str(os.path.getsize(fpath))
+        context.response.headers['Content-Disposition'] = content_disposition_header(content_dispo, filename)
 
         # send data
         context.send_file(open(fpath, 'rb'))

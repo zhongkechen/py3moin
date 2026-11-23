@@ -7,6 +7,8 @@ changes stay isolated at the WSGI boundary.
 
 from collections.abc import Mapping
 from io import BytesIO
+import os
+import unicodedata
 from urllib.parse import (
     quote,
     quote_from_bytes,
@@ -163,6 +165,39 @@ class PathInfoFromRequestUriFix:
                 environ["PATH_INFO"] = path[len(script_name):]
                 break
         return self.application(environ, start_response)
+
+
+def content_disposition_header(disposition, filename):
+    """Build an RFC 6266 / RFC 5987 Content-Disposition header value.
+
+    Returns an ASCII (and therefore WSGI/Latin-1 safe) header value containing
+    a quoted ASCII fallback ``filename`` and a UTF-8 ``filename*`` parameter.
+    """
+    if isinstance(filename, (bytes, bytearray)):
+        filename = bytes(filename).decode("utf-8", "replace")
+    else:
+        filename = str(filename)
+
+    # Strip ASCII control characters (including CR/LF) to prevent header injection.
+    clean = "".join(ch for ch in filename if ord(ch) >= 0x20 and ord(ch) != 0x7F)
+
+    clean_stem, clean_ext = os.path.splitext(clean)
+    ascii_stem = unicodedata.normalize("NFKD", clean_stem).encode("ascii", "ignore").decode("ascii").strip()
+    ascii_ext = unicodedata.normalize("NFKD", clean_ext).encode("ascii", "ignore").decode("ascii").strip()
+    if ascii_ext and not ascii_ext.startswith("."):
+        ascii_ext = ""
+    if not ascii_stem.strip(" ."):
+        ascii_stem = "attachment"
+    ascii_name = ascii_stem + (ascii_ext if ascii_ext != "." else "")
+
+    escaped_ascii = ascii_name.replace("\\", "\\\\").replace('"', '\\"')
+    # RFC 5987 Section 3.2.1 attr-char (alphanumerics are always unquoted by quote()).
+    encoded_utf8 = quote(clean, safe="!#$&+-.^_`|~", encoding="utf-8")
+    return '%s; filename="%s"; filename*=UTF-8\'\'%s' % (
+        disposition,
+        escaped_ascii,
+        encoded_utf8,
+    )
 
 
 url_join = urljoin
