@@ -1226,7 +1226,7 @@ class User:
         if not self.valid:
             return False
         request = self._request
-        if request.cfg.DesktopEdition and request.remote_addr == '127.0.0.1':
+        if request.cfg.DesktopEdition and request.request.remote_addr == '127.0.0.1':
             # the DesktopEdition gives any local user superuser powers
             return True
         superusers = request.cfg.superuser
@@ -1337,7 +1337,7 @@ Password reset URL: %s?action=recoverpass&name=%s&token=%s
         text = text_intro + '\n' + _(text_msg) + '\n' + _(text_data) % (
             self.name,
             tok,
-            self._request.url,  # use full url, including current page
+            self._request.request.url,  # use full url, including current page
             url_quote_plus(self.name),
             tok,)
 

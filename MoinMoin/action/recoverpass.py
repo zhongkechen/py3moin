@@ -24,7 +24,7 @@ def _do_email(request, u):
 
 def _do_recover(request):
     _ = request.getText
-    form = request.form
+    form = request.request.form
     if not request.cfg.mail_enabled:
         return _("""This wiki is not enabled for mail processing.
 Contact the owner of the wiki, who can enable email.""")
@@ -152,7 +152,7 @@ def execute(pagename, request):
 
     page = Page(request, pagename)
     _ = request.getText
-    form = request.values  # link in mail -> GET request
+    form = request.request.values  # link in mail -> GET request
 
     if not request.cfg.mail_enabled:
         request.theme.add_msg(_("""This wiki is not enabled for mail processing.
@@ -204,7 +204,7 @@ Enter a new password below.""", wiki=True))
         request.theme.send_footer(pagename)
         request.theme.send_closing_html()
     elif submitted:  # user pressed create button
-        if request.method != 'POST':
+        if request.request.method != 'POST':
             return
         msg = _do_recover(request)
         request.theme.add_msg(msg, "dialog")

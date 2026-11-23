@@ -44,7 +44,7 @@ class TextCha:
             @param question: see _init_qa()
         """
         self.request = request
-        self.user_info = request.user.valid and request.user.name or request.remote_addr
+        self.user_info = request.user.valid and request.user.name or request.request.remote_addr
         self.textchas = self._get_textchas()
         if self.textchas:
             self.secret = request.cfg.secrets["security/textcha"]
@@ -176,7 +176,7 @@ class TextCha:
 
     def _extract_form_values(self, form=None):
         if form is None:
-            form = self.request.form
+            form = self.request.request.form
         question = form.get('textcha-question')
         signature = None
         timestamp = None

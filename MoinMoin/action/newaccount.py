@@ -14,9 +14,9 @@ from MoinMoin.widget import html
 
 def _create_user(request):
     _ = request.getText
-    form = request.form
+    form = request.request.form
 
-    if request.method != 'POST':
+    if request.request.method != 'POST':
         return
 
     if not wikiutil.checkTicket(request, form.get('ticket', '')):
@@ -166,7 +166,7 @@ def execute(pagename, request):
 
     page = Page(request, pagename)
     _ = request.getText
-    form = request.form
+    form = request.request.form
 
     submitted = 'create' in form
 

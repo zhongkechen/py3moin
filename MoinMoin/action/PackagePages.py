@@ -83,11 +83,12 @@ class PackagePages:
         request = self.request
         filelike = io.BytesIO()
         package = self.collectpackage(unpackLine(pagelist, ","), filelike, target, include_attachments)
-        request.headers['Content-Type'] = 'application/zip'
-        request.headers['Content-Length'] = filelike.tell()
-        request.headers['Content-Disposition'] = 'inline; filename="%s"' % target
-        request.write(filelike.getvalue())
+        payload = filelike.getvalue()
         filelike.close()
+        request.write(payload)
+        request.response.headers['Content-Type'] = 'application/zip'
+        request.response.headers['Content-Length'] = str(len(payload))
+        request.response.headers['Content-Disposition'] = 'inline; filename="%s"' % target
 
     def makeform(self, error=""):
         """ Display a package page form
