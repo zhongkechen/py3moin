@@ -107,7 +107,7 @@ class TestIdIdempotency:
                                                   f_name, "Formatter")
                 f = formatter(req)
                 for id in testids:
-                    yield _verify, f, id
+                    _verify(f, id)
             except wikiutil.PluginAttributeError:
                 pass
 

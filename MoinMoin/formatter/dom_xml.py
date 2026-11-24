@@ -69,8 +69,7 @@ class Formatter(FormatterBase):
         FormatterBase.__init__(self, request, **kw)
 
         self.document = minidom.Document()
-        self.document.documentElement = self.document.createElement('xml')
-        self.position = self.document.documentElement
+        self.position = self.document.appendChild(self.document.createElement('xml'))
         self.tag_stack = [('xml', {})]
 
     def setPage(self, page):

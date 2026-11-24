@@ -314,23 +314,23 @@ class TestPageAcls:
         acl_rights_after = u"All:read"
         acl_hierarchic = False
 
-    def setup_class(self, req):
+    @pytest.fixture(autouse=True)
+    def acl_pages(self, req):
         # Backup user
-        self.savedUser = req.user.name
+        saved_user = req.user
         req.user = User(req, auth_username=u'WikiAdmin')
         req.user.valid = True
 
         for page_name, page_content in self.pages:
             create_page(req, page_name, page_content)
 
-    def teardown_class(self, req):
-        # Restore user
-        req.user.name = self.savedUser
+        yield
 
         for page_name, dummy in self.pages:
             nuke_page(req, page_name)
+        req.user = saved_user
 
-    def testPageACLs(self, req):
+    def testPageACLs(self, req, monkeypatch):
         """ security: test page acls """
         tests = [
             # hierarchic, pagename, username, expected_rights
@@ -359,7 +359,7 @@ class TestPageAcls:
             u.valid = True
 
             def _have_right(u, right, pagename, hierarchic):
-                req.cfg.acl_hierarchic = hierarchic
+                monkeypatch.setattr(req.cfg, 'acl_hierarchic', hierarchic)
                 can_access = u.may.__getattr__(right)(pagename)
                 if can_access:
                     print("page %s: %s test if %s may %s (success)" % (
@@ -371,10 +371,10 @@ class TestPageAcls:
 
             # User should have these rights...
             for right in may:
-                yield _have_right, u, right, pagename, hierarchic
+                _have_right(u, right, pagename, hierarchic)
 
             def _not_have_right(u, right, pagename, hierarchic):
-                req.cfg.acl_hierarchic = hierarchic
+                monkeypatch.setattr(req.cfg, 'acl_hierarchic', hierarchic)
                 can_access = u.may.__getattr__(right)(pagename)
                 if can_access:
                     print("page %s: %s test if %s may not %s (failure)" % (
@@ -388,6 +388,6 @@ class TestPageAcls:
             mayNot = [right for right in req.cfg.acl_rights_valid
                       if right not in may]
             for right in mayNot:
-                yield _not_have_right, u, right, pagename, hierarchic
+                _not_have_right(u, right, pagename, hierarchic)
 
 coverage_modules = ['MoinMoin.security']
