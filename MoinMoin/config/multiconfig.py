@@ -1165,6 +1165,7 @@ options_no_group_name = {
 
         ('config_check_enabled', False, "if True, check configuration for unknown settings."),
 
+        ('markdown_extensions', None, 'Python-Markdown extensions. None uses the built-in default list.'),
         ('default_markup', 'wiki', 'Default page parser / format (name of module in `MoinMoin.parser`)'),
 
         ('html_head', '', "Additional <HEAD> tags, see HelpOnThemes."),

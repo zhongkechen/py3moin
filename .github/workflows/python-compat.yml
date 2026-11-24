@@ -77,6 +77,7 @@ jobs:
             tests/action/_tests/test_attachfile_download.py \
             tests/action/_tests/test_attachfile_preview.py \
             tests/action/_tests/test_fullsearch.py \
+            tests/parser/_tests/test_text_markdown.py \
             tests/parser/_tests/test_unicode.py \
             tests/search/_tests/test_search.py::TestMoinSearch \
             tests/datastruct/backends/_tests/test_config_groups.py \
