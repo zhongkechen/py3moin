@@ -45,6 +45,7 @@ from MoinMoin import config, caching, user, util, wikiutil
 from MoinMoin import log
 from MoinMoin.logfile import eventlog
 from MoinMoin.decorator import context_timer
+from MoinMoin.web.http import content_disposition_header
 
 logging = log.getLogger(__name__)
 
@@ -1119,20 +1120,17 @@ class Page:
             Supplied mimetype overrides default text/plain.
         """
         context = self.context
-        context.mimetype = mimetype or 'text/plain'
+        context.response.mimetype = mimetype or 'text/plain'
         if self.exists():
             # use the correct last-modified value from the on-disk file
             # to ensure cacheability where supported. Because we are sending
             # RAW (file) content, the file mtime is correct as Last-Modified header.
-            context.status_code = 200
-            context.last_modified = os.path.getmtime(self._text_filename())
+            context.response.status_code = 200
+            context.response.last_modified = os.path.getmtime(self._text_filename())
             text = self.encodeTextMimeType(self.body)
             # request.headers['Content-Length'] = len(text)  # XXX WRONG! text is unicode obj, but we send utf-8!
             if content_disposition:
-                # TODO: fix the encoding here, plain 8 bit is not allowed according to the RFCs
-                # There is no solution that is compatible to IE except stripping non-ascii chars
-                filename_enc = "%s.txt" % self.page_name.encode(config.charset)
-                dispo_string = '%s; filename="%s"' % (content_disposition, filename_enc)
+                dispo_string = content_disposition_header(content_disposition, "%s.txt" % self.page_name)
                 context.response.headers['Content-Disposition'] = dispo_string
         else:
             context.response.status_code = 404

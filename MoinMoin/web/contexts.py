@@ -287,7 +287,16 @@ class HTTPContext(BaseContext):
         """
 
         def simple_wrapper(fileobj, bufsize):
-            return iter(lambda: fileobj.read(bufsize), '')
+            try:
+                while True:
+                    chunk = fileobj.read(bufsize)
+                    if not chunk:
+                        break
+                    yield chunk
+            finally:
+                close = getattr(fileobj, 'close', None)
+                if callable(close):
+                    close()
 
         file_wrapper = self.environ.get('wsgi.file_wrapper', simple_wrapper)
         self.response.direct_passthrough = True

@@ -35,6 +35,7 @@ from MoinMoin import config, caching
 from MoinMoin import log
 from MoinMoin.action import AttachFile
 from MoinMoin.util import filesys
+from MoinMoin.web.http import content_disposition_header
 
 logging = log.getLogger(__name__)
 action_name = __name__.split('.')[-1]
@@ -163,10 +164,7 @@ def put(request, key, data,
                ('Content-Length', content_length),
                ]
     if content_disposition and filename:
-        # TODO: fix the encoding here, plain 8 bit is not allowed according to the RFCs
-        # There is no solution that is compatible to IE except stripping non-ascii chars
-        filename = filename.encode(config.charset)
-        headers.append(('Content-Disposition', '%s; filename="%s"' % (content_disposition, filename)))
+        headers.append(('Content-Disposition', content_disposition_header(content_disposition, filename)))
 
     meta_cache = caching.CacheEntry(request, cache_arena, key + '.meta', cache_scope, do_locking=do_locking,
                                     use_pickle=True)
