@@ -20,7 +20,8 @@ directory owned by your user.
        ghcr.io/zhongkechen/py3moin:latest py3moin-init
 
 The initializer copies the data and underlay templates, ``wikiconfig.py``,
-``moin.wsgi``, and ``uwsgi.ini`` from the image into the mounted directory.
+``moin.wsgi``, and ``uwsgi.ini`` from the image's ``/app/wiki`` directory into
+the mounted ``/data`` directory.
 It refuses to initialize a nonempty directory. For an existing instance, skip
 initialization and start the container with the existing directory mounted.
 

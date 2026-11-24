@@ -57,7 +57,7 @@ fetch --cookie "$work/cookies" --data-urlencode 'action=edit' --data-urlencode '
     --data-urlencode 'rev=0' --data-urlencode "ticket=$ticket" --data-urlencode "savetext=$body" \
     --data-urlencode 'button_save=Save Changes' "$base_url/$page" > "$work/saved.html"
 grep -Fq "$body" "$work/saved.html"
-grep -Fxq "$body" "$data/data/pages/$page/revisions/00000001"
+printf '%s\r\n' "$body" | cmp - "$data/data/pages/$page/revisions/00000001"
 
 docker rm -f "$container" >/dev/null
 container=''
