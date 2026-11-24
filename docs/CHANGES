@@ -1,6 +1,9 @@
 MoinMoin Version History
 ========================
 
+Historical upstream MoinMoin 1.x documentation. For Py3Moin installation
+and migration from an existing 1.9 instance, see docs/PYTHON3.rst.
+
 Please note: Starting from the MoinMoin version you used previously, you
 should read all more recent entries (or at least everything marked with HINT).
 

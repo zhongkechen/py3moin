@@ -8,8 +8,10 @@ export PYTHONPATH=$(PWD)
 testwiki := ./tests/wiki
 share := ./wiki
 
+PYTHON ?= python
+
 all:
-	python setup.py build
+	$(PYTHON) -m pip wheel --no-deps --wheel-dir dist .
 
 install-docs:
 	-mkdir build
@@ -70,11 +72,7 @@ dist-clean:
 	->wiki/data/event-log
 	->wiki/data/edit-log
 
-dist: dist-clean
-	python setup.py sdist
-
-dist-release: dist-clean
-	python setup.py register sdist upload --identity="Thomas Waldmann" --sign
+dist: all
 
 # Create patchlevel module
 patchlevel:
@@ -95,11 +93,7 @@ update-underlay:
 	cd $(share); rm -rf underlay; tar xf underlay.tar
 
 test:
-	pytest MoinMoin/ --ignore MoinMoin/support/ --ignore Moinmoin/search/Xapian/
-
-coverage:
-	@python MoinMoin/_tests/maketestwiki.py
-	@python -u -m trace --count --coverdir=cover --missing tests/runtests.py
+	$(PYTHON) -m pytest -q tests/
 
 pylint:
 	@pylint --disable-msg=W0142,W0511,W0612,W0613,C0103,C0111,C0302,C0321,C0322 --disable-msg-cat=R MoinMoin
