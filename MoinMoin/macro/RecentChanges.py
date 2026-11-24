@@ -171,7 +171,7 @@ def print_abandoned(macro):
     last_edits.sort()
 
     # set max size in days
-    max_days = min(int(request.values.get('max_days', 0)), _DAYS_SELECTION[-1])
+    max_days = min(int(request.request.values.get('max_days', 0)), _DAYS_SELECTION[-1])
     # default to _MAX_DAYS for users without bookmark
     if not max_days:
         max_days = _MAX_DAYS

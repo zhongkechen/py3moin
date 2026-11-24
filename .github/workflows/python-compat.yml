@@ -66,6 +66,7 @@ jobs:
             tests/web/_tests/test_profile.py \
             tests/web/_tests/test_session.py \
             tests/web/_tests/test_contexts.py \
+            tests/_tests/test_context_migration_flows.py \
             tests/converter/_tests/test_text_html_text_moin_wiki.py::TestConvertBlockRepeatable::testPreSuccess6 \
             tests/converter/_tests/test_text_html_text_moin_wiki.py::TestConvertBlockRepeatable::testPreSuccess8 \
             tests/converter/_tests/test_text_html_text_moin_wiki.py::TestConvertBlockRepeatable::testPreSuccess12 \

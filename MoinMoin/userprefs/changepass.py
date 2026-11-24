@@ -37,10 +37,10 @@ class Settings(UserPrefBase):
         if 'cancel' in form:
             return
 
-        if context.method != 'POST':
+        if context.request.method != 'POST':
             return
 
-        if not wikiutil.checkTicket(context, form['ticket']):
+        if not wikiutil.checkTicket(context, form.get('ticket', '')):
             return
 
         password = form.get('password1', '')

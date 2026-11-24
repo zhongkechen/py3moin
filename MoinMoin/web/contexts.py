@@ -207,9 +207,9 @@ class HTTPContext(BaseContext):
         raise status[resultcode](msg)
 
     def setHttpHeader(self, header):
-        logging.warning("Deprecated call to request.setHttpHeader('k:v'), use request.headers.add/set('k', 'v')")
+        logging.warning("Deprecated call to request.setHttpHeader('k:v'), use request.response.headers.add/set('k', 'v')")
         header, value = header.split(':', 1)
-        self.headers.add(header, value)
+        self.response.headers.add(header, value)
 
     def disableHttpCaching(self, level=1):
         """ Prevent caching of pages that should not be cached.

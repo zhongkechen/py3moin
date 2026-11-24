@@ -12,11 +12,11 @@ def execute(pagename, request):
     """ set values in user profile """
     _ = request.getText
     cfg = request.cfg
-    form = request.form
+    form = request.request.form
 
     if not request.user.isSuperUser():
         request.theme.add_msg(_("Only superuser is allowed to use this action."), "error")
-    elif request.method == 'POST' and wikiutil.checkTicket(request, form.get('ticket', '')):
+    elif request.request.method == 'POST' and wikiutil.checkTicket(request, form.get('ticket', '')):
         user_name = form.get('name', '')
         key = form.get('key', '')
         val = form.get('val', '')

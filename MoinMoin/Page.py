@@ -1177,7 +1177,7 @@ class Page:
         pi = self.pi
 
         if 'redirect' in pi and not (
-                'action' in context.values or 'redirect' in context.values or content_only):
+                'action' in context.request.values or 'redirect' in context.request.values or content_only):
             # redirect to another page
             # note that by including "action=show", we prevent endless looping
             # (see code in "request") or any cascaded redirection
@@ -1223,7 +1223,7 @@ class Page:
                                               'switch_link': ''.join([
                                                   context.formatter.url(1, context.getQualifiedURL(
                                                       self.url(context, dict([i for i in
-                                                                              list(context.values.items())
+                                                                              list(context.request.values.items())
                                                                               if i[0] != 'highlight'])))),
                                                   _(u"Switch to non-highlighted view"),
                                                   context.formatter.url(0)

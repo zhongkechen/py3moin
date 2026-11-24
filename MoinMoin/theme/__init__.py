@@ -1644,7 +1644,7 @@ var gui_editor_link_text = "%(text)s";
         page_parent_page = getattr(page.getParentPage(), 'page_name', None)
 
         # set content_type, including charset, so web server doesn't touch it:
-        context.content_type = "text/html; charset=%s" % (config.charset,)
+        context.response.content_type = "text/html; charset=%s" % (config.charset,)
 
         # Prepare the HTML <head> element
         user_head = [context.cfg.html_head]
@@ -1666,7 +1666,7 @@ var gui_editor_link_text = "%(text)s";
                 not keywords.get('print_mode', 0) and
                 context.user.edit_on_doubleclick):
             if context.user.may.write(pagename):  # separating this gains speed
-                user_head.append('<meta name="edit_on_doubleclick" content="%s">\n' % (context.script_root or '/'))
+                user_head.append('<meta name="edit_on_doubleclick" content="%s">\n' % (scriptname or '/'))
 
         # search engine precautions / optimization:
         # if it is an action or edit/search, send query headers (noindex,nofollow):

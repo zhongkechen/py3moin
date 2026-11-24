@@ -54,7 +54,7 @@ class EditLogLine:
         user = request.user
         if user.id:
             return user.id == self.userid
-        return request.remote_addr == self.addr
+        return request.request.remote_addr == self.addr
 
     def getEditorData(self, request):
         """ Return a tuple of type id and string or Page object
