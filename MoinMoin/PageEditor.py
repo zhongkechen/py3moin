@@ -988,29 +988,64 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
                 raise self.CouldNotLock(_("Page could not get locked. Missing 'current' file?"))
 
             # increment rev number of current(-locked) page
-            f = open(clfn)
-            revstr = f.read()
-            f.close()
+            with open(clfn) as f:
+                revstr = f.read()
             try:
-                rev = int(revstr)
+                old_rev = int(revstr)
             except ValueError as err:
                 raise self.SaveError(
                     _("Unable to determine current page revision from the 'current' file. The page %s is damaged and cannot be edited right now.") % self.page_name)
 
+            rev = old_rev
             if not was_deprecated:
                 if self.do_revision_backup or rev == 0:
                     rev += 1
             revstr = '%08d' % rev
+
+            if not deleted:
+                # write the new revision to a temporary file first and commit it
+                # before advancing the current pointer so failed writes cannot
+                # publish empty or truncated revisions
+                pagefile = os.path.join(revdir, revstr)
+                pagefile_tmp = '%s.tmp' % pagefile
+                f = codecs.open(pagefile_tmp, 'wb', config.charset)
+                try:
+                    # Write the file using text/* mime type
+                    f.write(self.encodeTextMimeType(text))
+                    f.close()
+                except BaseException:
+                    try:
+                        f.close()
+                    except Exception:
+                        pass
+                    try:
+                        os.remove(pagefile_tmp)
+                    except OSError:
+                        pass
+                    raise
+                try:
+                    os.replace(pagefile_tmp, pagefile)
+                except BaseException:
+                    try:
+                        os.remove(pagefile_tmp)
+                    except OSError:
+                        pass
+                    raise
+
             # write the current page rev to a temporary file
             try:
-                f = open(cltfn, 'w')
-                f.write(revstr + '\n')
-                f.close()
+                with open(cltfn, 'w') as f:
+                    f.write(revstr + '\n')
             except IOError as err:
                 try:
                     os.remove(cltfn)
-                except:
+                except OSError:
                     pass  # we don't care for errors in the os.remove
+                if not deleted and rev != old_rev:
+                    try:
+                        os.remove(pagefile)
+                    except OSError:
+                        pass
                 # throw a nicer exception
                 if err.errno == errno.ENOSPC:
                     raise self.SaveError(_("Cannot save page %s, no storage space left.") % self.page_name)
@@ -1022,12 +1057,6 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
                 filesys.rename(cltfn, clfn)
 
             if not deleted:
-                # save to page file
-                pagefile = os.path.join(revdir, revstr)
-                f = codecs.open(pagefile, 'wb', config.charset)
-                # Write the file using text/* mime type
-                f.write(self.encodeTextMimeType(text))
-                f.close()
                 if mtime_usecs is None:
                     mtime_usecs = wikiutil.timestamp2version(os.path.getmtime(pagefile))
                 # set in-memory content
