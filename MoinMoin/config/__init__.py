@@ -16,7 +16,7 @@ browser_supported_images = ('gif', 'jpg', 'jpeg', 'png', 'bmp', 'ico', 'svg+xml'
 # Parser to use mimetype text
 parser_text_mimetype = ('plain', 'csv', 'rst', 'docbook', 'latex', 'tex', 'html', 'css',
                         'xml', 'python', 'perl', 'php', 'ruby', 'javascript',
-                        'cplusplus', 'java', 'pascal', 'diff', 'gettext', 'xslt', 'creole',)
+                        'cplusplus', 'java', 'pascal', 'diff', 'gettext', 'xslt', 'creole', 'markdown',)
 
 # When creating files, we use e.g. 0666 & config.umask for the mode:
 umask = 0o770

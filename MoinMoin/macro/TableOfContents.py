@@ -33,6 +33,8 @@ Dependencies = ['time']
 
 
 class TOCFormatter(FormatterBase):
+    collects_headings = True
+
     def __init__(self, request, **kw):
         FormatterBase.__init__(self, request, **kw)
         self.in_heading = False
@@ -157,8 +159,8 @@ Prints a table of contents.
 
     # this is so we get a correctly updated TOC if we just preview in the editor -
     # the new content is not stored on disk yet, but available as macro.parser.raw:
-    format = '#format %s\n' % p.pi['format']
-    p.set_raw_body(format + macro.parser.raw, modified=1)
+    # Use the editor preview's format, which may differ from the saved page.
+    p.set_raw_body('#format %s\n%s' % (macro.formatter.page.pi['format'], macro.parser.raw), modified=1)
 
     output = macro.request.redirectedOutput(p.send_page,
                                             content_only=True,

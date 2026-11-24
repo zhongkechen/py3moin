@@ -2636,7 +2636,7 @@ def renderText(request, Parser, text):
     return result
 
 
-def get_processing_instructions(body):
+def get_processing_instructions(body, default_format=None):
     """ Extract the processing instructions / acl / etc. at the beginning of a page's body.
 
         Hint: if you have a Page object p, you already have the result of this function in
@@ -2644,28 +2644,29 @@ def get_processing_instructions(body):
 
         Returns a list of (pi, restofline) tuples and a string with the rest of the body.
     """
+    # The Markdown rule follows moinmoin-py3-md (Gabriele Zaverio and Claude).
     pi = []
+    markdown = default_format == 'markdown'
     while body.startswith('#'):
-        try:
-            line, body = body.split('\n', 1)  # extract first line
-        except ValueError:
-            line = body
-            body = ''
-
-        # end parsing on empty (invalid) PI
+        line, _, remainder = body.partition('\n')
         if line == "#":
-            body = line + '\n' + body
+            # An empty ATX heading belongs to Markdown content as well.
+            if not markdown and not remainder:
+                body = line + '\n'
             break
+        if (markdown and re.match(r'^#{1,6}(?:\s|$)', line)
+                and not line.startswith(('## page was renamed from', '## page was copied from'))):
+            break
+        body = remainder
 
-        if line[1] == '#':  # two hash marks are a comment
-            comment = line[2:]
-            if not comment.startswith(' '):
-                # we don't require a blank after the ##, so we put one there
-                comment = ' ' + comment
-                line = '##%s' % comment
+        if line[1] == '#' and not line[2:].startswith(' '):
+            line = '## ' + line[2:]
 
-        verb, args = (line[1:] + ' ').split(' ', 1)  # split at the first blank
-        pi.append((verb.lower(), args.strip()))
+        verb, args = (line[1:] + ' ').split(' ', 1)
+        verb, args = verb.lower(), args.strip()
+        pi.append((verb, args))
+        if verb == 'format':
+            markdown = args.partition(' ')[0].lower() == 'markdown'
 
     return pi, body
 
