@@ -1233,10 +1233,11 @@ def send_viewfile(pagename, request):
         Parser = wikiutil.getParserForExtension(request.cfg, ext)
         if Parser is not None:
             try:
-                # rU: universal newline support so that even a \r is considered a valid line separator.
-                # CSV exported by office (on Mac?) has \r line separators.
-                content = open(fpath, 'rU').read()
-                content = wikiutil.decodeUnknownInput(content)
+                # Read raw bytes so decodeUnknownInput can detect non-UTF-8 encodings,
+                # then normalize CRLF/CR to LF (e.g. Mac/Office CSV files using \r).
+                with open(fpath, 'rb') as f:
+                    content = wikiutil.decodeUnknownInput(f.read())
+                content = content.replace('\r\n', '\n').replace('\r', '\n')
                 colorizer = Parser(content, request, filename=filename)
                 colorizer.format(request.formatter)
                 return
@@ -1245,8 +1246,9 @@ def send_viewfile(pagename, request):
 
         request.write(request.formatter.preformatted(1))
         # If we have text but no colorizing parser we try to decode file contents.
-        content = open(fpath, 'r').read()
-        content = wikiutil.decodeUnknownInput(content)
+        with open(fpath, 'rb') as f:
+            content = wikiutil.decodeUnknownInput(f.read())
+        content = content.replace('\r\n', '\n').replace('\r', '\n')
         content = wikiutil.escape(content)
         request.write(request.formatter.text(content))
         request.write(request.formatter.preformatted(0))
@@ -1308,7 +1310,7 @@ def _do_view(pagename, request):
     if not request.user.may.read(pagename):
         return _('You are not allowed to view attachments of this page.')
     if not filename:
-        request.status_code = 404
+        request.response.status_code = 404
         return
 
     request.formatter.page = Page(request, pagename)

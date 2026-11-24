@@ -75,6 +75,7 @@ jobs:
             tests/_tests/test_pageeditor_revision_write.py \
             tests/action/_tests/test_cache.py \
             tests/action/_tests/test_attachfile_download.py \
+            tests/action/_tests/test_attachfile_preview.py \
             tests/action/_tests/test_fullsearch.py \
             tests/parser/_tests/test_unicode.py \
             tests/search/_tests/test_search.py::TestMoinSearch \
