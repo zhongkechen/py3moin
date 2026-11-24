@@ -45,7 +45,7 @@ class BaseExpression:
         """ Init a text search
 
         @param pattern: pattern to search for, ascii string or unicode
-        @param use_re: treat pattern as re of plain text, bool
+        @param use_re: treat pattern as a regular expression, bool
         @param case: do case sensitive search, bool
         """
         self._pattern = str(pattern)
@@ -118,6 +118,8 @@ class BaseExpression:
     def _build_re(self, pattern, use_re=False, case=False, stemmed=False):
         """ Make a regular expression out of a text pattern """
         flags = case and re.U or (re.I | re.U)
+        if not use_re:
+            pattern = re.escape(pattern)
 
         try:
             search_re = re.compile(pattern, flags)
@@ -459,7 +461,7 @@ class LinkSearch(BaseFieldSearch):
 
         super(LinkSearch, self).__init__(pattern, use_re, case)
 
-        self._textpattern = '(' + pattern.replace('/', '|') + ')' # used for search in text
+        self._textpattern = '(' + self.pattern.replace('/', '|') + ')' # used for search in text
         self.textsearch = TextSearch(self._textpattern, use_re=True, case=case)
 
     def highlight_re(self):
@@ -509,7 +511,7 @@ class LanguageSearch(BaseFieldSearch):
 
     def _get_matches(self, page):
 
-        if self.pattern == page.pi['language']:
+        if self._pattern == page.pi['language']:
             return [Match()]
         else:
             return []
@@ -537,7 +539,7 @@ class CategorySearch(BaseFieldSearch):
         matches = []
 
         pattern = r'(?m)(^-----*\s*\r?\n)(^##.*\r?\n)*^(?!##)(.*)\b%s\b' % self.pattern
-        search_re = self._build_re(pattern, use_re=self.use_re, case=self.case)[1] # we need only a regexp, but not a pattern
+        _, search_re = self._build_re(pattern, use_re=True, case=self.case)
 
         body = page.get_raw_body()
         for match in search_re.finditer(body):
@@ -549,7 +551,7 @@ class CategorySearch(BaseFieldSearch):
         if not self.highlight:
             return u''
 
-        return u'(\\b%s\\b)' % self._pattern
+        return u'(\\b%s\\b)' % self.pattern
 
     def xapian_term(self, request, connection):
         # XXX Probably, it is a good idea to inherit this class from

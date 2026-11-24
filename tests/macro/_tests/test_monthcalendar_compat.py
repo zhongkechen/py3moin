@@ -41,6 +41,7 @@ class CalendarPage:
         return result
 
     def link_to(self, context, text, **attrs):
+        assert text, 'calendar heading links must have labels'
         return '<a href="%s">%s</a>' % (self.url(context), html.escape(text))
 
 
@@ -159,6 +160,26 @@ def test_navigation_is_clamped_at_configured_limit(render):
     offsets = [int(parse_qs(urlsplit(link['href']).query)['calparms'][0].split(',')[4])
                for link in navigation(output)]
     assert sorted(offsets) == [6, 17]
+
+
+@pytest.mark.parametrize(('names', 'heading_links'), [
+    ('A*B', [('A', 'A'), ('B', 'B')]),
+    ('AB*CD*EF', [('AB', 'A'), ('AB', 'B'), ('CD', 'CD'), ('EF', 'EF')]),
+    ('Meetings*Holidays', [('Meetings', 'Meet'), ('Meetings', 'ings'), ('Holidays', 'Holidays')]),
+])
+def test_multi_page_heading_renders_all_base_pages(render, names, heading_links):
+    output = render(f'{names},2024,2')
+    assert re.findall(r'<a href="/([^"?]+)">([^<]+)</a>', output) == heading_links
+    assert displayed_days(output) == list(range(1, 30))
+
+
+def test_navigation_cannot_change_configured_base_pages(render):
+    output = render(',2024,2', query={'calparms': 'A*B,2024,2,0,12,,,'})
+    assert '2024&nbsp;/&nbsp;2' in output
+    links = navigation(output)
+    assert len(links) == 4
+    assert all(parse_qs(urlsplit(link['href']).query)['calparms'][0].startswith('Calendar,')
+               for link in links)
 
 
 def test_unicode_calendar_and_existing_day_render_with_tooltip(render):

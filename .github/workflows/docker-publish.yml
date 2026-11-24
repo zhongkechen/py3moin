@@ -61,14 +61,27 @@ jobs:
             type=sha,prefix=sha-
             type=ref,event=pr,prefix=pr-
 
-      - name: Build and publish
+      - name: Build image for smoke test
         uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/amd64
           pull: true
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          load: true
+          tags: py3moin:smoke
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Test initialization and persistence
+        run: bash .github/scripts/docker-smoke.sh py3moin:smoke
+
+      - name: Publish tested image
+        if: github.event_name != 'pull_request'
+        env:
+          PUBLISH_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          while IFS= read -r tag; do
+            docker tag py3moin:smoke "$tag"
+            docker push "$tag"
+          done <<< "$PUBLISH_TAGS"
