@@ -12,13 +12,17 @@ ENV LC_ALL=en_US.UTF-8
 
 WORKDIR /app
 
-COPY . /app/
+COPY pyproject.toml README.rst LICENSE /app/
+COPY MoinMoin /app/MoinMoin
 
 RUN pip install --break-system-packages .
 
 RUN python -c "from MoinMoin.support.htmlmarkup import Markup; Markup('<p>ok</p>').sanitize()"
 
-WORKDIR /data
+COPY wiki/data /app/wiki/data
+COPY wiki/config/wikiconfig.py wiki/server/moin.wsgi wiki/underlay.tar docker/uwsgi.ini /app/wiki/
+COPY --chmod=755 docker/py3moin-init /usr/local/bin/py3moin-init
 
+WORKDIR /data
 
 CMD ["/usr/bin/uwsgi", "--ini", "/data/uwsgi.ini"]

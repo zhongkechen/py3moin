@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+
+import fcntl
+import os
+from pathlib import Path
+import shutil
+import tarfile
+import tempfile
+
+
+def initialize(templates, destination):
+    # Serialize initializers without placing a lock file in the instance.
+    directory = os.open(destination, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        fcntl.flock(directory, fcntl.LOCK_EX)
+        if any(destination.iterdir()):
+            raise SystemExit(f'Refusing to initialize {destination}: directory is not empty.')
+
+        with tempfile.TemporaryDirectory(prefix='.py3moin-', dir=destination) as temporary:
+            staging = Path(temporary)
+            shutil.copytree(templates / 'data', staging / 'data')
+            with tarfile.open(templates / 'underlay.tar') as archive:
+                archive.extractall(staging, filter='data')
+            configs = ('wikiconfig.py', 'moin.wsgi', 'uwsgi.ini')
+            for name in configs:
+                shutil.copyfile(templates / name, staging / name)
+
+            # Install the server configuration last so it can only start a complete instance.
+            for name in ('data', 'underlay', *configs):
+                (staging / name).rename(destination / name)
+    finally:
+        os.close(directory)
+
+
+if __name__ == '__main__':
+    initialize(Path('/app/wiki'), Path('/data'))

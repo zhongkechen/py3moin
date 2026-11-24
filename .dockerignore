@@ -1,5 +1,19 @@
 mywiki/
 mywiki.tar.gz
 dist/
-wiki/
+# Include the shipped templates while excluding local wiki data.
+wiki/**
+!wiki/config/wikiconfig.py
+!wiki/data/cache/README
+!wiki/data/dict/dummy_dict
+!wiki/data/intermap.txt
+!wiki/data/meta
+!wiki/data/pages/BadContent/current
+!wiki/data/pages/BadContent/revisions/00000001
+!wiki/data/plugin/**/__init__.py
+!wiki/data/user/README
+!wiki/server/moin.wsgi
+!wiki/underlay.tar
 .pytest_cache
+**/__pycache__
+.git

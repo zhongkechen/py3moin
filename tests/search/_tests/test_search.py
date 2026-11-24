@@ -14,6 +14,8 @@
 
 
 import io
+import re
+from types import SimpleNamespace
 
 import pytest
 
@@ -76,6 +78,61 @@ class TestQueryParsing:
 
         for query in ['""', '(', ')', '(a or b']:
             yield _test, query
+
+
+class TestSearchExpressions:
+    @pytest.mark.parametrize(('term', 'other'), [
+        ('C++', 'C'), ('foo.bar', 'fooXbar'), ('a*b', 'aaab'), ('[ab]', 'a'),
+    ])
+    @pytest.mark.parametrize('titlesearch', [False, True])
+    def test_literal_metacharacters(self, term, other, titlesearch):
+        query = QueryParser(titlesearch=titlesearch).parse_query(term)
+
+        def page(text):
+            return SimpleNamespace(page_name=text if titlesearch else 'Page',
+                                   get_raw_body=lambda: '' if titlesearch else text)
+
+        assert query.search(page(f'About {term}'))
+        assert not query.search(page(f'About {other}'))
+        if not titlesearch:
+            highlight = re.compile(query.highlight_re())
+            assert highlight.fullmatch(term)
+            assert not highlight.search(other)
+
+    @pytest.mark.parametrize('titlesearch', [False, True])
+    @pytest.mark.parametrize(('regex', 'term'), [(True, 'foo.bar'), (False, 're:foo.bar')])
+    def test_explicit_regex(self, titlesearch, regex, term):
+        query = QueryParser(titlesearch=titlesearch, regex=regex).parse_query(term)
+        page = SimpleNamespace(page_name='fooXbar' if titlesearch else 'Page',
+                               get_raw_body=lambda: '' if titlesearch else 'fooXbar')
+        assert query.search(page)
+
+    def test_literal_category_preserves_footer_matching(self):
+        query = QueryParser().parse_query('category:CategoryFoo.Bar')
+        for body, expected in [
+            ('Text\n----\n## comment\nCategoryFoo.Bar\n', True),
+            ('Text\n----\nCategoryFooXBar\n', False),
+            ('Text\nCategoryFoo.Bar\n', False),
+        ]:
+            page = SimpleNamespace(page_name='Page', get_raw_body=lambda: body)
+            assert bool(query.search(page)) is expected
+
+    def test_literal_link_preserves_path_highlighting(self):
+        query = QueryParser().parse_query('linkto:Parent/Leaf.Name')
+        page = SimpleNamespace(page_name='Page', request=None,
+                               getPageLinks=lambda request: ['Parent/Leaf.Name'],
+                               get_raw_body=lambda: '[[Parent/Leaf.Name]]')
+        assert query.search(page)
+        highlight = re.compile(query.highlight_re())
+        assert highlight.fullmatch('Parent')
+        assert highlight.fullmatch('Leaf.Name')
+        assert not highlight.search('LeafXName')
+        page.getPageLinks = lambda request: ['Parent/LeafXName']
+        assert not query.search(page)
+
+    def test_language_search_preserves_hyphenated_code(self):
+        query = QueryParser().parse_query('language:pt-br')
+        assert query.search(SimpleNamespace(page_name='Page', pi={'language': 'pt-br'}))
 
 
 class BaseSearchTest:

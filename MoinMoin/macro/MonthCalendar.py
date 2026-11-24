@@ -340,23 +340,18 @@ def execute(macro, text):
     if parmpagename != [thispage]:
         pagelinks = ''
         r, g, b = (255, 0, 0)
-        l = len(parmpagename[0])
-        steps = len(parmpagename)
-        maxsteps = (255 // colorstep)
-        if steps > maxsteps:
-            steps = maxsteps
-        chstep = int(l // steps)
-        st = 0
-        while st < l:
-            ch = parmpagename[0][st:st + chstep]
+        first_page = parmpagename[0]
+        steps = min(len(parmpagename), 255 // colorstep)
+        chars_per_step = max(1, len(first_page) // steps)
+        for start in range(0, len(first_page), chars_per_step):
+            ch = first_page[start:start + chars_per_step]
             r, g, b = cliprgb(r, g, b)
-            link = Page(request, parmpagename[0]).link_to(request, ch,
+            link = Page(request, first_page).link_to(request, ch,
                                                           rel='nofollow',
                                                           style='background-color:#%02x%02x%02x;color:#000000;text-decoration:none' % (
                                                               r, g, b))
             pagelinks = pagelinks + link
             r, g, b = (r, g + colorstep, b)
-            st = st + chstep
         r, g, b = (255 - colorstep, 255, 255 - colorstep)
         for page in parmpagename[1:]:
             link = Page(request, page).link_to(request, page,
