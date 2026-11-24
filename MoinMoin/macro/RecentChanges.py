@@ -347,7 +347,7 @@ def macro_RecentChanges(macro, abandoned=False):
             # but above does not trigger if we have the first day in wiki history
             for p in pages:
                 ignore_pages[p] = None
-            pages = sorted(pages.values(), lambda i: i[0], reverse=True)
+            pages = sorted(pages.values(), key=lambda i: i[0], reverse=True)
 
             if context.user.valid:
                 bmtime = pages[0][0].ed_time_usecs
