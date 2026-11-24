@@ -133,12 +133,11 @@ class FormatterBase:
         Parser = wikiutil.getParserForExtension(self.request.cfg, ext)
         if Parser is not None:
             try:
-                # rU: universal newline support so that even a \r is considered a valid line separator.
-                # CSV exported by office (on Mac?) has \r line separators.
-                content = open(fpath, 'rU').read()
-                # Try to decode text. It might return junk, but we don't
-                # have enough information with attachments.
-                content = wikiutil.decodeUnknownInput(content)
+                # Read raw bytes so decodeUnknownInput can detect non-UTF-8 encodings,
+                # then normalize CRLF/CR to LF (e.g. Mac/Office CSV files using \r).
+                with open(fpath, 'rb') as f:
+                    content = wikiutil.decodeUnknownInput(f.read())
+                content = content.replace('\r\n', '\n').replace('\r', '\n')
                 colorizer = Parser(content, self.request, filename=filename)
                 colorizer.format(self)
             except IOError:
