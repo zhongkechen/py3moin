@@ -55,6 +55,7 @@ jobs:
             tests/_tests/test_packages.py \
             tests/macro/_tests/test_Action.py \
             tests/macro/_tests/test_monthcalendar_compat.py \
+            tests/macro/_tests/test_recentchanges.py \
             tests/logfile/_tests/test_logfile_resilience.py \
             tests/_tests/test_account_inactive.py \
             tests/_tests/test_check_i18n.py \
