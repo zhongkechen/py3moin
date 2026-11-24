@@ -484,8 +484,8 @@ class AllContext(HTTPContext, AuxilaryMixin):
         else:
             userobj = auth.handle_request(self, userobj)
 
-        # if we still have no user obj, create a dummy:
-        if not userobj:
+        # Use an anonymous identity for an inactive or missing profile.
+        if not userobj or not userobj.valid:
             userobj = user.User(self, auth_method='invalid')
 
         return userobj

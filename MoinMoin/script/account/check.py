@@ -135,14 +135,9 @@ General syntax: moin [options] account check [check-options]
         if keepthis:
             print("- keeping (magicpage)!")
             u.save()  # update timestamp, so this will be latest next run
-        elif not u.disabled:  # only disable once
-            u.disabled = 1
-            u.name = "%s-%s" % (u.name, uid)
-            if u.email:
-                u.email = "%s-%s" % (u.email, uid)
-            u.subscribed_pages = ""  # avoid using email
+        elif not u.disabled:
             if self.options.save:
-                u.save()
+                u.disable()
                 print("- disabled.")
             else:
                 print("- would be disabled.")

@@ -2602,7 +2602,7 @@ def createTicket(request, tm=None, action=None, pagename=None):
     return "%s.%s" % (tm, h.hexdigest())
 
 
-def checkTicket(request, ticket):
+def checkTicket(request, ticket, *, action=None):
     """Check validity of a previously created ticket"""
     try:
         timestamp_str = ticket.split('.')[0]
@@ -2618,7 +2618,7 @@ def checkTicket(request, ticket):
         return False
     # Note: if the session timed out, that will also invalidate the ticket,
     #       if the ticket was created within a session.
-    ourticket = createTicket(request, timestamp_str)
+    ourticket = createTicket(request, timestamp_str, action=action)
     logging.debug("checkTicket: returning %r, got %r, expected %r" % (ticket == ourticket, ticket, ourticket))
     return safe_str_cmp(ticket, ourticket)
 

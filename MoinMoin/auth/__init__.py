@@ -489,11 +489,12 @@ def setup_setuid(request, userobj):
     """
     old_user = None
     if 'setuid' in request.session and userobj and userobj.isSuperUser():
-        old_user = userobj
-        uid = request.session['setuid']
-        userobj = user.User(request, uid, auth_method='setuid')
-        userobj.valid = True
-        log_attempt("auth/login (setuid from %r)" % old_user.name, True, request, userobj.name)
+        target = user.User(request, request.session['setuid'], auth_method='setuid')
+        if target.valid:
+            old_user, userobj = userobj, target
+            log_attempt("auth/login (setuid from %r)" % old_user.name, True, request, userobj.name)
+        else:
+            del request.session['setuid']
     logging.debug("setup_suid returns %r, %r" % (userobj, old_user))
     return userobj, old_user
 

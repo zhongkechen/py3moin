@@ -20,11 +20,13 @@
 """
 
 import base64
-import codecs
 import hashlib
 import hmac
 import os
+import stat
+import tempfile
 import time
+from contextlib import contextmanager
 from copy import deepcopy
 
 from passlib.hash import des_crypt
@@ -32,7 +34,7 @@ from passlib.hash import des_crypt
 from MoinMoin import config, caching, wikiutil, i18n, events
 from MoinMoin import log
 from MoinMoin.support import md5crypt
-from MoinMoin.util import timefuncs, random_string
+from MoinMoin.util import lock, timefuncs, random_string
 from MoinMoin.wikiutil import url_quote_plus, safe_str_cmp
 
 logging = log.getLogger(__name__)
@@ -66,11 +68,17 @@ def get_by_filter(request, filter_func):
             return theuser
 
 
-def get_by_email_address(request, email_address):
-    """ Searches for an user with a particular e-mail address and returns it. """
+def get_by_email_address(request, email_address, include_disabled=False):
+    """Find a profile by email, optionally reserving disabled identities."""
     uid = _getUserIdByKey(request, 'email', email_address, case=False)
     if uid is not None:
-        return User(request, uid)
+        account = User(request, uid)
+        if account.valid and account.email.lower() == email_address.lower():
+            return account
+    if include_disabled and email_address:
+        email = email_address.lower()
+        return get_by_filter(request, lambda account: account.disabled and (
+            account.email.lower() == email or account.original_identity()[1].lower() == email))
 
 
 def get_by_jabber_id(request, jabber_id):
@@ -217,14 +225,25 @@ def addLowerCaseKeys(cache):
     return c
 
 
-def getUserId(request, searchName):
+def getUserId(request, searchName, include_disabled=False):
     """ Get the user ID for a specific user NAME.
 
     @param searchName: the user name to look up
+    @param include_disabled: also match names reserved by disabled profiles
     @rtype: string
     @return: the corresponding user ID or None
     """
-    return _getUserIdByKey(request, 'name', searchName)
+    uid = _getUserIdByKey(request, 'name', searchName)
+    if uid is not None and not os.path.isfile(os.path.join(request.cfg.user_dir, uid)):
+        setMemoryLookupCaches(request, None)
+        uid = _getUserIdByKey(request, 'name', searchName)
+        if uid is not None and not os.path.isfile(os.path.join(request.cfg.user_dir, uid)):
+            uid = None
+    if not uid and include_disabled and searchName:
+        account = get_by_filter(request, lambda account: account.disabled and (
+            account.name == searchName or account.original_identity()[0] == searchName))
+        uid = account.id if account else None
+    return uid
 
 
 def getUserIdByOpenId(request, openid):
@@ -449,6 +468,10 @@ def decodeDict(line):
     return items
 
 
+class AccountIdentityConflict(ValueError):
+    """Another profile already uses the account name or email."""
+
+
 class User:
     """ A MoinMoin User """
 
@@ -500,6 +523,7 @@ class User:
         self.language = ""
         self.real_language = ""  # In case user uses "Browser setting". For language-statistics
         self._stored = False
+        self._lifecycle_snapshot = None
         self.date_fmt = ""
         self.datetime_fmt = ""
         self.quicklinks = self._cfg.quicklinks_default
@@ -517,7 +541,7 @@ class User:
         # we got an already authenticated username:
         check_password = None
         if not self.id and self.auth_username:
-            self.id = getUserId(request, self.auth_username)
+            self.id = getUserId(request, self.auth_username, include_disabled=True)
             if not password is None:
                 check_password = password
         if self.id:
@@ -584,44 +608,90 @@ class User:
         """ Remove user profile from disk """
         os.remove(self.__filename())
 
-    def load_from_id(self, password=None):
-        """ Load user account data from disk.
+    # Lifecycle operations adapted from moinmoin-py3-md 1.12.1 by
+    # Gabriele 'asbesto' Zaverio and Claude (Anthropic AI), GPL-2.0-or-later.
+    def original_identity(self):
+        """Return the name and email before an older disable command renamed them."""
+        suffix = '-%s' % self.id
+        if self.disabled and self.name.endswith(suffix) and self.name != suffix:
+            return self.name.removesuffix(suffix), self.email.removesuffix(suffix)
+        return self.name, self.email
 
-        Can only load user data if the id number is already known.
+    def disable(self):
+        if not self.exists() or self.disabled:
+            return False
+        self.disabled = 1
+        return self.save()
 
-        This loads all member variables, except "id" and "valid" and
-        those starting with an underscore.
-
-        @param password: If not None, then the given password must match the
-                         password in the user account file.
-        """
-        if not self.exists():
-            return
-
-        data = codecs.open(self.__filename(), "r", config.charset).readlines()
-        user_data = {'enc_password': ''}
-        for line in data:
-            if line[0] == '#':
+    def enable(self):
+        if not self.exists() or not self.disabled:
+            return False
+        name, email = self.original_identity()
+        for uid in getUserList(self._request):
+            if uid == self.id:
                 continue
+            other = User(self._request, uid)
+            if not other._stored:
+                continue
+            other_name, other_email = other.original_identity()
+            if name in (other.name, other_name):
+                raise AccountIdentityConflict('username')
+            if (email and (email != self.email or self._cfg.user_email_unique)
+                    and email.lower() in (other.email.lower(), other_email.lower())):
+                raise AccountIdentityConflict('email')
+        self.name, self.email = name, email
+        self.disabled = 0
+        return self.save()
 
+    def delete(self):
+        with self._profile_lock():
             try:
-                key, val = line.strip().split('=', 1)
-                if key not in self._cfg.user_transient_fields and key[0] != '_':
-                    # Decode list values
-                    if key.endswith('[]'):
-                        key = key[:-2]
-                        val = decodeList(val)
-                    # Decode dict values
-                    elif key.endswith('{}'):
-                        key = key[:-2]
-                        val = decodeDict(val)
-                    # for compatibility reading old files, keep these explicit
-                    # we will store them with [] appended
-                    elif key in ['quicklinks', 'subscribed_pages', 'subscribed_events']:
-                        val = decodeList(val)
-                    user_data[key] = val
-            except ValueError:
-                pass
+                self.remove()
+            except FileNotFoundError:
+                return False
+            self.valid = 0
+            self.updateLookupCaches()
+            self.updatePageSubCache()
+        return True
+
+    @contextmanager
+    def _profile_lock(self):
+        profile_lock = lock.ExclusiveLock(self.__filename() + '.lock', timeout=60)
+        if not profile_lock.acquire(timeout=5):
+            raise TimeoutError('could not lock the user profile')
+        try:
+            yield
+        finally:
+            profile_lock.release()
+
+    def _read_profile(self):
+        try:
+            with open(self.__filename(), encoding=config.charset) as profile:
+                lines = profile.readlines()
+        except FileNotFoundError:
+            return None
+        user_data = {'enc_password': ''}
+        for line in lines:
+            if line.startswith('#'):
+                continue
+            key, separator, value = line.strip().partition('=')
+            if not separator or not key or key in self._cfg.user_transient_fields or key.startswith('_'):
+                continue
+            if key.endswith('[]'):
+                key, value = key[:-2], decodeList(value)
+            elif key.endswith('{}'):
+                key, value = key[:-2], decodeDict(value)
+            elif key in ['quicklinks', 'subscribed_pages', 'subscribed_events']:
+                # Old profiles used these keys without the list suffix.
+                value = decodeList(value)
+            user_data[key] = value
+        return user_data
+
+    def load_from_id(self, password=None):
+        """Read a profile, optionally checking the user's password."""
+        user_data = self._read_profile()
+        if user_data is None:
+            return
 
         # Validate data from user file. In case we need to change some
         # values, we set 'changed' flag, and later save the user data.
@@ -635,7 +705,7 @@ class User:
 
         # Remove ignored checkbox values from user data
         for key, label in self._cfg.user_checkbox_fields:
-            if key in user_data and key in self._cfg.user_checkbox_disable:
+            if key != 'disabled' and key in user_data and key in self._cfg.user_checkbox_disable:
                 del user_data[key]
 
         # Copy user data into user object
@@ -668,6 +738,7 @@ class User:
         # Mark this user as stored so saves don't send
         # the "user created" event
         self._stored = True
+        self._lifecycle_snapshot = self.name, self.email, self.disabled
 
         # If user data has been changed, save fixed user data.
         if changed:
@@ -773,55 +844,73 @@ class User:
                 if key not in self._cfg.user_transient_fields and key[0] != '_']
 
     def save(self):
-        """ Save user account data to user account file on disk.
-
-        This saves all member variables, except "id" and "valid" and
-        those starting with an underscore.
-        """
+        """Atomically write the user profile and refresh its cached entries."""
         if not self.id:
-            return
+            return False
 
-        user_dir = self._cfg.user_dir
-        if not os.path.exists(user_dir):
-            os.makedirs(user_dir)
+        os.makedirs(self._cfg.user_dir, exist_ok=True)
+        with self._profile_lock():
+            if self._stored:
+                current = self._read_profile()
+                if current is None:
+                    self.valid = 0
+                    return False
+                self._merge_lifecycle_fields(current)
 
-        self.last_saved = str(time.time())
-
-        # !!! should write to a temp file here to avoid race conditions,
-        # or even better, use locking
-
-        data = codecs.open(self.__filename(), "w", config.charset)
-        data.write("# Data saved '%s' for id '%s'\n" % (
-            time.strftime(self._cfg.datetime_fmt, time.localtime(time.time())),
-            self.id))
-        attrs = self.persistent_items()
-        attrs.sort()
-        for key, value in attrs:
-            # Encode list values
-            if isinstance(value, list):
-                key += '[]'
-                value = encodeList(value)
-            # Encode dict values
-            elif isinstance(value, dict):
-                key += '{}'
-                value = encodeDict(value)
-            line = u"%s=%s" % (key, str(value))
-            line = line.replace('\n', ' ').replace('\r', ' ')  # no lineseps
-            data.write(line + '\n')
-        data.close()
-
-        if not self.disabled:
-            self.valid = 1
-
-        self.updateLookupCaches()
-
-        if not self._stored:
+            self._write_profile()
+            self.valid = int(not self.disabled)
+            self._lifecycle_snapshot = self.name, self.email, self.disabled
+            self.updateLookupCaches()
+            self.updatePageSubCache()
+            created = not self._stored
             self._stored = True
-            event = events.UserCreatedEvent(self._request, self)
-            events.send_event(event)
 
-        # update page subscriber's cache after saving user preferences
-        self.updatePageSubCache()
+        if created:
+            events.send_event(events.UserCreatedEvent(self._request, self))
+        return True
+
+    def _merge_lifecycle_fields(self, profile):
+        """Keep lifecycle changes saved after this request loaded the profile."""
+        if self._lifecycle_snapshot is None:
+            return
+        name, email, disabled = self._lifecycle_snapshot
+        try:
+            current_disabled = int(profile.get('disabled', 0))
+        except ValueError:
+            current_disabled = 0
+        if current_disabled != disabled:
+            # A request with an older profile must not reactivate the account.
+            self.disabled = current_disabled
+            self.name = profile.get('name', name)
+            self.email = profile.get('email', email)
+
+    def _write_profile(self):
+        filename = self.__filename()
+        temporary = None
+        self.last_saved = str(time.time())
+        try:
+            with tempfile.NamedTemporaryFile(mode='w', encoding=config.charset,
+                                             dir=self._cfg.user_dir, prefix='.profile-',
+                                             delete=False) as data:
+                temporary = data.name
+                data.write("# Data saved '%s' for id '%s'\n" % (
+                    time.strftime(self._cfg.datetime_fmt, time.localtime(time.time())), self.id))
+                for key, value in sorted(self.persistent_items()):
+                    if isinstance(value, list):
+                        key += '[]'
+                        value = encodeList(value)
+                    elif isinstance(value, dict):
+                        key += '{}'
+                        value = encodeDict(value)
+                    line = f'{key}={value}'.replace('\n', ' ').replace('\r', ' ')
+                    data.write(line + '\n')
+            if self.exists():
+                os.chmod(temporary, stat.S_IMODE(os.stat(filename).st_mode))
+            os.replace(temporary, filename)
+            temporary = None
+        finally:
+            if temporary is not None:
+                os.unlink(temporary)
 
     # -----------------------------------------------------------------
     # Time and date formatting
@@ -1307,6 +1396,8 @@ class User:
         from MoinMoin.mail import sendmail
         _ = self._request.getText
 
+        if self.disabled:
+            return False, "user account is disabled."
         if not self.email:
             return False, "user has no E-Mail address in his profile."
 

@@ -9,6 +9,7 @@
 """
 
 from MoinMoin import user, wikiutil
+from MoinMoin.action.userprofile import account_form
 from MoinMoin.Page import Page
 from MoinMoin.datastruct.backends.wiki_groups import WikiGroup
 from MoinMoin.util.dataset import TupleDataset, Column
@@ -44,7 +45,7 @@ def do_user_browser(request):
         # not sure if we can keep lots of User objects instantiated
         # in parallel (open files? too big?)
         u = user.User(request, uid)
-        accounts.append(UserAccount(name=u.name, email=u.email, jid=u.jid, disabled=u.disabled))
+        accounts.append(UserAccount(uid=uid, name=u.name, email=u.email, jid=u.jid, disabled=u.disabled))
 
     def sortkey(account):
         # enabled accounts at top, sorted by name
@@ -67,24 +68,12 @@ def do_user_browser(request):
         else:
             namelink = wikiutil.escape(account.name)
 
-        # creates the POST data for account disable/enable
-        val = "1"
-        text = _('Disable user')
         if account.disabled:
-            text = _('Enable user')
-            val = "0"
+            lifecycle_form = account_form(request, account.uid, 'enable', _('Enable user'))
             namelink += " (%s)" % _("disabled")
-
-        url = request.page.url(request)
-        ret = html.FORM(action=url)
-        ret.append(html.INPUT(type='hidden', name='action', value='userprofile'))
-        ticket = wikiutil.createTicket(request, action='userprofile')
-        ret.append(html.INPUT(type="hidden", name="ticket", value="%s" % ticket))
-        ret.append(html.INPUT(type='hidden', name='name', value=account.name))
-        ret.append(html.INPUT(type='hidden', name='key', value="disabled"))
-        ret.append(html.INPUT(type='hidden', name='val', value=val))
-        ret.append(html.INPUT(type='submit', name='userprofile', value=text))
-        enable_disable_link = str(str(ret))
+        else:
+            lifecycle_form = account_form(request, account.uid, 'disable', _('Disable user'))
+        delete_form = account_form(request, account.uid, 'delete', _('Delete user'))
 
         # creates the POST data for recoverpass
         url = request.page.url(request)
@@ -115,7 +104,7 @@ def do_user_browser(request):
             request.formatter.rawHTML(grouppage_links),
             email_link,
             jabber_link,
-            recoverpass_link + enable_disable_link
+            ('' if account.disabled else recoverpass_link) + lifecycle_form + delete_form
         ))
 
     if data:

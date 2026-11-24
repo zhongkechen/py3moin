@@ -129,8 +129,7 @@ General syntax: moin [options] account inactive [inactive-options]
                     print("%s\t%r\t%r\t%r" % (uid, u.name, u.email, u.disabled))
                 if self.options.disable:
                     if check_interactive(u):
-                        u.disabled = 1
-                        u.save()
+                        u.disable()
                 elif self.options.remove:
                     if check_interactive(u):
-                        u.remove()
+                        u.delete()
