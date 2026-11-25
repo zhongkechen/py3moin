@@ -84,3 +84,6 @@ jobs:
             tests/datastruct/backends/_tests/test_composite_groups.py \
             tests/datastruct/backends/_tests/test_wiki_groups.py \
             tests/datastruct/backends/_tests/test_lazy_config_groups.py
+
+      - name: Run the main test suite and WSGI workflows
+        run: python -m pytest -q tests/

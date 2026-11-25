@@ -1337,7 +1337,7 @@ Password reset URL: %s?action=recoverpass&name=%s&token=%s
         text = text_intro + '\n' + _(text_msg) + '\n' + _(text_data) % (
             self.name,
             tok,
-            self._request.request.url,  # use full url, including current page
+            self._request.request.base_url,
             url_quote_plus(self.name),
             tok,)
 

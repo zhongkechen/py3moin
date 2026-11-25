@@ -69,15 +69,10 @@ class TestQueryParsing:
             result = parser.parse_query(query)
             assert str(result) == wanted
 
-    def testQueryParserExceptions(self, req):
-        """ search: test the query parser """
-        parser = QueryParser()
-
-        def _test(q):
-            pytest.raises(QueryError, parser.parse_query, q)
-
-        for query in ['""', '(', ')', '(a or b']:
-            yield _test, query
+    @pytest.mark.parametrize('query', ['""', '(', ')', '(a or b'])
+    def testQueryParserExceptions(self, query):
+        with pytest.raises(QueryError):
+            QueryParser().parse_query(query)
 
 
 class TestSearchExpressions:
@@ -198,13 +193,8 @@ class BaseSearchTest:
                     u'title:TestOnEditing': 1,
                    }
 
-        def test(req, query, res_count):
-            result = self.search(req, query)
-            test_result = len(result.hits)
-            assert test_result == res_count
-
-        for query, res_count in list(searches.items()):
-            yield query, test, query, res_count
+        for query, count in searches.items():
+            assert len(self.search(req, query).hits) == count, query
 
     def test_title_search_re(self, req):
         expected_pages = {u'SearchTestPage', u'SearchTestLinks', u'SearchTestLinksLowerCase', u'SearchTestOtherLinks'}
@@ -331,9 +321,10 @@ class BaseSearchTest:
         assert not found_pages
 
     def test_language_search_simple(self, req):
-        result = self.search(req, u'language:en')
-        test_result = len(result.hits)
-        assert test_result == 14
+        english = {hit.page_name for hit in self.search(req, 'language:en').hits}
+        french = {hit.page_name for hit in self.search(req, 'language:fr').hits}
+        assert 'SearchTestPage' in english
+        assert 'SearchTestPage' not in french
 
     def test_domain_search_simple(self, req):
         result = self.search(req, u'domain:system')
@@ -514,7 +505,7 @@ class TestXapianSearch(BaseSearchTest):
             self.searcher_class = XapianSearch
 
         except ImportError as error:
-            if not str(error).startswith('Xapian '):
+            if error.name != 'xapian' and not str(error).startswith('Xapian '):
                 raise
             pytest.skip('xapian is not installed')
 
@@ -562,7 +553,7 @@ class TestXapianSearch(BaseSearchTest):
             modifiers, term = data
             for modifier in modifiers:
                 query = ''.join([prefix, modifier, term])
-                yield query, test_query, query
+                test_query(query, req)
 
     def test_stemming(self, req):
         expected_pages = {u'TestEdit'}

@@ -933,7 +933,7 @@ import pygments.lexers
 for name, short, patterns, mime in pygments.lexers.get_all_lexers():
     for pattern in patterns:
         if pattern.startswith('*.') and mime:
-            MIMETYPES_MORE[pattern[1:]] = mime[0]
+            MIMETYPES_MORE.setdefault(pattern[1:], mime[0])
 
 [mimetypes.add_type(mimetype, ext, True) for ext, mimetype in list(MIMETYPES_MORE.items())]
 

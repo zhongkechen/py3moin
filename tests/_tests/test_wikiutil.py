@@ -302,7 +302,7 @@ class TestParamParsing:
             assert r == e
 
         for args, expected in tests:
-            yield _check, args, expected
+            _check(args, expected)
 
     def testNoNameValue(self):
         abcd = [u'a', u'b', u'c', u'd']
@@ -369,7 +369,7 @@ class TestParamParsing:
             assert res == expected
 
         for test in tests:
-            yield [_check] + list(test)
+            _check(*test)
 
     def testExtendedParserBracketing(self):
         tests = [
@@ -389,7 +389,7 @@ class TestParamParsing:
             assert res == expected
 
         for test in tests:
-            yield [_check] + list(test)
+            _check(*test)
 
     def testExtendedParserQuoting(self):
         tests = [
@@ -405,7 +405,7 @@ class TestParamParsing:
             assert res == expected
 
         for test in tests:
-            yield [_check] + list(test)
+            _check(*test)
 
     def testExtendedParserMultikey(self):
         tests = [
@@ -441,7 +441,7 @@ class TestParamParsing:
             assert res == expected
 
         for test in tests:
-            yield [_check] + list(test)
+            _check(*test)
 
     def testExtendedParserPrefix(self):
         P = wikiutil.ParserPrefix('+')
@@ -489,7 +489,7 @@ class TestParamParsing:
             assert res == expected
 
         for test in tests:
-            yield [_check] + list(test)
+            _check(*test)
 
     def testExtendedParserBracketingErrors(self):
         UCE = wikiutil.BracketUnexpectedCloseError
@@ -511,7 +511,7 @@ class TestParamParsing:
                            brackets=(u'<>', u'()'))
 
         for test in tests:
-            yield [_check] + list(test)
+            _check(*test)
 
 class TestArgGetters:
     def testGetBoolean(self, req):
@@ -914,7 +914,7 @@ class TestAnchorNames:
              u'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:_.-')
         ]
         for text, expected in tests:
-            yield self._check, text, expected
+            self._check(text, expected)
 
     def _check(self, text, expected):
         encoded = wikiutil.anchor_name_from_text(text)
@@ -935,7 +935,7 @@ class TestPageLinkMarkup:
             (('Some Page', 'some Page'), '[[Some Page|some Page]]'),
         ]
         for params, expected in tests:
-            yield self._check, params, expected
+            self._check(params, expected)
 
     def _check(self, params, expected):
         assert expected == wikiutil.pagelinkmarkup(*params)
@@ -956,14 +956,14 @@ class TestRelativeTools:
     ]
     def test_abs_pagename(self):
         for (current_page, relative_page), absolute_page in self.tests:
-            yield self._check_abs_pagename, current_page, relative_page, absolute_page
+            self._check_abs_pagename(current_page, relative_page, absolute_page)
 
     def _check_abs_pagename(self, current_page, relative_page, absolute_page):
         assert absolute_page == wikiutil.AbsPageName(current_page, relative_page)
 
     def test_rel_pagename(self):
         for (current_page, relative_page), absolute_page in self.tests:
-            yield self._check_rel_pagename, current_page, absolute_page, relative_page
+            self._check_rel_pagename(current_page, absolute_page, relative_page)
 
     def _check_rel_pagename(self, current_page, absolute_page, relative_page):
         assert relative_page == wikiutil.RelPageName(current_page, absolute_page)
