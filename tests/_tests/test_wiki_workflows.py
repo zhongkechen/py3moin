@@ -206,6 +206,60 @@ def test_load_upload_as_page_content(wiki):
     assert b'Uploaded text.' in client.get('/LoadedPage').data
 
 
+def test_goto_action_redirects_to_the_selected_page(wiki):
+    context, client = wiki
+    PageEditor(context, 'GoFrom').saveText('<<GoTo>>\n', 0, notify=False)
+    PageEditor(context, 'TargetPage').saveText('The target page.\n', 0, notify=False)
+    form = client.get('/GoFrom')
+    assert b'name="action" value="goto"' in form.data
+
+    response = client.get('/GoFrom', query_string={'action': 'goto', 'target': 'TargetPage'})
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/TargetPage'
+
+
+def test_attachment_list_unzips_an_ordinary_archive(wiki):
+    from html import unescape
+    from zipfile import ZipFile
+
+    from MoinMoin.action import AttachFile
+
+    context, client = wiki
+    PageEditor(context, 'ZipPage').saveText('Some attachments.\n', 0, notify=False)
+    buffer = BytesIO()
+    with ZipFile(buffer, 'w') as archive:
+        archive.writestr('notes.txt', b'Plain notes.\n')
+    AttachFile.add_attachment(context, 'ZipPage', 'files.zip', buffer.getvalue())
+
+    listing = client.get('/ZipPage', query_string={'action': 'AttachFile'})
+    links = re.findall(rb'href="([^"]+)"', listing.data)
+    unzip_url = next(url for url in links if b'do=unzip' in url)
+    result = client.get(unescape(unzip_url.decode('ascii')))
+    assert b'unzipped.' in result.data
+    downloaded = client.get('/ZipPage', query_string={
+        'action': 'AttachFile', 'do': 'get', 'target': 'notes.txt',
+    })
+    assert downloaded.data == b'Plain notes.\n'
+
+
+def test_system_admin_renders_the_superuser_menu(wiki):
+    context, client = wiki
+    account = user.User(context, auth_method='new-user')
+    account.name = 'AdminViewer'
+    account.enc_password = user.encodePassword(context.cfg, 'test-admin-password')
+    account.save()
+    context.cfg.superuser = [account.name]
+    PageEditor(context, 'AdminPage').saveText('<<SystemAdmin>>\n', 0, notify=False)
+    client.post('/AdminPage', data={
+        'action': 'login', 'login': '1', 'name': account.name, 'password': 'test-admin-password',
+    })
+    response = client.get('/AdminPage', query_string={'sysadm': 'users'})
+    assert response.status_code == 200
+    assert b'User account browser' in response.data
+    assert b'File attachment browser' in response.data
+    assert b'execution failed' not in response.data
+
+
 def test_backup_form_and_archive_require_a_configured_user(wiki, tmp_path):
     context, client = wiki
     backup_dir = tmp_path / 'backup-source'
