@@ -14,7 +14,42 @@ import time
 
 import pytest
 
-from MoinMoin.util.lock import ExclusiveLock, WriteLock
+from MoinMoin.util.lock import ExclusiveLock, FileLock, WriteLock
+
+
+def test_file_lock_serializes_writers(tmp_path):
+    path = tmp_path / 'writer'
+    first = FileLock(path)
+    second = FileLock(path)
+    assert first.acquire(timeout=1)
+    try:
+        assert not second.acquire(timeout=0.05)
+    finally:
+        first.release()
+    assert second.acquire(timeout=1)
+    second.release()
+
+
+def test_file_lock_is_released_when_a_process_exits(tmp_path):
+    import subprocess
+    import sys
+
+    path = tmp_path / 'worker'
+    script = '''
+import os
+import sys
+from MoinMoin.util.lock import FileLock
+
+lock = FileLock(sys.argv[1])
+if not lock.acquire(timeout=1):
+    sys.exit(1)
+os._exit(0)
+'''
+    subprocess.run([sys.executable, '-c', script, str(path)], check=True, timeout=10)
+
+    successor = FileLock(path)
+    assert successor.acquire(timeout=1)
+    successor.release()
 
 
 class TestExclusiveLock:

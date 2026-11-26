@@ -61,6 +61,15 @@ def isolated_page(req):
             shutil.rmtree(pagedir, ignore_errors=True)
 
 
+def test_legacy_directory_lock_does_not_block_new_writer(req, isolated_page):
+    pagename, pagedir, _ = isolated_page
+    (Path(req.cfg.data_dir) / 'page-locks' / pagename).mkdir(parents=True)
+
+    _, revision = PageEditor(req, pagename)._write_file('Updated after restart.\n')
+    assert revision == 2
+    assert (Path(pagedir) / 'current').read_text() == '00000002\n'
+
+
 def test_failed_revision_write_before_content_preserves_current(req, isolated_page, monkeypatch):
     pagename, pagedir, revdir = isolated_page
     real_codecs_open = codecs.open
