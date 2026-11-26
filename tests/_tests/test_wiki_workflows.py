@@ -165,47 +165,6 @@ def test_delete_deprecated_page_keeps_its_history(wiki):
     assert page.getRevList() == [2, 1]
 
 
-def test_rename_and_delete_support_subpages(wiki):
-    context, client = wiki
-    PageEditor(context, 'ParentPage').saveText('Parent text.\n', 0, notify=False)
-    PageEditor(context, 'ParentPage/Child').saveText('Child text.\n', 0, notify=False)
-
-    form = client.get('/ParentPage', query_string={'action': 'RenamePage', 'subpages_checked': 1})
-    assert b'name="rename_subpages" value="1" checked' in form.data
-    renamed = client.post('/ParentPage', data={
-        'action': 'RenamePage', 'rename': '1', 'newpagename': 'RenamedPage',
-        'rename_subpages': '1', 'ticket': _field(form, 'ticket'),
-    })
-    assert renamed.status_code == 301
-    assert client.get('/ParentPage/Child').status_code == 404
-    assert b'Child text.' in client.get('/RenamedPage/Child').data
-
-    form = client.get('/RenamedPage', query_string={'action': 'DeletePage', 'subpages_checked': 1})
-    assert b'name="delete_subpages" value="1" checked' in form.data
-    deleted = client.post('/RenamedPage', data={
-        'action': 'DeletePage', 'delete': '1', 'delete_subpages': '1', 'ticket': _field(form, 'ticket'),
-    })
-    assert b'was successfully deleted' in deleted.data
-    assert client.get('/RenamedPage').status_code == 404
-    assert client.get('/RenamedPage/Child').status_code == 404
-
-
-def test_load_upload_as_page_content(wiki):
-    _, client = wiki
-    form = client.get('/LoadedPage', query_string={'action': 'Load'})
-    ticket = _field(form, 'ticket')
-
-    def upload(body):
-        return client.post('/LoadedPage', data={
-            'action': 'Load', 'Load': '1', 'ticket': ticket, 'rename': 'LoadedPage',
-            'file': (BytesIO(body), 'page.txt'),
-        })
-
-    assert b'You cannot save empty pages' in upload(b'').data
-    assert upload(b'Uploaded text.\n').status_code == 302
-    assert b'Uploaded text.' in client.get('/LoadedPage').data
-
-
 def test_first_run_language_setup_installs_a_shipped_package(wiki, tmp_path):
     from html import unescape
     from urllib.parse import parse_qs, urlsplit
@@ -262,6 +221,47 @@ def test_first_run_language_setup_installs_a_shipped_package(wiki, tmp_path):
     assert pack.encode() + b"' installed." in result.data
     assert (tmp_path / help_page).read_text(encoding='utf-8') == expected_body
     assert (tmp_path / attachment).read_bytes() == expected_attachment
+
+
+def test_rename_and_delete_support_subpages(wiki):
+    context, client = wiki
+    PageEditor(context, 'ParentPage').saveText('Parent text.\n', 0, notify=False)
+    PageEditor(context, 'ParentPage/Child').saveText('Child text.\n', 0, notify=False)
+
+    form = client.get('/ParentPage', query_string={'action': 'RenamePage', 'subpages_checked': 1})
+    assert b'name="rename_subpages" value="1" checked' in form.data
+    renamed = client.post('/ParentPage', data={
+        'action': 'RenamePage', 'rename': '1', 'newpagename': 'RenamedPage',
+        'rename_subpages': '1', 'ticket': _field(form, 'ticket'),
+    })
+    assert renamed.status_code == 301
+    assert client.get('/ParentPage/Child').status_code == 404
+    assert b'Child text.' in client.get('/RenamedPage/Child').data
+
+    form = client.get('/RenamedPage', query_string={'action': 'DeletePage', 'subpages_checked': 1})
+    assert b'name="delete_subpages" value="1" checked' in form.data
+    deleted = client.post('/RenamedPage', data={
+        'action': 'DeletePage', 'delete': '1', 'delete_subpages': '1', 'ticket': _field(form, 'ticket'),
+    })
+    assert b'was successfully deleted' in deleted.data
+    assert client.get('/RenamedPage').status_code == 404
+    assert client.get('/RenamedPage/Child').status_code == 404
+
+
+def test_load_upload_as_page_content(wiki):
+    _, client = wiki
+    form = client.get('/LoadedPage', query_string={'action': 'Load'})
+    ticket = _field(form, 'ticket')
+
+    def upload(body):
+        return client.post('/LoadedPage', data={
+            'action': 'Load', 'Load': '1', 'ticket': ticket, 'rename': 'LoadedPage',
+            'file': (BytesIO(body), 'page.txt'),
+        })
+
+    assert b'You cannot save empty pages' in upload(b'').data
+    assert upload(b'Uploaded text.\n').status_code == 302
+    assert b'Uploaded text.' in client.get('/LoadedPage').data
 
 
 def test_backup_form_and_archive_require_a_configured_user(wiki, tmp_path):
