@@ -169,9 +169,6 @@ class LogFile:
                         "logfile: %r IOERROR errno %d (%s)" % (self.__filename, err.errno, os.strerror(err.errno)))
                     raise
             return self._input
-        elif name == "_output":
-            self._output = codecs.open(self.__filename, 'ab', config.charset)
-            return self._output
         else:
             raise AttributeError(name)
 
@@ -468,6 +465,5 @@ class LogFile:
         if line is not None:
             if line[-1] != '\n':
                 line += '\n'
-            self._output.write(line)
-            self._output.close()  # does this maybe help against the sporadic fedora wikis 160 \0 bytes in the edit-log?
-            del self._output  # re-open the output file automagically
+            with codecs.open(self.__filename, 'ab', config.charset) as output:
+                output.write(line)

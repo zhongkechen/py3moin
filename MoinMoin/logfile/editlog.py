@@ -15,7 +15,11 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+import errno
+import os
+from contextlib import contextmanager
 from logging import NOTSET
+from threading import get_ident
 
 from past.builtins import cmp
 
@@ -23,6 +27,7 @@ from MoinMoin import log
 from MoinMoin import wikiutil, user, config
 from MoinMoin.Page import Page
 from MoinMoin.logfile import LogFile
+from MoinMoin.util.lock import FileLock
 
 logging = log.getLogger(__name__)
 
@@ -161,6 +166,9 @@ class EditLog(LogFile):
             else:
                 filename = request.rootpage.getPagePath('edit-log', isfile=1)
         LogFile.__init__(self, filename, buffer_size)
+        self._path = filename
+        self._lock_path = os.path.join(request.cfg.data_dir, 'edit-log.lock')
+        self._writer = None
         self._NUM_FIELDS = 9
         self._usercache = {}
 
@@ -171,6 +179,36 @@ class EditLog(LogFile):
         # force inclusion of ip address, even if config forbids it.
         # this is needed so PageLock can work correctly for locks of anon editors.
         self.force_ip = kw.get('force_ip', False)
+
+    @contextmanager
+    def _locked(self):
+        edit_lock = FileLock(self._lock_path)
+        if not edit_lock.acquire(timeout=10.0):
+            raise OSError(errno.ETIMEDOUT, 'Could not lock the edit log', self._lock_path)
+        try:
+            yield
+        finally:
+            edit_lock.release()
+
+    @contextmanager
+    def transaction(self, related_log=None):
+        """Append edit records and roll them back if publishing the edit fails."""
+        logs = (self,) if related_log is None else (self, related_log)
+        with self._locked():
+            positions = [(edit_log, edit_log.size()) for edit_log in logs]
+            for edit_log in logs:
+                edit_log._writer = get_ident()
+            try:
+                yield
+            except BaseException:
+                for edit_log, position in positions:
+                    if edit_log.size() != position:
+                        with open(edit_log._path, 'r+b') as stream:
+                            stream.truncate(position)
+                raise
+            finally:
+                for edit_log in logs:
+                    edit_log._writer = None
 
     def add(self, context, mtime, rev, action, pagename, host=None, extra=u'', comment=u''):
         """ Generate (and add) a line to the edit-log.
@@ -212,7 +250,11 @@ class EditLog(LogFile):
                            extra,
                            comment,
                            )) + "\n"
-        self._add(line)
+        if self._writer == get_ident():
+            self._add(line)
+        else:
+            with self.transaction():
+                self._add(line)
 
     def parser(self, line):
         """ Parse edit-log line into fields """
@@ -248,6 +290,14 @@ class EditLog(LogFile):
         """ What has changed in the edit-log since <oldposition>?
             Returns edit-log final position() and list of changed item names.
         """
+        if oldposition == self.size():
+            return oldposition, []
+        # A page save publishes current after appending its log entries.
+        # Advance the cache cursor only after the save has committed or rolled back.
+        with self._locked():
+            return self._news(oldposition)
+
+    def _news(self, oldposition):
         logsize = self.size()
         if oldposition is None:
             oldposition = logsize  # == end of file
