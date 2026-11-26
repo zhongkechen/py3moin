@@ -314,14 +314,16 @@ class FileSessionService(SessionService):
         else:
             session = store.get(sid)
             expiry = session.get('expires')
-            if expiry is not None:
-                now = time.time()
-                if expiry < now:
-                    # the browser should've killed that cookie already.
-                    # clock not in sync? trying to cheat?
-                    logging.debug("session has expired (expiry: %r now: %r)" % (expiry, now))
-                    self.destroy_session(context, session)
-                    session = store.new()
+            if expiry is None:
+                # Older versions could create an authenticated session
+                # without a server-side deadline. Require a fresh login.
+                expired = 'user.id' in session
+            else:
+                expired = expiry <= time.time()
+            if expired:
+                logging.debug("session has expired (expiry: %r)", expiry)
+                self.destroy_session(context, session)
+                session = store.new()
         logging.debug("get_session returns session %r" % session)
         return session
 
@@ -382,14 +384,9 @@ class FileSessionService(SessionService):
                 if val != current_val:
                     session[key] = val
 
-        if not session.new:
-            # add some info about expiry to the sessions, so we can purge them.
-            # also, make sure we notice server-side if a session is expired, do
-            # not rely on the client to expire the cookie.
-            update_session('expires', cookie_expires)
-
         if cookie_lifetime and not kill_session:
             # we have set the cookie, now update the session store
+            update_session('expires', cookie_expires)
 
             if userobj.valid:
                 # we have a logged-in user
