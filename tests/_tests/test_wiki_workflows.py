@@ -206,6 +206,64 @@ def test_load_upload_as_page_content(wiki):
     assert b'Uploaded text.' in client.get('/LoadedPage').data
 
 
+def test_first_run_language_setup_installs_a_shipped_package(wiki, tmp_path):
+    from html import unescape
+    from urllib.parse import parse_qs, urlsplit
+
+    from MoinMoin import wikiutil
+
+    context, client = wiki
+    underlay = tmp_path / 'underlay'
+    context.cfg.data_underlay_dir = str(underlay)
+    context.cfg.superuser = ['LanguagePackAdmin']
+    help_page = 'underlay/pages/HelpOnFormatting/revisions/00000001'
+    attachment = 'underlay/pages/%s/attachments/move_example1.png' % wikiutil.quoteWikinameFS('HelpOnActions/AttachFile')
+    pack = 'English--optional_help_pages.zip'
+    files = (
+        'underlay/pages/LanguageSetup/current',
+        'underlay/pages/LanguageSetup/revisions/00000001',
+        'underlay/pages/LanguageSetup/attachments/' + pack,
+        'underlay/pages/LanguageSetup/attachments/Simplified_Chinese--essential_pages.zip',
+    )
+    with tarfile.open(Path(maketestwiki.SHARE) / 'underlay.tar') as archive:
+        expected_body = archive.extractfile(help_page).read().decode('utf-8').replace('\r\n', '\n')
+        expected_attachment = archive.extractfile(attachment).read()
+        for filename in files:
+            destination = tmp_path / filename
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(archive.extractfile(filename).read())
+
+    account = user.User(_context(context.cfg), auth_method='new-user')
+    account.name = 'LanguagePackAdmin'
+    account.email = 'language-packs@example.invalid'
+    account.enc_password = user.encodePassword(context.cfg, 'language-pack-test-password')
+    account.save()
+    login = client.post('/LanguageSetup', data={
+        'action': 'login', 'login': '1', 'name': account.name, 'password': 'language-pack-test-password',
+    })
+    assert login.headers.get('Set-Cookie')
+
+    args = {'action': 'language_setup'}
+    options = client.get('/LanguageSetup', query_string=args)
+    assert options.status_code == 200
+    assert b'Simplified_Chinese' in options.data
+    urls = [urlsplit(unescape(url)) for url in re.findall(r'href="([^"]+)"', options.get_data(as_text=True))]
+    install = next(url for url in urls if parse_qs(url.query).get('action') == ['language_setup']
+                   and parse_qs(url.query).get('target') == [pack])
+    assert 'ticket' in parse_qs(install.query)
+    assert not (tmp_path / help_page).exists()
+
+    missing_ticket = client.get('/LanguageSetup', query_string={**args, 'target': pack})
+    assert b'Please use the interactive user interface' in missing_ticket.data
+    assert not (tmp_path / help_page).exists()
+
+    result = client.get(install.geturl())
+    assert result.status_code == 200
+    assert pack.encode() + b"' installed." in result.data
+    assert (tmp_path / help_page).read_text(encoding='utf-8') == expected_body
+    assert (tmp_path / attachment).read_bytes() == expected_attachment
+
+
 def test_backup_form_and_archive_require_a_configured_user(wiki, tmp_path):
     context, client = wiki
     backup_dir = tmp_path / 'backup-source'
