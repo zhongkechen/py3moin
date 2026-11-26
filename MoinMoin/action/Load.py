@@ -43,7 +43,7 @@ class Load(ActionBase):
         comment = form.get('comment', u'')
         comment = wikiutil.clean_input(comment)
 
-        file_upload = request.files.get('file')
+        file_upload = request.request.files.get('file')
         if not file_upload:
             # This might happen when trying to upload file names
             # with non-ascii characters on Safari.
@@ -67,10 +67,8 @@ class Load(ActionBase):
             try:
                 msg = pg.saveText(filecontent, 0, comment=comment)
                 status = True
-            except pg.EditConflict as e:
-                msg = e.message
-            except pg.SaveError as msg:
-                msg = str(msg)
+            except pg.SaveError as error:
+                msg = str(error)
         else:
             msg = _("Pagename not specified!")
         return status, msg

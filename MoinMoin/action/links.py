@@ -12,10 +12,10 @@ from MoinMoin import wikiutil
 def execute(pagename, request):
     _ = request.getText
     # get the MIME type
-    mimetype = request.values.get('mimetype', 'text/html')
-    request.mimetype = mimetype
+    html_output = request.request.values.get('mimetype', 'text/html') == 'text/html'
+    request.response.mimetype = 'text/html' if html_output else 'text/plain'
 
-    if mimetype == "text/html":
+    if html_output:
         request.theme.send_title(_('Full Link List for "%s"') % request.cfg.sitename)
         request.write('<pre>')
 
@@ -25,13 +25,13 @@ def execute(pagename, request):
     pagelist.sort()
 
     for name in pagelist:
-        if mimetype == "text/html":
+        if html_output:
             request.write(pages[name].link_to(request))
         else:
             _emit(request, name)
         for link in pages[name].getPageLinks(request):
             request.write(" ")
-            if mimetype == "text/html":
+            if html_output:
                 if link in pages:
                     request.write(pages[link].link_to(request))
                 else:
@@ -40,7 +40,7 @@ def execute(pagename, request):
                 _emit(request, link)
         request.write('\n')
 
-    if mimetype == "text/html":
+    if html_output:
         request.write('</pre>')
         request.theme.send_footer(pagename)
         request.theme.send_closing_html()

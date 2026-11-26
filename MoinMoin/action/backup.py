@@ -21,6 +21,7 @@ import tarfile
 import time
 
 from MoinMoin import wikiutil
+from MoinMoin.web.http import content_disposition_header
 
 
 def addFiles(path, tar, exclude_func):
@@ -38,14 +39,11 @@ def sendBackup(request):
     """ Send compressed tar file """
     dateStamp = time.strftime("%Y-%m-%d--%H-%M-%S-UTC", time.gmtime())
     filename = "%s-%s.tar.%s" % (request.cfg.siteid, dateStamp, request.cfg.backup_compression)
-    request.headers['Content-Type'] = 'application/octet-stream'
-    request.headers['Content-Disposition'] = 'inline; filename="%s"' % filename
-    tar = tarfile.open(fileobj=request, mode="w|%s" % request.cfg.backup_compression)
-    # allow GNU tar's longer file/pathnames
-    tar.posix = False
-    for path in request.cfg.backup_include:
-        addFiles(path, tar, request.cfg.backup_exclude)
-    tar.close()
+    request.response.mimetype = 'application/octet-stream'
+    request.response.headers['Content-Disposition'] = content_disposition_header('inline', filename)
+    with tarfile.open(fileobj=request, mode="w|%s" % request.cfg.backup_compression) as tar:
+        for path in request.cfg.backup_include:
+            addFiles(path, tar, request.cfg.backup_exclude)
 
 
 def sendBackupForm(request, pagename):
@@ -72,7 +70,7 @@ To get a backup, just click here:""", wiki=True))
 <input type="submit" value="%(backup_button)s">
 </form>
 """ % {
-    'baseurl': request.script_root,
+    'baseurl': wikiutil.escape(request.request.script_root, quote=True),
     'pagename': wikiutil.quoteWikinameURL(pagename),
     'backup_button': _('Backup'),
 })

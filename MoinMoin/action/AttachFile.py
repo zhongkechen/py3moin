@@ -989,6 +989,11 @@ def _do_move(pagename, request):
     return thispage.send_page()
 
 
+def _last_modified(file_stat):
+    # HTTP dates only represent complete seconds.
+    return datetime.datetime.fromtimestamp(file_stat.st_mtime_ns // 10**9, datetime.timezone.utc)
+
+
 def _do_box(pagename, request):
     _ = request.getText
 
@@ -998,7 +1003,7 @@ def _do_box(pagename, request):
     if not filename:
         return  # error msg already sent in _access_file
 
-    timestamp = datetime.datetime.fromtimestamp(os.path.getmtime(fpath), tz=datetime.timezone.utc)
+    timestamp = _last_modified(os.stat(fpath))
     if_modified = request.request.if_modified_since
     if if_modified and if_modified >= timestamp:
         request.response.status_code = 304
@@ -1037,7 +1042,8 @@ def _do_get(pagename, context):
         context.response.status_code = 404
         return  # error msg already sent in _access_file
 
-    timestamp = datetime.datetime.fromtimestamp(os.path.getmtime(fpath), tz=datetime.timezone.utc)
+    file_stat = os.stat(fpath)
+    timestamp = _last_modified(file_stat)
     if_modified = context.request.if_modified_since
     if if_modified and if_modified >= timestamp:
         context.response.status_code = 304
@@ -1057,7 +1063,7 @@ def _do_get(pagename, context):
         context.response.headers['Content-Type'] = content_type
         context.response.headers['Last-Modified'] = http_date(timestamp)
         context.response.headers['Expires'] = http_date(now - 365 * 24 * 3600)
-        context.response.headers['Content-Length'] = str(os.path.getsize(fpath))
+        context.response.headers['Content-Length'] = str(file_stat.st_size)
         context.response.headers['Content-Disposition'] = content_disposition_header(content_dispo, filename)
 
         # send data

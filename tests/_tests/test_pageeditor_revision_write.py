@@ -7,6 +7,7 @@ MoinMoin - PageEditor atomic revision write regression tests (Issue #20).
 import codecs
 import errno
 import os
+from pathlib import Path
 import shutil
 
 import pytest
@@ -131,6 +132,32 @@ def test_successful_revision_write_advances_current_once(req, isolated_page):
     assert page.current_rev() == 2
     assert page.get_raw_body() == "updated valid page\n"
     assert Page(req, pagename, rev=1).get_raw_body() == "previous valid page\n"
+
+
+def test_failed_current_replacement_leaves_previous_revision_published(req, isolated_page, monkeypatch):
+    pagename, pagedir, revdir = isolated_page
+    current = Path(pagedir) / 'current'
+    replace = os.replace
+
+    def fail_to_publish_pointer(source, destination):
+        if Path(destination) == current:
+            raise OSError(errno.ENOSPC, 'simulated pointer publication failure')
+        return replace(source, destination)
+
+    editor = PageEditor(req, pagename)
+    with monkeypatch.context() as patch:
+        patch.setattr(page_editor_mod.os, 'replace', fail_to_publish_pointer)
+        with pytest.raises(PageEditor.SaveError, match='no storage space left'):
+            editor._write_file('Revision which could not be published.\n')
+
+    assert current.read_text() == '00000001\n'
+    assert os.listdir(revdir) == ['00000001']
+    assert not (Path(pagedir) / 'current.tmp').exists()
+    assert Page(req, pagename).get_raw_body() == 'previous valid page\n'
+
+    _, revision = editor._write_file('Retry after publication failure.\n')
+    assert revision == 2
+    assert current.read_text() == '00000002\n'
 
 
 def test_failed_in_place_write_preserves_existing_revision_and_allows_recovery(req, isolated_page, monkeypatch):
