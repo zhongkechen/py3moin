@@ -1101,7 +1101,7 @@ def _do_install(pagename, request):
 def _do_unzip(pagename, request, overwrite=False):
     _ = request.getText
 
-    if not wikiutil.checkTicket(request, request.args.get('ticket', '')):
+    if not wikiutil.checkTicket(request, request.request.args.get('ticket', '')):
         return _('Please use the interactive user interface to use action %(actionname)s!') % {
             'actionname': 'AttachFile.unzip'}
 

@@ -318,7 +318,7 @@ def do_refresh(pagename, request):
 
 def do_goto(pagename, request):
     """ redirect to another page """
-    target = request.values.get('target', '')
+    target = request.request.values.get('target', '')
     request.http_redirect(Page(request, target).url(request))
 
 
