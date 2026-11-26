@@ -117,7 +117,9 @@ class ExclusiveLock:
             except OSError as err:
                 if err.errno != errno.EEXIST:
                     raise
-                if self.expire():
+                # A lock with no expiration must never remove another holder's
+                # directory if it reappears while this contender is waiting.
+                if self.timeout is not None and self.expire():
                     continue # Try immediately to acquire
                 timer.sleep()
         logging.debug('failed to acquire exclusive lock: %s' % (self.lockDir, ))

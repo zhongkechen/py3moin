@@ -18,6 +18,7 @@ import codecs
 import errno
 import os
 import time
+from contextlib import closing, suppress
 
 import MoinMoin.events.notification as notification
 from MoinMoin import caching, config, wikiutil, error
@@ -26,7 +27,7 @@ from MoinMoin.events import PageDeletedEvent, PageRenamedEvent, PageCopiedEvent,
 from MoinMoin.events import PagePreSaveEvent, Abort, send_event
 from MoinMoin.logfile import editlog, eventlog
 from MoinMoin.mail.sendmail import encodeSpamSafeEmail
-from MoinMoin.util import filesys, timefuncs, web
+from MoinMoin.util import filesys, lock, timefuncs, web
 from MoinMoin.util.abuse import log_attempt
 from MoinMoin.widget import html
 from MoinMoin.widget.dialog import Status
@@ -136,6 +137,11 @@ class PageEditor(Page):
 
         # this should never happen, except for empty pages
         return False
+
+    def _edit_conflict_message(self):
+        _ = self._
+        return _("""Someone else saved this page while you were editing!
+Please review the page and save then. Do not save this page as it is!""")
 
     def sendconfirmleaving(self):
         """ Prevents moving away from the page without saving it. """
@@ -260,8 +266,7 @@ class PageEditor(Page):
             elif rev != self.current_rev():
                 conflict_msg = _('Someone else changed this page while you were editing!')
                 if self.mergeEditConflict(rev):
-                    conflict_msg = _("""Someone else saved this page while you were editing!
-Please review the page and save then. Do not save this page as it is!""")
+                    conflict_msg = self._edit_conflict_message()
                     rev = self.current_rev()
             if conflict_msg:
                 # We don't show preview when in conflict
@@ -918,13 +923,13 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
                 filesys.copytree(src, dst)
                 self.reset()  # reinit stuff
 
-    def _write_file(self, text, action='SAVE', comment=u'', extra=u'', deleted=False):
+    def _write_file(self, text, action='SAVE', comment=u'', extra=u'', deleted=False, expected_rev=None):
         """ Write the text to the page file (and make a backup of old page).
 
         @param text: text to save for this page
         @param deleted: if True, then don't write page content (used by deletePage)
-        @rtype: int
-        @return: mtime_usec of new page
+        @param expected_rev: revision the editor started from, or None for an unconditional write
+        @return: modification time in microseconds and published revision number
         """
         context = self.context
         _ = self._
@@ -935,126 +940,89 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
         else:
             mtime_usecs = wikiutil.timestamp2version(self.mtime)
 
-        self.copy_underlay_page()
-
-        # remember conflict state
-        self.setConflict(wikiutil.containsConflictMarker(text))
-
         # Write always on the standard directory, never change the
         # underlay directory copy!
         pagedir = self.getPagePath(use_underlay=0, check_create=0)
 
         revdir = os.path.join(pagedir, 'revisions')
-        cfn = os.path.join(pagedir, 'current')
-        clfn = os.path.join(pagedir, 'current-locked')
-        cltfn = os.path.join(pagedir, 'current-locked.tmp')
+        current_path = os.path.join(pagedir, 'current')
+        current_tmp = os.path.join(pagedir, 'current.tmp')
 
         # !!! these log objects MUST be created outside the locked area !!!
 
         # The local log should be the standard edit log, not the
         # underlay copy log!
-        pagelog = self.getPagePath('edit-log', use_underlay=0, isfile=1)
+        pagelog = os.path.join(pagedir, 'edit-log')
         llog = editlog.EditLog(context, filename=pagelog,
                                uid_override=self.uid_override)
         # Open the global log
         glog = editlog.EditLog(context, uid_override=self.uid_override)
 
-        if not os.path.exists(pagedir):  # new page, create and init pagedir
-            os.mkdir(pagedir)
-        if not os.path.exists(revdir):
-            os.mkdir(revdir)
-            f = open(cfn, 'w')
-            f.write('%08d\n' % 0)
-            f.close()
-
-        got_lock = False
-        retry = 0
+        # Keep locks outside the page directory so readers can always open
+        # current and page copies cannot inherit a live lock.
+        locks_path = os.path.join(self.cfg.data_dir, 'page-locks')
+        os.makedirs(locks_path, exist_ok=True)
+        revision_lock = lock.ExclusiveLock(os.path.join(locks_path, self.page_name_fs))
+        if not revision_lock.acquire(timeout=10.0):
+            raise self.CouldNotLock(_("Page could not get locked."))
 
         try:
-            while not got_lock and retry < 100:
-                retry += 1
-                try:
-                    filesys.rename(cfn, clfn)
-                    got_lock = True
-                except OSError as err:
-                    got_lock = False
-                    if err.errno == 2:  # there was no 'current' file
-                        time.sleep(0.1)
-                    else:
-                        raise self.CouldNotLock(
-                            _("Page could not get locked. Unexpected error (errno=%d).") % err.errno)
-
-            if not got_lock:
-                raise self.CouldNotLock(_("Page could not get locked. Missing 'current' file?"))
-
-            # increment rev number of current(-locked) page
-            with open(clfn) as f:
-                revstr = f.read()
+            self.copy_underlay_page()
             try:
-                old_rev = int(revstr)
+                with open(current_path) as current:
+                    old_rev = int(current.read())
+            except FileNotFoundError as err:
+                # A fresh page (including a retry after a failed first write)
+                # has no revisions. Preserve older data with a missing pointer.
+                if os.path.isdir(revdir) and os.listdir(revdir):
+                    raise self.CouldNotLock(_("Page could not get locked. Missing 'current' file?")) from err
+                old_rev = 0
             except ValueError as err:
                 raise self.SaveError(
-                    _("Unable to determine current page revision from the 'current' file. The page %s is damaged and cannot be edited right now.") % self.page_name)
+                    _("Unable to determine current page revision from the 'current' file. The page %s is damaged and cannot be edited right now.") % self.page_name) from err
 
+            if expected_rev is not None and expected_rev != old_rev:
+                raise self.EditConflict(self._edit_conflict_message())
+
+            os.makedirs(revdir, exist_ok=True)
             rev = old_rev
-            if not was_deprecated:
-                if self.do_revision_backup or rev == 0:
+            if deleted or rev == 0 or (self.do_revision_backup and not was_deprecated):
+                rev += 1
+            if deleted:
+                # Deletion is represented by a revision with no content file.
+                while os.path.exists(os.path.join(revdir, '%08d' % rev)):
                     rev += 1
-            revstr = '%08d' % rev
+            pagefile = os.path.join(revdir, '%08d' % rev)
 
             if not deleted:
                 # write the new revision to a temporary file first and commit it
                 # before advancing the current pointer so failed writes cannot
                 # publish empty or truncated revisions
-                pagefile = os.path.join(revdir, revstr)
                 pagefile_tmp = '%s.tmp' % pagefile
-                f = codecs.open(pagefile_tmp, 'wb', config.charset)
                 try:
-                    # Write the file using text/* mime type
-                    f.write(self.encodeTextMimeType(text))
-                    f.close()
-                except BaseException:
-                    try:
-                        f.close()
-                    except Exception:
-                        pass
-                    try:
-                        os.remove(pagefile_tmp)
-                    except OSError:
-                        pass
-                    raise
-                try:
+                    with closing(codecs.open(pagefile_tmp, 'wb', config.charset)) as revision:
+                        revision.write(self.encodeTextMimeType(text))
                     os.replace(pagefile_tmp, pagefile)
                 except BaseException:
-                    try:
+                    with suppress(OSError):
                         os.remove(pagefile_tmp)
-                    except OSError:
-                        pass
                     raise
 
-            # write the current page rev to a temporary file
-            try:
-                with open(cltfn, 'w') as f:
-                    f.write(revstr + '\n')
-            except IOError as err:
+            if rev != old_rev:
                 try:
-                    os.remove(cltfn)
-                except OSError:
-                    pass  # we don't care for errors in the os.remove
-                if not deleted and rev != old_rev:
-                    try:
-                        os.remove(pagefile)
-                    except OSError:
-                        pass
-                # throw a nicer exception
-                if err.errno == errno.ENOSPC:
-                    raise self.SaveError(_("Cannot save page %s, no storage space left.") % self.page_name)
-                else:
+                    with open(current_tmp, 'w') as current:
+                        current.write('%08d\n' % rev)
+                    os.replace(current_tmp, current_path)
+                except OSError as err:
+                    with suppress(OSError):
+                        os.remove(current_tmp)
+                    if not deleted:
+                        with suppress(OSError):
+                            os.remove(pagefile)
+                    if err.errno == errno.ENOSPC:
+                        raise self.SaveError(_("Cannot save page %s, no storage space left.") % self.page_name) from err
                     raise self.SaveError(
-                        _("An I/O error occurred while saving page %s (errno=%d)") % (self.page_name, err.errno))
-            # atomically put it in place (except on windows)
-            else:
-                filesys.rename(cltfn, clfn)
+                        _("An I/O error occurred while saving page %s (errno=%d)") % (self.page_name, err.errno)) from err
 
             if not deleted:
                 if mtime_usecs is None:
@@ -1067,21 +1035,16 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
                 # set in-memory content
                 self.set_raw_body(None)
 
-            # reset page object
+            self.setConflict(wikiutil.containsConflictMarker(text))
             self.reset()
 
             # write the editlog entry
-            # for now simply make 2 logs, better would be some multilog stuff maybe
-            if self.do_revision_backup:
-                # do not globally log edits with no revision backup
-                # if somebody edits a deprecated page, log it in global log, but not local log
+            if self.do_revision_backup or deleted:
+                if rev != old_rev:
+                    llog.add(context, mtime_usecs, rev, action, self.page_name, None, extra, comment)
                 glog.add(context, mtime_usecs, rev, action, self.page_name, None, extra, comment)
-            if not was_deprecated and self.do_revision_backup:
-                # if we did not create a new revision number, do not locally log it
-                llog.add(context, mtime_usecs, rev, action, self.page_name, None, extra, comment)
         finally:
-            if got_lock:
-                filesys.rename(clfn, cfn)
+            revision_lock.release()
 
         # add event log entry
         elog = eventlog.EventLog(context)
@@ -1132,14 +1095,11 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
             raise self.EmptyPage(msg)
         elif rev != 0 and rev != self.current_rev():
             # check if we already saved that page
-            other = False
             pagelog = self.getPagePath('edit-log', use_underlay=0, isfile=1)
             next_line = None
             for line in editlog.EditLog(context, pagelog).reverse():
                 if int(line.rev) == int(rev):
                     break
-                if not line.is_from_current_user(context):
-                    other = True
                 next_line = line
             if next_line and next_line.is_from_current_user(context):
                 saved_page = Page(context, self.page_name, rev=int(next_line.rev))
@@ -1150,10 +1110,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
                     msg = _("You already edited this page! Please do not use the back button.")
                     raise self.EditConflict(msg)
 
-                msg = _("""Someone else saved this page while you were editing!
-Please review the page and save then. Do not save this page as it is!""")
-
-            raise self.EditConflict(msg)
+            raise self.EditConflict(self._edit_conflict_message())
         elif newtext == self.get_raw_body():
             msg = _('You did not change the page content, not saved!')
             self.lock.release()
@@ -1193,7 +1150,9 @@ Please review the page and save then. Do not save this page as it is!""")
             extra = kw.get('extra', u'')
             trivial = kw.get('trivial', 0)
             # write the page file
-            mtime_usecs, rev = self._write_file(newtext, action, comment, extra, deleted=deleted)
+            mtime_usecs, rev = self._write_file(
+                newtext, action, comment, extra, deleted=deleted, expected_rev=rev or None,
+            )
             self._save_draft(None, None)  # everything fine, kill the draft for this page
 
             if notify:

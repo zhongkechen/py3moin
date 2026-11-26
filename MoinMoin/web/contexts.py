@@ -160,8 +160,8 @@ class BaseContext(Context):
         should set the content direction to the user language before they
         call send_title!
         """
-        self.response.content_lang = lang
-        self.response.current_lang = lang
+        self.content_lang = lang
+        self.current_lang = lang
 
     def initTheme(self):
         """ Set theme - forced theme, user theme or wiki default """

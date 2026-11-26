@@ -72,11 +72,11 @@ class DeletePage(ActionBase):
         _ = self._
 
         if self.subpages:
-            subpages = ' '.join(self.subpages)
+            subpages = ' '.join(wikiutil.escape(page) for page in self.subpages)
 
             d = {
                 'subpage': subpages,
-                'subpages_checked': ('', 'checked')[self.request.args.get('subpages_checked', '0') == '1'],
+                'subpages_checked': ('', 'checked')[self.request.request.args.get('subpages_checked', '0') == '1'],
                 'subpage_label': _('Delete all /subpages too?'),
                 'comment_label': _("Optional reason for the deletion"),
                 'buttons_html': buttons_html,

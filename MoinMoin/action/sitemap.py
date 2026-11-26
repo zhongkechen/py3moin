@@ -20,7 +20,7 @@ def now():
 def make_url_xml(request, vars):
     """ assemble a single <url> xml fragment """
     # add protocol:server - url must be complete path starting with/from /
-    vars['url'] = request.getQualifiedURL(vars['url'])
+    vars['url'] = wikiutil.escape(request.getQualifiedURL(vars['url']))
     return """\
 <url>
   <loc>%(url)s</loc>
@@ -65,10 +65,9 @@ def sitemap_url(request, page):
 
 
 def execute(pagename, request):
-    _ = request.getText
     request.user.datetime_fmt = datetime_fmt
 
-    request.mimetype = 'text/xml'
+    request.response.mimetype = 'text/xml'
 
     # we emit a piece of data so other side doesn't get bored:
     request.write("""<?xml version="1.0" encoding="UTF-8"?>\r\n""")
@@ -77,7 +76,7 @@ def execute(pagename, request):
     result.append("""<urlset xmlns="http://www.google.com/schemas/sitemap/0.84">\n""")
 
     # we include the root url as an important and often changed URL
-    rooturl = request.script_root + '/'
+    rooturl = request.request.script_root + '/'
     result.append(make_url_xml(request, {
         'url': rooturl,
         'lastmod': now(),  # fake
@@ -87,7 +86,7 @@ def execute(pagename, request):
 
     # Get page dict readable by current user
     try:
-        underlay = int(request.values.get('underlay', 1))
+        underlay = int(request.request.values.get('underlay', 1))
     except ValueError:
         underlay = 1
     pages = request.rootpage.getPageDict(include_underlay=underlay)

@@ -14,14 +14,14 @@ from MoinMoin import config, util
 
 def execute(pagename, request):
     # get the MIME type
-    mimetype = request.values.get('mimetype', "text/plain")
-    request.mimetype = mimetype
+    xml_output = request.request.values.get('mimetype') == 'text/xml'
+    request.response.mimetype = 'text/xml' if xml_output else 'text/plain'
 
     # Get list of user readable pages
     pages = request.rootpage.getPageList()
     pages.sort()
 
-    if mimetype == "text/xml":
+    if xml_output:
         request.write('<?xml version="1.0" encoding="%s"?>\r\n' % (config.charset,))
         request.write('<TitleIndex>\r\n')
         for name in pages:

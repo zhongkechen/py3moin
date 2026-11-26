@@ -4,6 +4,7 @@ MoinMoin - Attachment download Content-Disposition and WSGI serialization tests 
 @license: GNU GPL, see COPYING for details.
 """
 
+import os
 import re
 from urllib.parse import unquote
 
@@ -11,8 +12,9 @@ import pytest
 
 from MoinMoin.action import AttachFile
 from MoinMoin.web.contexts import AllContext
-from MoinMoin.web.http import content_disposition_header, create_environ
+from MoinMoin.web.http import Client, content_disposition_header, create_environ
 from MoinMoin.web.request import MoinMoinFinish, Request
+from MoinMoin.wsgiapp import Application
 from tests._tests import become_trusted, create_page, nuke_page
 
 
@@ -88,6 +90,7 @@ def test_content_disposition_header_builder():
         ("中文课件.doc", "inline"),
         ("notes 🚀 final.txt", "inline"),
         ("中文页面.html", "attachment"),
+        ("drawing.svg", "attachment"),
     ],
 )
 def test_attachfile_do_get_wsgi_unicode_downloads(req, filename, expected_dispo):
@@ -163,3 +166,44 @@ def test_attachfile_do_get_quotes_and_spaces_with_file_wrapper(req, tmp_path, mo
     assert dispo.startswith("inline; ")
     assert '\\"' in dispo.split("; filename*=")[0]
     assert _extract_filename_star(dispo) == filename
+
+
+@pytest.mark.parametrize('container', [False, True])
+def test_attachment_conditional_get_compares_whole_seconds(req, container):
+    pagename = 'AutoCreatedAttachmentConditionalTestPage'
+    target = 'files.tar' if container else 'fixture.txt'
+    payload = b'Attachment contents.\n'
+    query = {'action': 'AttachFile', 'target': target}
+    become_trusted(req)
+    create_page(req, pagename, 'Page with an attachment.\n')
+    try:
+        if container:
+            AttachFile.getAttachDir(req, pagename, create=1)
+            AttachFile.ContainerItem(req, pagename, target).put('fixture.txt', payload)
+            query.update(do='box', member='fixture.txt')
+        else:
+            AttachFile.add_attachment(req, pagename, target, payload)
+            query['do'] = 'get'
+
+        path = AttachFile.getFilename(req, pagename, target)
+        mtime = 1_700_000_000_125_000_000
+        os.utime(path, ns=(mtime, mtime))
+        client = Client(Application(lambda _: req.cfg))
+        url = '/' + pagename
+        first = client.get(url, query_string=query, buffered=True)
+        assert first.status_code == 200
+        assert first.data == payload
+
+        headers = {'If-Modified-Since': first.headers['Last-Modified']}
+        unchanged = client.get(url, query_string=query, headers=headers, buffered=True)
+        assert unchanged.status_code == 304
+        assert unchanged.data == b''
+
+        updated = mtime + 10**9
+        os.utime(path, ns=(updated, updated))
+        modified = client.get(url, query_string=query, headers=headers, buffered=True)
+        assert modified.status_code == 200
+        assert modified.data == payload
+        assert modified.headers['Last-Modified'] != headers['If-Modified-Since']
+    finally:
+        nuke_page(req, pagename)

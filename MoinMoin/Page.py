@@ -34,6 +34,7 @@
 """
 
 import codecs
+import hashlib
 import importlib.util
 import marshal
 import os
@@ -1151,6 +1152,14 @@ class Page:
         @keyword omit_footnotes: if True, do not send footnotes (used by include macro)
         """
         context = self.context
+        content_lang, current_lang = context.content_lang, context.current_lang
+        try:
+            self._render_page(**keywords)
+        finally:
+            context.content_lang, context.current_lang = content_lang, current_lang
+
+    def _render_page(self, **keywords):
+        context = self.context
         _ = context.getText
         emit_headers = keywords.get('emit_headers', 1)
         content_only = keywords.get('content_only', 0)
@@ -1461,14 +1470,18 @@ class Page:
         if not (do_cache and self.canUseCache(Parser)):
             self.format(parser)
         else:
+            # A reader can format the previous revision after the writer has
+            # staged the next one. Match the inputs, even if the cache is newer.
+            render_inputs = (body, format, format_args, kw.get('start_line'), request.content_lang)
+            cache_header = _PAGE_CODE_CACHE_HEADER + hashlib.sha256(marshal.dumps(render_inputs)).digest()
             try:
-                code = self.loadCache(request)
+                code = self.loadCache(request, cache_header)
                 self.execute(request, parser, code)
             except Exception as e:
                 if not is_cache_exception(e):
                     raise
                 try:
-                    code = self.makeCache(request, parser)
+                    code = self.makeCache(request, parser, cache_header)
                     self.execute(request, parser, code)
                 except Exception as e:
                     if not is_cache_exception(e):
@@ -1492,7 +1505,7 @@ class Page:
             __file__ = os.path.join(MoinMoin.__loader__.archive, 'dummy')
         exec(code)
 
-    def loadCache(self, request):
+    def loadCache(self, request, cache_header):
         """ Return page content cache or raises 'CacheNeedsUpdate' """
         cache = caching.CacheEntry(request, self, self.getFormatterName(), scope='item')
         attachmentsPath = self.getPagePath('attachments', check_create=0)
@@ -1503,9 +1516,9 @@ class Page:
             content = cache.content()
             # Marshalled code objects are only valid for the runtime that
             # created them.
-            if not content.startswith(_PAGE_CODE_CACHE_HEADER):
+            if not content.startswith(cache_header):
                 raise ValueError('incompatible page code cache')
-            return marshal.loads(content[len(_PAGE_CODE_CACHE_HEADER):])
+            return marshal.loads(content[len(cache_header):])
         except (EOFError, ValueError, TypeError):
             # Bad marshal data, must update the cache.
             # See http://docs.python.org/lib/module-marshal.html
@@ -1515,7 +1528,7 @@ class Page:
                          (self.page_name, str(err)))
             raise Exception('CacheNeedsUpdate')
 
-    def makeCache(self, request, parser):
+    def makeCache(self, request, parser, cache_header):
         """ Format content into code, update cache and return code """
         from MoinMoin.formatter.text_python import Formatter
         formatter = Formatter(request, ["page"], self.formatter)
@@ -1531,7 +1544,7 @@ class Page:
         code = compile(src.encode(config.charset),
                        self.page_name.encode(config.charset), 'exec')
         cache = caching.CacheEntry(request, self, self.getFormatterName(), scope='item')
-        cache.update(_PAGE_CODE_CACHE_HEADER + marshal.dumps(code))
+        cache.update(cache_header + marshal.dumps(code))
         return code
 
     def _specialPageText(self, request, special_type):

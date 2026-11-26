@@ -116,7 +116,7 @@ class RenamePage(ActionBase):
                 </tr>
                 """ % {
                 'subpage': subpages,
-                'subpages_checked': ('', 'checked')[self.request.args.get('subpages_checked', '0') == '1'],
+                'subpages_checked': ('', 'checked')[self.request.request.args.get('subpages_checked', '0') == '1'],
                 'subpage_label': _('Rename all /subpages too?'),
             }
         else:

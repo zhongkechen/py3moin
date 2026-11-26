@@ -29,7 +29,7 @@
 import hashlib
 import hmac
 import mimetypes
-from datetime import datetime
+from datetime import datetime, timezone
 
 from MoinMoin import config, caching
 from MoinMoin import log
@@ -231,29 +231,26 @@ def _do_get(request, key):
     """ send a complete http response with headers/data cached for key """
     try:
         last_modified, headers = _get_headers(request, key)
-        if datetime.utcfromtimestamp(int(last_modified)) == request.if_modified_since:
-            request.status_code = 304
-        else:
-            for k, v in headers:
-                request.headers.add(k, v)
-            data_file = _get_datafile(request, key)
-            request.send_file(data_file)
+        data_file = _get_datafile(request, key)
     except caching.CacheError:
-        request.status_code = 404
+        request.response.status_code = 404
+        return
 
-
-def _do_remove(request, key):
-    """ delete headers/data cache for key """
-    remove(request, key)
+    timestamp = datetime.fromtimestamp(int(last_modified), timezone.utc)
+    if_modified = request.request.if_modified_since
+    if if_modified is not None and if_modified >= timestamp:
+        data_file.close()
+        request.response.status_code = 304
+        return
+    for name, value in headers:
+        request.response.headers.set(name, value)
+    request.send_file(data_file)
 
 
 def execute(pagename, request):
-    do = request.values.get('do')
-    key = request.values.get('key')
-    valid = valid_key(key)  # validate untrusted input
-    if valid and do == 'get':
-        _do_get(request, key)
-    elif valid and do == 'remove':
-        _do_remove(request, key)
-    else:
-        request.status_code = 404
+    do = request.request.values.get('do')
+    key = request.request.values.get('key')
+    if do != 'get' or not valid_key(key):
+        request.response.status_code = 404
+        return
+    _do_get(request, key)
