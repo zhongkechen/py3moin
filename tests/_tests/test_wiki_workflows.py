@@ -97,6 +97,37 @@ def test_concurrent_saves_from_the_same_revision(wiki, monkeypatch):
     assert page.get_raw_body() in ('First edit.\n', 'Second edit.\n')
 
 
+@pytest.mark.parametrize('previously_deleted', [False, True])
+def test_creation_forms_check_that_the_page_is_still_missing(wiki, previously_deleted):
+    context, first_client = wiki
+    second_client = _client(context.cfg)
+    if previously_deleted:
+        editor = PageEditor(context, 'NewPage')
+        editor.saveText('An older page.\n', 0, notify=False)
+        assert PageEditor(context, 'NewPage').deletePage()[0]
+
+    params = {'action': 'edit', 'editor': 'text'}
+    first_form = first_client.get('/NewPage', query_string=params)
+    second_form = second_client.get('/NewPage', query_string=params)
+    assert _field(first_form, 'rev') == _field(second_form, 'rev') == '0'
+
+    def submit(client, form, body):
+        return client.post('/NewPage', data={
+            **params, 'savetext': body, 'rev': _field(form, 'rev'),
+            'ticket': _field(form, 'ticket'), 'button_save': 'Save Changes',
+        })
+
+    saved = submit(first_client, first_form, 'First editor text.')
+    assert b'Thank you for your changes' in saved.data
+    conflict = submit(second_client, second_form, 'Second editor text.')
+    assert b'Someone else saved this page while you were editing' in conflict.data
+    assert b'Second editor text.' in conflict.data
+
+    page = Page(_context(context.cfg), 'NewPage')
+    assert page.get_raw_body() == 'First editor text.\n'
+    assert page.getRevList() == ([3, 1] if previously_deleted else [1])
+
+
 def test_uncached_reader_can_read_during_a_save(wiki, monkeypatch):
     context, _ = wiki
     PageEditor(context, 'ReadPage').saveText('Previous revision.\n', 0, notify=False)

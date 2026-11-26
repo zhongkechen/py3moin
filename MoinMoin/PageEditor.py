@@ -123,7 +123,7 @@ class PageEditor(Page):
         savetext = self.get_raw_body()
 
         # The original text from the revision the user was editing
-        original_text = Page(self.context, self.page_name, rev=origrev).get_raw_body()
+        original_text = Page(self.context, self.page_name, rev=origrev).get_raw_body() if origrev else ''
 
         # The current revision someone else saved
         saved_text = Page(self.context, self.page_name).get_raw_body()
@@ -981,7 +981,12 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
                 raise self.SaveError(
                     _("Unable to determine current page revision from the 'current' file. The page %s is damaged and cannot be edited right now.") % self.page_name) from err
 
-            if expected_rev is not None and expected_rev != old_rev:
+            if expected_rev == 0:
+                # A deleted page still has a revision number but no current content.
+                old_revision_path = os.path.join(revdir, '%08d' % old_rev)
+                if old_rev and os.path.isfile(old_revision_path):
+                    raise self.EditConflict(self._edit_conflict_message())
+            elif expected_rev is not None and expected_rev != old_rev:
                 raise self.EditConflict(self._edit_conflict_message())
 
             os.makedirs(revdir, exist_ok=True)
@@ -1063,6 +1068,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
         @keyword action: action for editlog (default: SAVE)
         @keyword index: needs indexing, not already handled (default: 1)
         @keyword deleted: if True, then don't save page content (used by DeletePage, default: False)
+        @keyword check_creation: require the page to be absent when rev is 0
         @keyword notify: if False (default: True), don't send a PageChangedEvent
         @rtype: unicode
         @return: error msg
@@ -1150,8 +1156,9 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
             extra = kw.get('extra', u'')
             trivial = kw.get('trivial', 0)
             # write the page file
+            expected_rev = rev if rev or kw.get('check_creation', False) else None
             mtime_usecs, rev = self._write_file(
-                newtext, action, comment, extra, deleted=deleted, expected_rev=rev or None,
+                newtext, action, comment, extra, deleted=deleted, expected_rev=expected_rev,
             )
             self._save_draft(None, None)  # everything fine, kill the draft for this page
 

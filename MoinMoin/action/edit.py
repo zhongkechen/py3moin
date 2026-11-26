@@ -167,7 +167,7 @@ def execute(pagename, context):
                 raise pg.SaveError(_('TextCha: Wrong answer! Try again below...'))
             if context.cfg.comment_required and not comment:
                 raise pg.SaveError(_('Supplying a comment is mandatory. Write a comment below and try again...'))
-            savemsg = pg.saveText(savetext, rev, trivial=trivial, comment=comment)
+            savemsg = pg.saveText(savetext, rev, trivial=trivial, comment=comment, check_creation=True)
         except pg.EditConflict as e:
             msg = e.message
 
