@@ -302,3 +302,28 @@ def test_page_language_controls_the_rendered_content_direction(wiki):
     assert b'<div dir="rtl" id="content" lang="ar">' in response.data
     assert b'<div dir="ltr" id="EnglishSection.content" lang="en">' in response.data
     assert b'Included text.' in response.data
+
+
+def test_recent_changes_feed_uses_http_cache_validators(wiki):
+    context, client = wiki
+    PageEditor(context, 'FeedPage', mtime=1_700_000_000.1).saveText('Original.\n', 0, notify=False)
+    query = {'action': 'rss_rc'}
+    feed = client.get('/RecentChanges', query_string=query)
+    assert feed.status_code == 200
+    assert feed.mimetype == 'application/rss+xml'
+
+    validators = {
+        'If-None-Match': feed.headers['ETag'],
+        'If-Modified-Since': feed.headers['Last-Modified'],
+    }
+    for name, value in validators.items():
+        cached = client.get('/RecentChanges', query_string=query, headers={name: value})
+        assert cached.status_code == 304
+        assert cached.data == b''
+
+    PageEditor(context, 'FeedPage', mtime=1_700_000_000.2).saveText('Updated.\n', 1, notify=False)
+    changed = client.get('/RecentChanges', query_string=query, headers=validators)
+    assert changed.status_code == 200
+    assert changed.headers['Last-Modified'] == feed.headers['Last-Modified']
+    assert changed.headers['ETag'] != feed.headers['ETag']
+    assert changed.data != feed.data
