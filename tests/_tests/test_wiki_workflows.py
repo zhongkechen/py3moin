@@ -131,6 +131,40 @@ def test_uncached_reader_can_read_during_a_save(wiki, monkeypatch):
     assert b'Updated revision.' in reader.get('/ReadPage').data
 
 
+def test_slow_reader_cannot_replace_a_newer_cached_revision(wiki, monkeypatch):
+    context, _ = wiki
+    PageEditor(context, 'CacheOrder').saveText('Previous revision.\n', 0, notify=False)
+    reader_cfg = type(context.cfg)(CONFIG_NAME)
+    previous_revision = Event()
+    resume_reader = Event()
+    get_rev_dir = Page.get_rev_dir
+
+    def pause_old_read(page, pagedir, rev=0):
+        snapshot = get_rev_dir(page, pagedir, rev)
+        if (page.context.cfg is reader_cfg and page.page_name == 'CacheOrder'
+                and snapshot[1] == 1 and not previous_revision.is_set()):
+            previous_revision.set()
+            assert resume_reader.wait(timeout=10)
+        return snapshot
+
+    monkeypatch.setattr(Page, 'get_rev_dir', pause_old_read)
+    raw = {'action': 'raw'}
+    reader = _client(reader_cfg)
+
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        pending = executor.submit(reader.get, '/CacheOrder', query_string=raw, buffered=True)
+        try:
+            assert previous_revision.wait(timeout=10)
+            PageEditor(context, 'CacheOrder').saveText('Updated revision.\n', 1, notify=False)
+            updated = _client(reader_cfg).get('/CacheOrder', query_string=raw)
+            assert updated.data == b'Updated revision.\r\n'
+        finally:
+            resume_reader.set()
+        assert pending.result(timeout=15).status_code == 200
+
+    assert reader.get('/CacheOrder', query_string=raw).data == b'Updated revision.\r\n'
+
+
 def test_revert_creates_a_revision_from_the_selected_history(wiki):
     context, client = wiki
     PageEditor(context, 'RevisionPage').saveText('Original text.\n', 0, notify=False)
