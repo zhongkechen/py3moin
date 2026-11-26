@@ -64,12 +64,12 @@ General syntax: moin [options] account create [create-options]
         request = self.request
 
         from MoinMoin import user
-        if user.User(request, name=self.options.uname).exists():
+        if user.getUserId(request, self.options.uname, include_disabled=True):
             print('This username "%s" exists already!' % self.options.uname)
             return
         # Email should be unique - see also MoinMoin.action.newaccount
         if self.options.email and request.cfg.user_email_unique:
-            if user.get_by_email_address(request, self.options.email):
+            if user.get_by_email_address(request, self.options.email, include_disabled=True):
                 print('This emailaddress "%s" belongs to someone else!' % self.options.email)
                 return
         u = user.User(request, None, self.options.uname, password=self.options.password)

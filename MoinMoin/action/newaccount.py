@@ -41,7 +41,7 @@ Name may contain any Unicode alpha numeric character, with optional one
 space between words. Group page name is not allowed.""", wiki=True) % wikiutil.escape(theuser.name)
 
     # Name required to be unique. Check if name belong to another user.
-    if user.getUserId(request, theuser.name):
+    if user.getUserId(request, theuser.name, include_disabled=True):
         return _("This user name already belongs to somebody else.")
 
     # try to get the password and pw repeat
@@ -76,7 +76,7 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
 
     # Email should be unique - see also MoinMoin/script/accounts/moin_usercheck.py
     if theuser.email and request.cfg.user_email_unique:
-        if user.get_by_email_address(request, theuser.email):
+        if user.get_by_email_address(request, theuser.email, include_disabled=True):
             return _("This email already belongs to somebody else.")
 
     # save data
