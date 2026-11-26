@@ -41,6 +41,7 @@ import os
 import re
 import sys
 from logging import NOTSET
+from threading import Lock
 
 from MoinMoin import config, caching, user, util, wikiutil
 from MoinMoin import log
@@ -100,43 +101,46 @@ class ItemCache:
         self.contexts = 0
         self.hits = 0
         self.loglevel = NOTSET
+        self._lock = Lock()
+        self._generation = 0
 
-    def putItem(self, request, name, key, data):
-        """ Remembers some data for item name under a key.
-            @param request: currently unused
-            @param name: name of the item (page), unicode
-            @param key: used as secondary access key after name
-            @param data: the data item that should be remembered
-        """
-        d = self.cache.setdefault(name, {})
-        d[key] = data
+    def putItem(self, request, name, key, data, generation=None):
+        """Store data if the cache still represents the lookup generation."""
+        with self._lock:
+            if generation is None or generation == self._generation:
+                self.cache.setdefault(name, {})[key] = data
 
     def getItem(self, request, name, key):
-        """ Returns some item stored for item name under key.
-            @param request: the request object
-            @param name: name of the item (page), unicode
-            @param key: used as secondary access key after name
-            @return: the data or None, if there is no such name or key.
-        """
-        self.refresh(request)
-        try:
-            data = self.cache[name][key]
-            self.hits += 1
-            hit_str = 'hit'
-        except KeyError:
-            data = None
-            hit_str = 'miss'
-        self.contexts += 1
-        logging.log(self.loglevel, "%s cache %s (h/r %2.1f%%) for %r %r" % (
-            self.name,
-            hit_str,
-            float(self.hits * 100) / self.contexts,
-            name,
-            key,
-        ))
+        """Return a cached item or None."""
+        data, _ = self.lookup(request, name, key)
         return data
 
+    def lookup(self, request, name, key):
+        """Return the cached item and the generation used for the lookup."""
+        with self._lock:
+            self._refresh(request)
+            try:
+                data = self.cache[name][key]
+                self.hits += 1
+                hit_str = 'hit'
+            except KeyError:
+                data = None
+                hit_str = 'miss'
+            self.contexts += 1
+            logging.log(self.loglevel, "%s cache %s (h/r %2.1f%%) for %r %r" % (
+                self.name,
+                hit_str,
+                float(self.hits * 100) / self.contexts,
+                name,
+                key,
+            ))
+            return data, self._generation
+
     def refresh(self, request):
+        with self._lock:
+            self._refresh(request)
+
+    def _refresh(self, request):
         """ Refresh the cache - if anything has changed in the wiki, we see it
             in the edit-log and either delete cached data for the changed items
             (for 'meta') or the complete cache ('pagelists').
@@ -150,15 +154,13 @@ class ItemCache:
             if self.name == 'meta':
                 for item in items:
                     logging.log(self.loglevel, "cache: removing %r" % item)
-                    try:
-                        del self.cache[item]
-                    except:
-                        pass
+                    self.cache.pop(item, None)
             elif self.name == 'pagelists':
                 logging.log(self.loglevel, "cache: clearing pagelist cache")
                 self.cache = {}
-        self.log_pos = new_pos  # important to do this at the end -
-        # avoids threading race conditions
+        if new_pos != old_pos or items:
+            self._generation += 1
+        self.log_pos = new_pos
 
 
 class Page:
@@ -424,7 +426,7 @@ class Page:
         cache_name = self.page_name
         cache_key = layername(use_underlay)
         if self._text_filename_force is None:
-            cache_data = request.cfg.cache.meta.getItem(request, cache_name, cache_key)
+            cache_data, generation = request.cfg.cache.meta.lookup(request, cache_name, cache_key)
             if cache_data and (rev == 0 or rev == cache_data[1]):
                 # we got the correct rev data from the cache
                 # logging.debug("got data from cache: %r %r %r" % cache_data)
@@ -445,7 +447,7 @@ class Page:
         data = self.get_rev_dir(pagedir, realrev)
         if rev == 0 and self._text_filename_force is None:
             # we only save the current rev to the cache
-            request.cfg.cache.meta.putItem(request, cache_name, cache_key, data)
+            request.cfg.cache.meta.putItem(request, cache_name, cache_key, data, generation)
 
         return data
 
@@ -563,7 +565,7 @@ class Page:
         use_cache = self.rev == 0  # use the cache for current rev
         if use_cache:
             cache_name, cache_key = self.page_name, 'lastlog'
-            entry = request.cfg.cache.meta.getItem(request, cache_name, cache_key)
+            entry, generation = request.cfg.cache.meta.lookup(request, cache_name, cache_key)
         else:
             entry = None
         if entry is None:
@@ -576,7 +578,7 @@ class Page:
             else:
                 entry = ()  # don't use None
             if use_cache:
-                request.cfg.cache.meta.putItem(request, cache_name, cache_key, entry)
+                request.cfg.cache.meta.putItem(request, cache_name, cache_key, entry, generation)
         return entry
 
     def edit_info(self):
@@ -1749,10 +1751,10 @@ class Page:
         # the caching here is still useful for pages != request.page,
         # when we have multiple page objects for the same page name.
         # Try the cache or parse acl and update the cache
-        currentRevision = self.current_rev()
         cache_name = self.page_name
         cache_key = 'acl'
-        cache_data = request.cfg.cache.meta.getItem(request, cache_name, cache_key)
+        cache_data, generation = request.cfg.cache.meta.lookup(request, cache_name, cache_key)
+        currentRevision = self.current_rev()
         if cache_data is None:
             aclRevision, acl = None, None
         else:
@@ -1767,7 +1769,7 @@ class Page:
                 # At the time the page is created acls on that page would be ignored until the process
                 # is completed by adding a log entry into edit-log
                 cache_data = (currentRevision, acl)
-                request.cfg.cache.meta.putItem(request, cache_name, cache_key, cache_data)
+                request.cfg.cache.meta.putItem(request, cache_name, cache_key, cache_data, generation)
         return acl
 
     def parseACL(self):
@@ -1911,7 +1913,7 @@ class RootPage(Page):
             user = request.user
 
         # Get pages cache or create it
-        cachedlist = request.cfg.cache.pagelists.getItem(request, 'all', None)
+        cachedlist, generation = request.cfg.cache.pagelists.lookup(request, 'all', None)
         if cachedlist is None:
             cachedlist = {}
             for name in self._listPages():
@@ -1925,7 +1927,7 @@ class RootPage(Page):
                     continue
 
                 cachedlist[pagename] = None
-            request.cfg.cache.pagelists.putItem(request, 'all', None, cachedlist)
+            request.cfg.cache.pagelists.putItem(request, 'all', None, cachedlist, generation)
 
         if user or exists or filter or not include_underlay or return_objects:
             # Filter names
