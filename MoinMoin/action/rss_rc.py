@@ -62,7 +62,7 @@ def execute(pagename, context):
     """ Send recent changes as an RSS document
     """
     if not wikixml.ok:
-        context.mimetype = 'text/plain'
+        context.response.mimetype = 'text/plain'
         context.write("rss_rc action is not supported because of missing pyxml module.")
         return
     if context.isSpiderAgent:  # reduce bot cpu usage
@@ -143,260 +143,242 @@ def execute(pagename, context):
             break
     del log
 
-    timestamp = timefuncs.formathttpdate(lastmod)
-    etag = "%d-%d-%d-%d-%d-%d-%d" % (lastmod, max_items, diffs, ddiffs, unique,
-                                     max_lines, show_att)
+    # generate an Expires header, using whatever setting the admin
+    # defined for suggested cache lifetime of the RecentChanges RSS doc
+    expires = time.time() + cfg.rss_cache
 
-    # for 304, we look at if-modified-since and if-none-match headers,
-    # one of them must match and the other is either not there or must match.
-    if context.request.if_modified_since == timestamp:
-        if context.request.if_none_match:
-            if context.request.if_none_match == etag:
-                context.response.status_code = 304
-        else:
-            context.response.status_code = 304
-    elif context.request.if_none_match == etag:
-        if context.request.if_modified_since:
-            if context.request.if_modified_since == timestamp:
-                context.response.status_code = 304
-        else:
-            context.response.status_code = 304
-    else:
-        # generate an Expires header, using whatever setting the admin
-        # defined for suggested cache lifetime of the RecentChanges RSS doc
-        expires = time.time() + cfg.rss_cache
+    context.response.mimetype = 'application/rss+xml'
+    context.response.expires = expires
+    context.response.last_modified = lastmod
 
-        context.response.mimetype = 'application/rss+xml'
-        context.response.expires = expires
-        context.response.last_modified = lastmod
-        context.response.headers['Etag'] = etag
+    # send the generated XML document
+    baseurl = context.request.url_root
 
-        # send the generated XML document
-        baseurl = context.request.url_root
+    logo = re.search(r'src="([^"]*)"', cfg.logo_string)
+    if logo:
+        logo = context.getQualifiedURL(logo.group(1))
 
-        logo = re.search(r'src="([^"]*)"', cfg.logo_string)
-        if logo:
-            logo = context.getQualifiedURL(logo.group(1))
+    # prepare output
+    out = io.StringIO()
+    handler = RssGenerator(out)
 
-        # prepare output
-        out = io.StringIO()
-        handler = RssGenerator(out)
+    # start SAX stream
+    handler.startDocument()
+    handler._write(
+        u'<!--\n'
+        u'    Add an "items=nnn" URL parameter to get more than the \n'
+        u'    default %(def_max_items)d items. You cannot get more than \n'
+        u'    %(items_limit)d items though.\n'
+        u'    \n'
+        u'    Add "unique=1" to get a list of changes where page names are unique,\n'
+        u'    i.e. where only the latest change of each page is reflected.\n'
+        u'    \n'
+        u'    Add "diffs=1" to add change diffs to the description of each items.\n'
+        u'    \n'
+        u'    Add "ddiffs=1" to link directly to the diff (good for FeedReader).\n'
+        u'    \n'
+        u'    Add "lines=nnn" to change maximum number of diff/body lines \n'
+        u'    to show. Cannot be more than %(lines_limit)d.\n'
+        u'    \n'
+        u'    Add "show_att=1" to show items related to attachments.\n'
+        u'    \n'
+        u'    Add "page=pattern" to show feed only for specific pages.\n'
+        u'    Pattern can be empty (it would match to all pages), \n'
+        u'    can start with circumflex (it would be interpreted as \n'
+        u'    regular expression in this case), end with slash (for \n'
+        u'    getting feed for page tree) or point to specific page (if \n'
+        u'    none of the above can be applied).\n'
+        u'    \n'
+        u'    Current settings: items=%(max_items)i, unique=%(unique)i, \n'
+        u'    diffs=%(diffs)i, ddiffs=%(ddiffs)i, lines=%(max_lines)i, \n'
+        u'    show_att=%(show_att)i\n'
+        u'-->\n' % locals()
+    )
 
-        # start SAX stream
-        handler.startDocument()
-        handler._write(
-            u'<!--\n'
-            u'    Add an "items=nnn" URL parameter to get more than the \n'
-            u'    default %(def_max_items)d items. You cannot get more than \n'
-            u'    %(items_limit)d items though.\n'
-            u'    \n'
-            u'    Add "unique=1" to get a list of changes where page names are unique,\n'
-            u'    i.e. where only the latest change of each page is reflected.\n'
-            u'    \n'
-            u'    Add "diffs=1" to add change diffs to the description of each items.\n'
-            u'    \n'
-            u'    Add "ddiffs=1" to link directly to the diff (good for FeedReader).\n'
-            u'    \n'
-            u'    Add "lines=nnn" to change maximum number of diff/body lines \n'
-            u'    to show. Cannot be more than %(lines_limit)d.\n'
-            u'    \n'
-            u'    Add "show_att=1" to show items related to attachments.\n'
-            u'    \n'
-            u'    Add "page=pattern" to show feed only for specific pages.\n'
-            u'    Pattern can be empty (it would match to all pages), \n'
-            u'    can start with circumflex (it would be interpreted as \n'
-            u'    regular expression in this case), end with slash (for \n'
-            u'    getting feed for page tree) or point to specific page (if \n'
-            u'    none of the above can be applied).\n'
-            u'    \n'
-            u'    Current settings: items=%(max_items)i, unique=%(unique)i, \n'
-            u'    diffs=%(diffs)i, ddiffs=%(ddiffs)i, lines=%(max_lines)i, \n'
-            u'    show_att=%(show_att)i\n'
-            u'-->\n' % locals()
-        )
+    # emit channel description
+    handler.startNode('channel', {
+        (handler.xmlns['rdf'], 'about'): context.request.url_root,
+    })
+    handler.simpleNode('title', cfg.sitename)
+    page = Page(context, pagename)
+    handler.simpleNode('link', full_url(context, page))
+    handler.simpleNode('description', u'RecentChanges at %s' % cfg.sitename)
+    if logo:
+        handler.simpleNode('image', None, {
+            (handler.xmlns['rdf'], 'resource'): logo,
+        })
+    if cfg.interwikiname:
+        handler.simpleNode(('wiki', 'interwiki'), cfg.interwikiname)
 
-        # emit channel description
-        handler.startNode('channel', {
-            (handler.xmlns['rdf'], 'about'): context.request.url_root,
+    handler.startNode('items')
+    handler.startNode(('rdf', 'Seq'))
+    for item in logdata:
+        anchor = "%04d%02d%02d%02d%02d%02d" % item.time[:6]
+        page = Page(context, item.pagename)
+        link = full_url(context, page, anchor=anchor)
+        handler.simpleNode(('rdf', 'li'), None, attr={(handler.xmlns['rdf'], 'resource'): link, })
+    handler.endNode(('rdf', 'Seq'))
+    handler.endNode('items')
+    handler.endNode('channel')
+
+    # emit logo data
+    if logo:
+        handler.startNode('image', attr={
+            (handler.xmlns['rdf'], 'about'): logo,
         })
         handler.simpleNode('title', cfg.sitename)
-        page = Page(context, pagename)
-        handler.simpleNode('link', full_url(context, page))
-        handler.simpleNode('description', u'RecentChanges at %s' % cfg.sitename)
-        if logo:
-            handler.simpleNode('image', None, {
-                (handler.xmlns['rdf'], 'resource'): logo,
-            })
-        if cfg.interwikiname:
-            handler.simpleNode(('wiki', 'interwiki'), cfg.interwikiname)
+        handler.simpleNode('link', baseurl)
+        handler.simpleNode('url', logo)
+        handler.endNode('image')
 
-        handler.startNode('items')
-        handler.startNode(('rdf', 'Seq'))
-        for item in logdata:
-            anchor = "%04d%02d%02d%02d%02d%02d" % item.time[:6]
-            page = Page(context, item.pagename)
-            link = full_url(context, page, anchor=anchor)
-            handler.simpleNode(('rdf', 'li'), None, attr={(handler.xmlns['rdf'], 'resource'): link, })
-        handler.endNode(('rdf', 'Seq'))
-        handler.endNode('items')
-        handler.endNode('channel')
+    # Mapping { oldname: curname } for maintaining page renames
+    pagename_map = {}
 
-        # emit logo data
-        if logo:
-            handler.startNode('image', attr={
-                (handler.xmlns['rdf'], 'about'): logo,
-            })
-            handler.simpleNode('title', cfg.sitename)
-            handler.simpleNode('link', baseurl)
-            handler.simpleNode('url', logo)
-            handler.endNode('image')
+    # emit items
+    for item in logdata:
+        if item.pagename in pagename_map:
+            cur_pagename = pagename_map[item.pagename]
+        else:
+            cur_pagename = item.pagename
+        page = Page(context, cur_pagename)
+        action = item.action
+        comment = item.comment
+        anchor = "%04d%02d%02d%02d%02d%02d" % item.time[:6]
+        rdflink = full_url(context, page, anchor=anchor)
+        handler.startNode('item', attr={(handler.xmlns['rdf'], 'about'): rdflink, })
 
-        # Mapping { oldname: curname } for maintaining page renames
-        pagename_map = {}
+        # general attributes
+        handler.simpleNode('title', item.pagename)
+        handler.simpleNode(('dc', 'date'), timefuncs.W3CDate(item.time))
 
-        # emit items
-        for item in logdata:
-            if item.pagename in pagename_map:
-                cur_pagename = pagename_map[item.pagename]
-            else:
-                cur_pagename = item.pagename
-            page = Page(context, cur_pagename)
-            action = item.action
-            comment = item.comment
-            anchor = "%04d%02d%02d%02d%02d%02d" % item.time[:6]
-            rdflink = full_url(context, page, anchor=anchor)
-            handler.startNode('item', attr={(handler.xmlns['rdf'], 'about'): rdflink, })
+        show_diff = diffs
 
-            # general attributes
-            handler.simpleNode('title', item.pagename)
-            handler.simpleNode(('dc', 'date'), timefuncs.W3CDate(item.time))
+        if action.startswith('ATT'):  # Attachment
+            show_diff = 0
+            filename = wikiutil.url_unquote(item.extra)
+            att_exists = AttachFile.exists(context, cur_pagename, filename)
 
-            show_diff = diffs
-
-            if action.startswith('ATT'):  # Attachment
-                show_diff = 0
-                filename = wikiutil.url_unquote(item.extra)
-                att_exists = AttachFile.exists(context, cur_pagename, filename)
-
-                if action == 'ATTNEW':
-                    # Once attachment deleted this link becomes invalid but we
-                    # preserve it to prevent appearance of new RSS entries in
-                    # RSS readers.
-                    if ddiffs:
-                        handler.simpleNode('link', attach_url(context,
-                                                              cur_pagename, filename, do='view'))
-
-                    comment = _(u"Upload of attachment '%(filename)s'.") % {
-                        'filename': filename}
-
-                elif action == 'ATTDEL':
-                    if ddiffs:
-                        handler.simpleNode('link', full_url(context, page,
-                                                            querystr={'action': 'AttachFile'}))
-
-                    comment = _(u"Attachment '%(filename)s' deleted.") % {
-                        'filename': filename}
-
-                elif action == 'ATTDRW':
-                    if ddiffs:
-                        handler.simpleNode('link', attach_url(context,
-                                                              cur_pagename, filename, do='view'))
-
-                    comment = _(u"Drawing '%(filename)s' saved.") % {
-                        'filename': filename}
-
-            elif action.startswith('SAVE'):
-                if action == 'SAVE/REVERT':
-                    to_rev = int(item.extra)
-                    comment = (_(u"Revert to revision %(rev)d.") % {
-                        'rev': to_rev}) + "<br />" \
-                              + _("Comment:") + " " + comment
-
-                elif action == 'SAVE/RENAME':
-                    show_diff = 0
-                    comment = (_(u"Renamed from '%(oldpagename)s'.") % {
-                        'oldpagename': item.extra}) + "<br />" \
-                              + _("Comment:") + " " + comment
-                    if item.pagename in pagename_map:
-                        newpage = pagename_map[item.pagename]
-                        del pagename_map[item.pagename]
-                        pagename_map[item.extra] = newpage
-                    else:
-                        pagename_map[item.extra] = item.pagename
-
-                elif action == 'SAVENEW':
-                    comment = _(u"New page:\n") + comment
-
-                item_rev = int(item.rev)
-
-                # If we use diffs/ddiffs, we should calculate proper links and
-                # content
+            if action == 'ATTNEW':
+                # Once attachment deleted this link becomes invalid but we
+                # preserve it to prevent appearance of new RSS entries in
+                # RSS readers.
                 if ddiffs:
-                    # first revision can't have older revisions to diff with
-                    if item_rev == 1:
-                        handler.simpleNode('link', full_url(context, page,
-                                                            querystr={'action': 'recall',
-                                                                      'rev': str(item_rev)}))
-                    else:
-                        handler.simpleNode('link', full_url(context, page,
-                                                            querystr={'action': 'diff',
-                                                                      'rev1': str(item_rev),
-                                                                      'rev2': str(item_rev - 1)}))
+                    handler.simpleNode('link', attach_url(context,
+                                                          cur_pagename, filename, do='view'))
 
-                if show_diff:
-                    if item_rev == 1:
-                        lines = Page(context, cur_pagename,
-                                     rev=item_rev).getlines()
-                    else:
-                        lines = wikiutil.pagediff(context, cur_pagename,
-                                                  item_rev - 1, cur_pagename, item_rev, ignorews=1)
+                comment = _(u"Upload of attachment '%(filename)s'.") % {
+                    'filename': filename}
 
-                    if len(lines) > max_lines:
-                        lines = lines[:max_lines] + ['...\n']
+            elif action == 'ATTDEL':
+                if ddiffs:
+                    handler.simpleNode('link', full_url(context, page,
+                                                        querystr={'action': 'AttachFile'}))
 
-                    lines = '\n'.join(lines)
-                    lines = wikiutil.escape(lines)
+                comment = _(u"Attachment '%(filename)s' deleted.") % {
+                    'filename': filename}
 
-                    comment = u'%s\n<pre>\n%s\n</pre>\n' % (comment, lines)
+            elif action == 'ATTDRW':
+                if ddiffs:
+                    handler.simpleNode('link', attach_url(context,
+                                                          cur_pagename, filename, do='view'))
 
-                if not ddiffs:
-                    handler.simpleNode('link', full_url(context, page))
+                comment = _(u"Drawing '%(filename)s' saved.") % {
+                    'filename': filename}
 
-            if comment:
-                handler.simpleNode('description', comment)
+        elif action.startswith('SAVE'):
+            if action == 'SAVE/REVERT':
+                to_rev = int(item.extra)
+                comment = (_(u"Revert to revision %(rev)d.") % {
+                    'rev': to_rev}) + "<br />" \
+                          + _("Comment:") + " " + comment
 
-            # contributor
-            if cfg.show_names:
-                edattr = {}
-                if cfg.show_hosts:
-                    edattr[(handler.xmlns['wiki'], 'host')] = item.hostname
-                if item.editor[0] == 'interwiki':
-                    edname = "%s:%s" % item.editor[1]
-                    ##edattr[(None, 'link')] = baseurl + wikiutil.quoteWikiname(edname)
-                else:  # 'ip'
-                    edname = item.editor[1]
-                    ##edattr[(None, 'link')] = link + "?action=info"
+            elif action == 'SAVE/RENAME':
+                show_diff = 0
+                comment = (_(u"Renamed from '%(oldpagename)s'.") % {
+                    'oldpagename': item.extra}) + "<br />" \
+                          + _("Comment:") + " " + comment
+                if item.pagename in pagename_map:
+                    newpage = pagename_map[item.pagename]
+                    del pagename_map[item.pagename]
+                    pagename_map[item.extra] = newpage
+                else:
+                    pagename_map[item.extra] = item.pagename
 
-                # this edattr stuff, esp. None as first tuple element breaks things (tracebacks)
-                # if you know how to do this right, please send us a patch
+            elif action == 'SAVENEW':
+                comment = _(u"New page:\n") + comment
 
-                handler.startNode(('dc', 'contributor'))
-                handler.startNode(('rdf', 'Description'), attr=edattr)
-                handler.simpleNode(('rdf', 'value'), edname)
-                handler.endNode(('rdf', 'Description'))
-                handler.endNode(('dc', 'contributor'))
+            item_rev = int(item.rev)
 
-            # wiki extensions
-            handler.simpleNode(('wiki', 'version'), "%i" % (item.ed_time_usecs))
-            handler.simpleNode(('wiki', 'status'), ('deleted', 'updated')[page.exists()])
-            handler.simpleNode(('wiki', 'diff'), full_url(context, page, querystr={'action': 'diff'}))
-            handler.simpleNode(('wiki', 'history'), full_url(context, page, querystr={'action': 'info'}))
-            # handler.simpleNode(('wiki', 'importance'), ) # ( major | minor )
-            # handler.simpleNode(('wiki', 'version'), ) # ( #PCDATA )
+            # If we use diffs/ddiffs, we should calculate proper links and
+            # content
+            if ddiffs:
+                # first revision can't have older revisions to diff with
+                if item_rev == 1:
+                    handler.simpleNode('link', full_url(context, page,
+                                                        querystr={'action': 'recall',
+                                                                  'rev': str(item_rev)}))
+                else:
+                    handler.simpleNode('link', full_url(context, page,
+                                                        querystr={'action': 'diff',
+                                                                  'rev1': str(item_rev),
+                                                                  'rev2': str(item_rev - 1)}))
 
-            handler.endNode('item')
+            if show_diff:
+                if item_rev == 1:
+                    lines = Page(context, cur_pagename,
+                                 rev=item_rev).getlines()
+                else:
+                    lines = wikiutil.pagediff(context, cur_pagename,
+                                              item_rev - 1, cur_pagename, item_rev, ignorews=1)
 
-        # end SAX stream
-        handler.endDocument()
+                if len(lines) > max_lines:
+                    lines = lines[:max_lines] + ['...\n']
 
-        context.write(out.getvalue())
+                lines = '\n'.join(lines)
+                lines = wikiutil.escape(lines)
+
+                comment = u'%s\n<pre>\n%s\n</pre>\n' % (comment, lines)
+
+            if not ddiffs:
+                handler.simpleNode('link', full_url(context, page))
+
+        if comment:
+            handler.simpleNode('description', comment)
+
+        # contributor
+        if cfg.show_names:
+            edattr = {}
+            if cfg.show_hosts:
+                edattr[(handler.xmlns['wiki'], 'host')] = item.hostname
+            if item.editor[0] == 'interwiki':
+                edname = "%s:%s" % item.editor[1]
+                ##edattr[(None, 'link')] = baseurl + wikiutil.quoteWikiname(edname)
+            else:  # 'ip'
+                edname = item.editor[1]
+                ##edattr[(None, 'link')] = link + "?action=info"
+
+            # this edattr stuff, esp. None as first tuple element breaks things (tracebacks)
+            # if you know how to do this right, please send us a patch
+
+            handler.startNode(('dc', 'contributor'))
+            handler.startNode(('rdf', 'Description'), attr=edattr)
+            handler.simpleNode(('rdf', 'value'), edname)
+            handler.endNode(('rdf', 'Description'))
+            handler.endNode(('dc', 'contributor'))
+
+        # wiki extensions
+        handler.simpleNode(('wiki', 'version'), "%i" % (item.ed_time_usecs))
+        handler.simpleNode(('wiki', 'status'), ('deleted', 'updated')[page.exists()])
+        handler.simpleNode(('wiki', 'diff'), full_url(context, page, querystr={'action': 'diff'}))
+        handler.simpleNode(('wiki', 'history'), full_url(context, page, querystr={'action': 'info'}))
+        # handler.simpleNode(('wiki', 'importance'), ) # ( major | minor )
+        # handler.simpleNode(('wiki', 'version'), ) # ( #PCDATA )
+
+        handler.endNode('item')
+
+    # end SAX stream
+    handler.endDocument()
+
+    context.response.set_data(out.getvalue())
+    context.response.add_etag()
+    context.response.make_conditional(context.request.environ)
