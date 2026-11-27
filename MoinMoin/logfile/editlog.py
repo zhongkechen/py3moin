@@ -24,7 +24,7 @@ from threading import get_ident
 from past.builtins import cmp
 
 from MoinMoin import log
-from MoinMoin import wikiutil, user, config
+from MoinMoin import wikiutil, user
 from MoinMoin.Page import Page
 from MoinMoin.logfile import LogFile
 from MoinMoin.util.lock import FileLock
@@ -223,7 +223,6 @@ class EditLog(LogFile):
                 import socket
                 try:
                     hostname = socket.gethostbyaddr(host)[0]
-                    hostname = str(hostname, config.charset)
                 except (socket.error, UnicodeError):
                     hostname = host
             else:

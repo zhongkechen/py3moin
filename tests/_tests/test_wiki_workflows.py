@@ -213,6 +213,39 @@ def test_revert_creates_a_revision_from_the_selected_history(wiki):
     assert page.get_raw_body() == 'Original text.\n'
 
 
+@pytest.mark.parametrize('lookup_succeeds', [True, False])
+def test_edit_log_accepts_reverse_dns_hostnames(wiki, monkeypatch, lookup_succeeds):
+    import socket
+
+    from MoinMoin.logfile.editlog import EditLog
+
+    context, client = wiki
+    PageEditor(context, 'ReverseDNSPage').saveText('Before the edit.\n', 0, notify=False)
+    form = client.get('/ReverseDNSPage', query_string={'action': 'edit', 'editor': 'text'})
+    context.cfg.log_remote_addr = True
+    context.cfg.log_reverse_dns_lookups = True
+    address = '127.0.0.1'
+    hostname = 'wiki-client.example.invalid'
+
+    def lookup(value):
+        assert value == address
+        if not lookup_succeeds:
+            raise socket.herror('No hostname')
+        return hostname, [], [address]
+
+    monkeypatch.setattr(socket, 'gethostbyaddr', lookup)
+    response = client.post('/ReverseDNSPage', environ_overrides={'REMOTE_ADDR': address}, data={
+        'action': 'edit', 'editor': 'text', 'ticket': _field(form, 'ticket'),
+        'rev': _field(form, 'rev'), 'savetext': 'After the edit.', 'button_save': 'Save Changes',
+    })
+    assert response.status_code == 200
+    assert b'Thank you for your changes' in response.data
+    record = next(EditLog(context).reverse())
+    assert record.pagename == 'ReverseDNSPage'
+    assert record.addr == address
+    assert record.hostname == (hostname if lookup_succeeds else address)
+
+
 def test_edits_and_reverts_keep_deprecated_history(wiki):
     context, client = wiki
     name = 'DeprecatedHistory'
