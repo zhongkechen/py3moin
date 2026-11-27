@@ -387,6 +387,35 @@ def test_backup_form_and_archive_require_a_configured_user(wiki, tmp_path):
         assert archive.extractfile(names[0]).read() == b'Backup contents.\n'
 
 
+@pytest.mark.parametrize('encoding', ['utf-8', 'iso-8859-1'])
+def test_http_basic_challenge_and_verified_login(wiki, encoding):
+    from base64 import b64encode
+    from MoinMoin.auth.http import HTTPAuthMoin
+
+    context, client = wiki
+    account = user.User(context, auth_method='new-user')
+    account.name = 'BasicReader'
+    password = 'tést-wiki-password'
+    account.enc_password = user.encodePassword(context.cfg, password)
+    account.save()
+    PageEditor(context, 'BasicPage').saveText('Page content.\n', 0, notify=False)
+    context.cfg.auth = [HTTPAuthMoin(realm='Test Wiki')]
+
+    def get(credentials):
+        return client.get('/BasicPage', headers={
+            'Authorization': 'Basic ' + b64encode(credentials.encode(encoding)).decode('ascii'),
+        })
+
+    challenge = client.get('/BasicPage')
+    assert challenge.status_code == 401
+    assert challenge.headers['WWW-Authenticate'] == 'Basic realm="Test Wiki"'
+    assert get(account.name + ':incorrect').status_code == 401
+    authenticated = get(account.name + ':' + password)
+    assert authenticated.status_code == 200
+    assert b'Page content.' in authenticated.data
+    assert client.get('/BasicPage').status_code == 401
+
+
 def test_wiki_indexes_return_the_requested_formats(wiki):
     context, client = wiki
     PageEditor(context, 'IndexPage').saveText('[[SecondPage]]\n', 0, notify=False)

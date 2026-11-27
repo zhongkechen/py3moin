@@ -41,11 +41,12 @@
     @license: GNU GPL, see COPYING for details.
 """
 
+import base64
+
 from MoinMoin import log
 logging = log.getLogger(__name__)
 
 from MoinMoin import user
-from MoinMoin import wikiutil
 from MoinMoin.auth import BaseAuth, GivenAuth
 
 
@@ -67,6 +68,27 @@ class HTTPAuthMoin(BaseAuth):
         self.coding = coding
         BaseAuth.__init__(self)
 
+    def _credentials(self, request):
+        auth = request.authorization
+        if auth is not None:
+            if auth.type == 'basic' and auth.username and auth.password is not None:
+                return auth.username, auth.password
+            return None
+
+        # Werkzeug decodes Basic credentials as UTF-8. Retain the configured
+        # encoding for older clients that send a different byte encoding.
+        scheme, _, token = request.headers.get('Authorization', '').partition(' ')
+        if scheme.lower() != 'basic':
+            return None
+        try:
+            decoded = base64.b64decode(token.strip(), validate=True).decode(self.coding)
+        except (ValueError, LookupError):
+            return None
+        username, separator, password = decoded.partition(':')
+        if username and separator:
+            return username, password
+        return None
+
     def request(self, request, user_obj, **kw):
         u = None
         _ = request.getText
@@ -77,13 +99,11 @@ class HTTPAuthMoin(BaseAuth):
         if user_obj:
             return user_obj, True
 
-        auth = request.authorization
-        if auth and auth.username and auth.password is not None:
-            logging.debug("http basic auth, received username: %r password: %r" % (
-                          auth.username, auth.password))
+        credentials = self._credentials(request.request)
+        if credentials is not None:
+            username, password = credentials
             u = user.User(request,
-                          name=wikiutil.decodeUserInput(auth.username, [self.coding]),
-                          password=wikiutil.decodeUserInput(auth.password, [self.coding]),
+                          name=username, password=password,
                           auth_method=self.name, auth_attribs=[])
             logging.debug("user: %r" % u)
 
