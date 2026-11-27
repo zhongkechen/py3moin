@@ -355,6 +355,26 @@ def test_load_upload_as_page_content(wiki):
     assert b'Uploaded text.' in client.get('/LoadedPage').data
 
 
+def test_copy_page_renders_the_subpage_option_and_copies_the_tree(wiki):
+    context, client = wiki
+    context.cfg.actions_excluded = [action for action in context.cfg.actions_excluded if action != 'CopyPage']
+    PageEditor(context, 'CopySource').saveText('Source page.\n', 0, notify=False)
+    PageEditor(context, 'CopySource/Child').saveText('Source child.\n', 0, notify=False)
+
+    form = client.get('/CopySource', query_string={'action': 'CopyPage', 'subpages_checked': '1'})
+    assert form.status_code == 200
+    assert b'name="copy_subpages" value="1" checked' in form.data
+
+    response = client.post('/CopySource', data={
+        'action': 'CopyPage', 'copy': 'Copy Page', 'copy_subpages': '1',
+        'ticket': _field(form, 'ticket'), 'newpagename': 'CopyDestination',
+    })
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/CopyDestination'
+    assert b'Source page.' in client.get('/CopyDestination').data
+    assert b'Source child.' in client.get('/CopyDestination/Child').data
+
+
 def test_goto_action_redirects_to_the_selected_page(wiki):
     context, client = wiki
     PageEditor(context, 'GoFrom').saveText('<<GoTo>>\n', 0, notify=False)
