@@ -205,6 +205,26 @@ def test_failed_in_place_write_preserves_existing_revision_and_allows_recovery(r
     assert Page(req, pagename).get_raw_body() == "recovered save\n"
 
 
+@pytest.mark.parametrize(('offset', 'suffix'), [
+    (-3 * 3600 - 30 * 60, '-0330'),
+    (-30 * 60, '-0030'),
+    (-8 * 3600, '-0800'),
+    (5 * 3600 + 30 * 60, '+0530'),
+    (0, 'Z'),
+])
+def test_editor_timestamp_represents_the_same_instant_in_each_timezone(req, monkeypatch, offset, suffix):
+    from datetime import datetime
+
+    now = 1_700_000_000
+    monkeypatch.setattr(req.user, 'valid', True)
+    monkeypatch.setattr(req.user, 'tz_offset', offset)
+    monkeypatch.setattr(page_editor_mod.time, 'time', lambda: now)
+
+    timestamp = PageEditor(req, 'TimestampTest')._get_local_timestamp()
+    assert timestamp.endswith(suffix)
+    assert datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S%z').timestamp() == now
+
+
 @pytest.mark.parametrize('failure', ['local', 'global'])
 def test_partial_edit_log_write_rolls_back_the_save(req, isolated_page, monkeypatch, failure):
     pagename, pagedir, revdir = isolated_page

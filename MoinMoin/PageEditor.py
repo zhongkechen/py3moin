@@ -777,12 +777,11 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
             tz = u.tz_offset
             # round to minutes
             tz -= tz % 60
-            minutes = tz // 60
-            hours = minutes // 60
-            minutes -= hours * 60
+            hours, minutes = divmod(abs(tz) // 60, 60)
+            sign = '-' if tz < 0 else '+'
 
             # construct the offset
-            zone = "%+0.2d%02d" % (hours, minutes)
+            zone = f"{sign}{hours:02d}{minutes:02d}"
             # correct the time by the offset we've found
             now += tz
 
