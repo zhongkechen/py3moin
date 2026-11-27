@@ -970,9 +970,9 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
                 with open(current_path) as current:
                     old_rev = int(current.read())
             except FileNotFoundError as err:
-                # A fresh page (including a retry after a failed first write)
-                # has no revisions. Preserve older data with a missing pointer.
-                if os.path.isdir(revdir) and os.listdir(revdir):
+                # A worker can leave a staged first revision before it has
+                # published either the revision or the current pointer.
+                if os.path.isdir(revdir) and set(os.listdir(revdir)) - {'00000001.tmp'}:
                     raise self.CouldNotLock(_("Page could not get locked. Missing 'current' file?")) from err
                 old_rev = 0
             except ValueError as err:

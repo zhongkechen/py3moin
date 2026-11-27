@@ -74,6 +74,31 @@ def test_legacy_directory_lock_does_not_block_new_writer(req, isolated_page):
         legacy_lock.rmdir()
 
 
+@pytest.mark.parametrize('has_published_revision', [False, True])
+def test_missing_current_with_a_staged_first_revision(req, isolated_page, has_published_revision):
+    pagename, pagedir, revdir = isolated_page
+    current = Path(pagedir) / 'current'
+    staged = Path(revdir) / '00000001.tmp'
+    first_revision = Path(revdir) / '00000001'
+    current.unlink()
+    staged.write_text('Interrupted first save.\n')
+    if not has_published_revision:
+        first_revision.unlink()
+
+    editor = PageEditor(req, pagename)
+    if has_published_revision:
+        with pytest.raises(PageEditor.CouldNotLock, match="Missing 'current' file"):
+            editor._write_file('Retry.\n', expected_rev=0)
+        assert not current.exists()
+        assert first_revision.read_text() == 'previous valid page\n'
+    else:
+        _, revision = editor._write_file('Retry.\n', expected_rev=0)
+        assert revision == 1
+        assert current.read_text() == '00000001\n'
+        assert first_revision.read_text() == 'Retry.\n'
+        assert not staged.exists()
+
+
 def test_failed_revision_write_before_content_preserves_current(req, isolated_page, monkeypatch):
     pagename, pagedir, revdir = isolated_page
     real_codecs_open = codecs.open
