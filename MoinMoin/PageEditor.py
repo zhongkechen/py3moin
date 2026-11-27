@@ -22,6 +22,7 @@ from contextlib import closing, nullcontext, suppress
 
 import MoinMoin.events.notification as notification
 from MoinMoin import caching, config, wikiutil, error
+from MoinMoin import log
 from MoinMoin.Page import Page
 from MoinMoin.events import PageDeletedEvent, PageRenamedEvent, PageCopiedEvent, PageRevertedEvent
 from MoinMoin.events import PagePreSaveEvent, Abort, send_event
@@ -31,6 +32,8 @@ from MoinMoin.util import filesys, lock, timefuncs, web
 from MoinMoin.util.abuse import log_attempt
 from MoinMoin.widget import html
 from MoinMoin.widget.dialog import Status
+
+logging = log.getLogger(__name__)
 
 # used for merging
 conflict_markers = ("\n---- /!\\ '''Edit conflict - other version:''' ----\n",
@@ -1048,9 +1051,12 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
         finally:
             revision_lock.release()
 
-        # add event log entry
-        elog = eventlog.EventLog(context)
-        elog.add(context, 'SAVEPAGE', {'pagename': self.page_name}, 1, mtime_usecs)
+        # The revision and edit logs are committed before recording statistics.
+        try:
+            elog = eventlog.EventLog(context)
+            elog.add(context, 'SAVEPAGE', {'pagename': self.page_name}, 1, mtime_usecs)
+        except OSError:
+            logging.warning("Could not log the save event for %r", self.page_name, exc_info=True)
 
         return mtime_usecs, rev
 
