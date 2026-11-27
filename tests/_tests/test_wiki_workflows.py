@@ -196,6 +196,32 @@ def test_slow_reader_cannot_replace_a_newer_cached_revision(wiki, monkeypatch):
     assert reader.get('/CacheOrder', query_string=raw).data == b'Updated revision.\r\n'
 
 
+def test_edit_still_succeeds_when_save_statistics_cannot_be_written(wiki, monkeypatch, caplog):
+    import errno
+
+    from MoinMoin.logfile.eventlog import EventLog
+
+    context, client = wiki
+    PageEditor(context, 'SaveStatisticsPage').saveText('Before the edit.\n', 0, notify=False)
+    form = client.get('/SaveStatisticsPage', query_string={'action': 'edit', 'editor': 'text'})
+
+    def fail_append(log, line):
+        raise OSError(errno.ENOSPC, 'simulated event-log write failure')
+
+    monkeypatch.setattr(EventLog, '_add', fail_append)
+    response = client.post('/SaveStatisticsPage', data={
+        'action': 'edit', 'editor': 'text', 'ticket': _field(form, 'ticket'),
+        'rev': _field(form, 'rev'), 'savetext': 'Successfully saved.', 'button_save': 'Save Changes',
+    })
+
+    assert response.status_code == 200
+    assert b'Thank you for your changes' in response.data
+    page = Page(_context(context.cfg), 'SaveStatisticsPage')
+    assert page.current_rev() == 2
+    assert page.get_raw_body() == 'Successfully saved.\n'
+    assert "Could not log the save event for 'SaveStatisticsPage'" in caplog.text
+
+
 def test_revert_creates_a_revision_from_the_selected_history(wiki):
     context, client = wiki
     PageEditor(context, 'RevisionPage').saveText('Original text.\n', 0, notify=False)
