@@ -339,6 +339,70 @@ def test_rename_and_delete_support_subpages(wiki):
     assert client.get('/RenamedPage/Child').status_code == 404
 
 
+@pytest.mark.parametrize('save_destination', [False, True])
+def test_rename_waits_for_a_save_to_either_page_name(wiki, monkeypatch, save_destination):
+    context, client = wiki
+    source = 'RenameConcurrentSource'
+    destination = 'RenameConcurrentTarget'
+    PageEditor(context, source).saveText('Original text.\n', 0, notify=False)
+    form = client.get('/' + source, query_string={'action': 'RenamePage'})
+    rename_request = {
+        'action': 'RenamePage', 'rename': 'Rename Page', 'ticket': _field(form, 'ticket'),
+        'newpagename': destination,
+    }
+
+    name = destination if save_destination else source
+    revision = 0 if save_destination else 1
+    editor = PageEditor(_context(context.cfg), name)
+    staged_file = editor.getPagePath('revisions', f'{revision + 1:08d}.tmp',
+                                    use_underlay=0, check_create=False)
+    lock_path = Path(context.cfg.data_dir) / 'page-write-locks' / name
+    staging = Event()
+    rename_waiting = Event()
+    allow_save = Event()
+
+    open_revision = page_editor_module.codecs.open
+    acquire_lock = page_editor_module.lock.FileLock.acquire
+
+    def pause_revision_write(filename, mode='r', *args, **kwargs):
+        if filename == staged_file and mode == 'wb':
+            staging.set()
+            assert allow_save.wait(timeout=10)
+        return open_revision(filename, mode, *args, **kwargs)
+
+    def observe_lock_attempt(file_lock, timeout=None):
+        if Path(file_lock.path) == lock_path and staging.is_set():
+            rename_waiting.set()
+        return acquire_lock(file_lock, timeout=timeout)
+
+    monkeypatch.setattr(page_editor_module.codecs, 'open', pause_revision_write)
+    monkeypatch.setattr(page_editor_module.lock.FileLock, 'acquire', observe_lock_attempt)
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        save = executor.submit(editor.saveText, 'Concurrent edit.\n', revision, notify=False)
+        try:
+            assert staging.wait(timeout=10)
+            rename = executor.submit(client.post, '/' + source, data=rename_request)
+            assert rename_waiting.wait(timeout=10)
+        finally:
+            allow_save.set()
+        save.result(timeout=15)
+        response = rename.result(timeout=15)
+
+    target = Page(_context(context.cfg), destination)
+    if save_destination:
+        assert response.status_code == 200
+        assert b'already exists' in response.data
+        assert Page(_context(context.cfg), source).get_raw_body() == 'Original text.\n'
+        assert target.current_rev() == 1
+        assert target.get_raw_body() == 'Concurrent edit.\n'
+    else:
+        assert response.status_code == 301
+        assert response.headers['Location'] == '/' + destination
+        assert target.current_rev() == 3
+        assert target.get_raw_body().endswith('Concurrent edit.\n')
+        assert Page(_context(context.cfg), destination, rev=2).get_raw_body() == 'Concurrent edit.\n'
+
+
 def test_load_upload_as_page_content(wiki):
     _, client = wiki
     form = client.get('/LoadedPage', query_string={'action': 'Load'})

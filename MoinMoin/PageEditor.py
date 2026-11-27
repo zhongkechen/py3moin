@@ -18,7 +18,7 @@ import codecs
 import errno
 import os
 import time
-from contextlib import closing, nullcontext, suppress
+from contextlib import ExitStack, closing, contextmanager, nullcontext, suppress
 
 import MoinMoin.events.notification as notification
 from MoinMoin import caching, config, wikiutil, error
@@ -634,29 +634,24 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
 
 Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
 
-        # Check whether a page with the new name already exists
-        if newpage.exists(includeDeleted=1):
-            return False, pageexists_error
-
-        # Get old page text
-        savetext = self.get_raw_body()
-
-        oldpath = self.getPagePath(check_create=0)
-        newpath = newpage.getPagePath(check_create=0)
-
-        # Rename page
-
-        # NOTE: might fail if another process created newpagename just
-        # NOW, while you read this comment. Rename is atomic for files -
-        # but for directories, rename will fail if the directory
-        # exists. We should have global edit-lock to avoid this.
-        # See http://docs.python.org/lib/os-file-dir.html
         try:
-            os.rename(oldpath, newpath)
-            self.error = None
-            # Save page text with a comment about the old name
-            savetext = u"## page was renamed from %s\n%s" % (self.page_name, savetext)
-            newpage.saveText(savetext, 0, comment=comment, extra=self.page_name, action='SAVE/RENAME', notify=False)
+            with self._lock_revisions(newpage):
+                if newpage.exists(includeDeleted=1):
+                    return False, pageexists_error
+
+                source = Page(context, self.page_name)
+                if not source.exists():
+                    return False, _('This page is already deleted or was never created!')
+                savetext = source.get_raw_body()
+                oldpath = source.getPagePath(check_create=0)
+                newpath = newpage.getPagePath(check_create=0)
+                os.rename(oldpath, newpath)
+                self.error = None
+
+                savetext = u"## page was renamed from %s\n%s" % (self.page_name, savetext)
+                newpage.saveText(savetext, 0, comment=comment, extra=self.page_name,
+                                 action='SAVE/RENAME', notify=False, _revision_locked=True)
+
             # delete pagelinks
             arena = newpage
             key = 'pagelinks'
@@ -674,6 +669,8 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
             send_event(event)
 
             return True, None
+        except self.CouldNotLock as err:
+            return False, str(err)
         except OSError as err:
             # Try to understand what happened. Maybe its better to check
             # the error code, but I just reused the available code above...
@@ -923,7 +920,23 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
                 filesys.copytree(src, dst)
                 self.reset()  # reinit stuff
 
-    def _write_file(self, text, action='SAVE', comment=u'', extra=u'', deleted=False, expected_rev=None):
+    @contextmanager
+    def _lock_revisions(self, *other_pages):
+        # Keep the locks outside the page directories so a rename keeps both
+        # names locked. Acquire multiple locks in the same order for all callers.
+        locks_path = os.path.join(self.cfg.data_dir, 'page-write-locks')
+        os.makedirs(locks_path, exist_ok=True)
+        filenames = sorted({os.path.normcase(page.page_name_fs) for page in (self, *other_pages)})
+        with ExitStack() as locks:
+            for filename in filenames:
+                revision_lock = lock.FileLock(os.path.join(locks_path, filename))
+                if not revision_lock.acquire(timeout=10.0):
+                    raise self.CouldNotLock(self._("Page could not get locked."))
+                locks.callback(revision_lock.release)
+            yield
+
+    def _write_file(self, text, action='SAVE', comment=u'', extra=u'', deleted=False, expected_rev=None,
+                    *, revision_locked=False):
         """ Write the text to the page file (and make a backup of old page).
 
         @param text: text to save for this page
@@ -946,8 +959,6 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
         current_path = os.path.join(pagedir, 'current')
         current_tmp = os.path.join(pagedir, 'current.tmp')
 
-        # !!! these log objects MUST be created outside the locked area !!!
-
         # The local log should be the standard edit log, not the
         # underlay copy log!
         pagelog = os.path.join(pagedir, 'edit-log')
@@ -956,15 +967,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
         # Open the global log
         glog = editlog.EditLog(context, uid_override=self.uid_override)
 
-        # Keep locks outside the page directory so readers can always open
-        # current and page copies cannot inherit a live lock.
-        locks_path = os.path.join(self.cfg.data_dir, 'page-write-locks')
-        os.makedirs(locks_path, exist_ok=True)
-        revision_lock = lock.FileLock(os.path.join(locks_path, self.page_name_fs))
-        if not revision_lock.acquire(timeout=10.0):
-            raise self.CouldNotLock(_("Page could not get locked."))
-
-        try:
+        with nullcontext() if revision_locked else self._lock_revisions():
             self.copy_underlay_page()
             try:
                 with open(current_path) as current:
@@ -1045,8 +1048,6 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
             self.set_raw_body(None if deleted else text)
             self.setConflict(wikiutil.containsConflictMarker(text))
             self.reset()
-        finally:
-            revision_lock.release()
 
         # add event log entry
         elog = eventlog.EventLog(context)
@@ -1072,6 +1073,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
         """
         context = self.context
         _ = self._
+        revision_locked = kw.pop('_revision_locked', False)
         self._save_draft(newtext, rev, **kw)
         action = kw.get('action', 'SAVE')
         deleted = kw.get('deleted', False)
@@ -1156,6 +1158,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
             expected_rev = rev if rev or kw.get('check_creation', False) else None
             mtime_usecs, rev = self._write_file(
                 newtext, action, comment, extra, deleted=deleted, expected_rev=expected_rev,
+                revision_locked=revision_locked,
             )
             self._save_draft(None, None)  # everything fine, kill the draft for this page
 
