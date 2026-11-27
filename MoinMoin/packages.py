@@ -33,7 +33,7 @@ class ScriptException(Exception):
 
     def __str__(self):
         """ Return unicode error message """
-        if isinstance(self.args[0], str):
+        if isinstance(self.args[0], bytes):
             return str(self.args[0], config.charset)
         else:
             return str(self.args[0])
@@ -355,6 +355,12 @@ class ScriptEngine:
         else:
             self.msg += u"action delete page: not enough rights - nothing done \n"
 
+    def _underlay_page_path(self, pagename):
+        if self.request.cfg.data_underlay_dir is None:
+            _ = self.request.getText
+            raise RuntimeScriptException(_("Packages that update the underlay require a configured underlay directory."))
+        return Page(self.request, pagename).getPagePath(use_underlay=1, check_create=1)
+
     def do_replaceunderlayattachment(self, zipname, filename, pagename, author=u"Scripting Subsystem", comment=u""):
         """
         overwrite underlay attachments
@@ -364,11 +370,9 @@ class ScriptEngine:
         @param filename: Filename of the attachment (just applicable for MoinMoin < 2.0)
         """
         if self.request.user.may.write(pagename):
-            _ = self.request.getText
             filename = wikiutil.taintfilename(filename)
             zipname = wikiutil.taintfilename(zipname)
-            page = PageEditor(self.request, pagename, do_editor_backup=0, uid_override=author)
-            pagedir = page.getPagePath(use_underlay=1, check_create=1)
+            pagedir = self._underlay_page_path(pagename)
             attachments = os.path.join(pagedir, 'attachments')
             if not os.path.exists(attachments):
                 os.mkdir(attachments)
@@ -387,9 +391,7 @@ class ScriptEngine:
         @param filename: name of the file in the package
         @param pagename: page to be overwritten
         """
-        page = Page(self.request, pagename)
-
-        pagedir = page.getPagePath(use_underlay=1, check_create=1)
+        pagedir = self._underlay_page_path(pagename)
 
         revdir = os.path.join(pagedir, 'revisions')
         cfn = os.path.join(pagedir, 'current')
