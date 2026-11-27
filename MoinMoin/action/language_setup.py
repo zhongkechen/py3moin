@@ -10,14 +10,14 @@
     @license: GNU GPL, see COPYING for details.
 """
 
-from MoinMoin import i18n, packages, wikiutil
+import os
+from zipfile import BadZipFile
+
+from MoinMoin import packages, wikiutil
 from MoinMoin.action import AttachFile
 from MoinMoin.i18n import strings
 from MoinMoin.util.dataset import TupleDataset, Column
 from MoinMoin.widget.browser import DataBrowserWidget
-
-i18n.strings = strings
-
 
 def execute(pagename, request):
     _ = request.getText
@@ -26,32 +26,36 @@ def execute(pagename, request):
         request.theme.add_msg(msg, "error")
         request.page.send_page()
         return ''
-    fmt = request.html_formatter
     language_setup_page = 'LanguageSetup'
-    not_translated_system_pages = 'not_translated_system_pages.zip'
-    files = AttachFile._get_files(request, language_setup_page)
-    if not files:
+    pack_dir = AttachFile.getAttachDir(request, language_setup_page)
+    files = {name for name in AttachFile._get_files(request, language_setup_page)
+             if name.endswith('.zip') and os.path.isfile(os.path.join(pack_dir, name))}
+    available = {}
+    for filename in files:
+        language, separator, pageset = filename[:-4].partition('--')
+        if language and separator and pageset in strings.pagesets:
+            available[language, pageset] = filename
+    legacy_pack = 'English_not_translated_system_pages.zip'
+    if legacy_pack in files:
+        available.setdefault(('English', 'not_translated_system_pages'), legacy_pack)
+
+    if not available:
         msg = _('No page packages found.')
         request.theme.add_msg(msg, "error")
         request.page.send_page()
         return ''
-    wiki_languages = list(set([lang_file.split('--')[0] for lang_file in files]) - set(['00_needs_fixing.zip']))
-    wiki_languages.sort()
+    wiki_languages = sorted({language for language, _ in available})
 
-    lang = request.values.get('language') or 'English'
-    target = request.values.get('target') or ''
-    msg = ''
-    # if target is given it tries to install the package.
+    values = request.request.values
+    lang = values.get('language') or 'English'
+    target = values.get('target')
     if target:
-        dummy_pagename, dummy_target, targetpath = AttachFile._access_file(language_setup_page, request)
-        package = packages.ZipPackage(request, targetpath)
-        if package.isPackage():
-            if package.installPackage():
-                msg = _("Attachment '%(filename)s' installed.") % {'filename': target}
-            else:
-                msg = _("Installation of '%(filename)s' failed.") % {'filename': target}
+        if wikiutil.checkTicket(request, values.get('ticket', '')):
+            _install_pack(request, pack_dir, set(available.values()), target)
         else:
-            msg = _('The file %s is not a MoinMoin package file.') % target
+            msg = _('Please use the interactive user interface to use action %(actionname)s!') % {
+                'actionname': 'language_setup'}
+            request.theme.add_msg(msg, "error")
 
     data = TupleDataset()
     data.columns = [
@@ -60,14 +64,13 @@ def execute(pagename, request):
     ]
 
     label_install = _("install")
-    for pageset_name in i18n.strings.pagesets:
-        attachment = "%s--%s.zip" % (lang, pageset_name)
-        # not_translated_system_pages are in english
-        if attachment.endswith(not_translated_system_pages):
-            attachment = 'English_not_translated_system_pages.zip'
+    ticket = wikiutil.createTicket(request)
+    for pageset_name in strings.pagesets:
+        package_language = 'English' if pageset_name == 'not_translated_system_pages' else lang
+        attachment = available.get((package_language, pageset_name))
         install_link = ''
-        querystr = {'action': 'language_setup', 'target': attachment, 'language': lang}
-        if AttachFile.exists(request, language_setup_page, attachment):
+        if attachment:
+            querystr = {'action': 'language_setup', 'target': attachment, 'language': lang, 'ticket': ticket}
             install_link = request.page.link_to(request, label_install, querystr=querystr)
         data.addRow((pageset_name, install_link))
 
@@ -76,16 +79,13 @@ def execute(pagename, request):
     page_table = ''.join(table.format(method='GET'))
 
     fmt = request.formatter
-    lang_links = [request.page.link_to_raw(request, _lang,
-                                           querystr={'action': 'language_setup',
-                                                     'language': _lang,
-                                                     'pageset': pageset_name, })
+    lang_links = [request.page.link_to_raw(request, wikiutil.escape(_lang),
+                                          querystr={'action': 'language_setup', 'language': _lang})
                   for _lang in wiki_languages]
 
     lang_selector = u''.join([fmt.paragraph(1), _("Choose:"), ' ', ' '.join(lang_links), fmt.paragraph(0)])
 
     title = _("Install language packs for '%s'") % wikiutil.escape(lang)
-    request.theme.add_msg(msg, "info")
     request.theme.send_title(title, page=request.page, pagename=pagename)
     request.write(request.formatter.startContent("content"))
     request.write(lang_selector)
@@ -93,3 +93,28 @@ def execute(pagename, request):
     request.write(request.formatter.endContent())
     request.theme.send_footer(pagename)
     request.theme.send_closing_html()
+
+
+def _install_pack(request, pack_dir, available, target):
+    _ = request.getText
+    filename = wikiutil.escape(target)
+    message_type = 'error'
+    try:
+        if target not in available:
+            raise FileNotFoundError(target)
+        package = packages.ZipPackage(request, os.path.join(pack_dir, target))
+        if package.isPackage():
+            with package.zipfile:
+                installed = package.installPackage()
+            if installed:
+                msg = _("Attachment '%(filename)s' installed.") % {'filename': filename}
+                message_type = 'info'
+            else:
+                msg = _("Installation of '%(filename)s' failed.") % {'filename': filename}
+        else:
+            msg = _('The file %s is not a MoinMoin package file.') % filename
+    except FileNotFoundError:
+        msg = _("Attachment '%(filename)s' does not exist!") % {'filename': filename}
+    except (BadZipFile, OSError, packages.PackageException):
+        msg = _("Installation of '%(filename)s' failed.") % {'filename': filename}
+    request.theme.add_msg(msg, message_type)

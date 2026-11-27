@@ -523,14 +523,22 @@ class ZipPackage(Package, ScriptEngine):
             self.zipfile = zipfile.ZipFile(filename)
         # self.zipfile.getinfo(name)
 
-    def extract_file(self, filename):
-        """ Returns the contents of a file in the package. """
+    def _read_file(self, filename):
         _ = self.request.getText
         try:
-            return self.zipfile.read(filename).decode("utf8")
+            return self.zipfile.read(filename)
         except KeyError:
             raise RuntimeScriptException(_(
                 "The file %s was not found in the package.") % filename)
+
+    def _extractToFile(self, source, target):
+        contents = self._read_file(source)
+        with open(target, 'wb') as destination:
+            destination.write(contents)
+
+    def extract_file(self, filename):
+        """Return textual contents, such as the package script."""
+        return self._read_file(filename).decode('utf-8')
 
     def filelist(self):
         """ Returns a list of all files. """
