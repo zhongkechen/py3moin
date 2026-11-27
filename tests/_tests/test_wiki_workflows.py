@@ -391,6 +391,40 @@ def test_attachment_list_unzips_an_ordinary_archive(wiki):
     assert downloaded.data == b'Plain notes.\n'
 
 
+def test_a_superuser_installs_a_package_from_the_attachment_list(wiki):
+    from html import unescape
+    from zipfile import ZipFile
+
+    from MoinMoin.action import AttachFile
+    from MoinMoin.packages import MOIN_PACKAGE_FILE
+
+    context, client = wiki
+    PageEditor(context, 'PackageTestPage').saveText('Package example.\n', 0, notify=False)
+    account = user.User(context, auth_method='new-user')
+    account.name = 'AttachmentPackageAdmin'
+    account.enc_password = user.encodePassword(context.cfg, 'attachment-package-test-password')
+    account.save()
+    context.cfg.superuser = [account.name]
+    login = client.post('/PackageTestPage', data={
+        'action': 'login', 'login': '1', 'name': account.name, 'password': 'attachment-package-test-password',
+    })
+    assert login.headers.get('Set-Cookie')
+
+    bundle = BytesIO()
+    with ZipFile(bundle, 'w') as archive:
+        archive.writestr(MOIN_PACKAGE_FILE, 'MoinMoinPackage|1\nPrint|Example package ran.\n')
+    AttachFile.add_attachment(context, 'PackageTestPage', 'example.zip', bundle.getvalue())
+
+    listing = client.get('/PackageTestPage', query_string={'action': 'AttachFile'})
+    links = re.findall(r'href="([^"]+)"', listing.get_data(as_text=True))
+    install_url = next(unescape(link) for link in links if 'do=install' in link)
+    response = client.get(install_url)
+
+    assert response.status_code == 200
+    assert b"example.zip' installed." in response.data
+    assert b'Example package ran.' in response.data
+
+
 def test_system_admin_renders_the_superuser_menu(wiki):
     context, client = wiki
     account = user.User(context, auth_method='new-user')
