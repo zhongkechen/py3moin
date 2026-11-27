@@ -182,6 +182,32 @@ def test_revert_creates_a_revision_from_the_selected_history(wiki):
     assert page.get_raw_body() == 'Original text.\n'
 
 
+def test_edits_and_reverts_keep_deprecated_history(wiki):
+    context, client = wiki
+    name = 'DeprecatedHistory'
+    PageEditor(context, name).saveText('Original page.\n', 0, notify=False)
+    PageEditor(context, name).saveText('#deprecated\n\nFirst note.\n', 1, notify=False)
+    PageEditor(context, name).saveText('#deprecated\n\nSecond note.\n', 2, notify=False)
+
+    rendered = client.get('/' + name)
+    assert b'Second note.' in rendered.data
+    assert b'Original page.' in rendered.data
+    assert b'First note.' not in rendered.data
+    historical = client.get('/' + name, query_string={'rev': 2})
+    assert b'First note.' in historical.data
+    assert b'Original page.' in historical.data
+
+    form = client.get('/' + name, query_string={'action': 'revert', 'rev': 1})
+    reverted = client.post('/' + name, data={
+        'action': 'revert', 'rev': 1, 'revert': 1, 'ticket': _field(form, 'ticket'),
+    })
+    assert reverted.status_code == 200
+    assert Page(context, name).getRevList() == [4, 3, 2, 1]
+    assert Page(context, name, rev=3).get_raw_body() == '#deprecated\n\nSecond note.\n'
+    assert Page(context, name, rev=2).get_raw_body() == '#deprecated\n\nFirst note.\n'
+    assert Page(context, name).get_raw_body() == 'Original page.\n'
+
+
 def test_delete_deprecated_page_keeps_its_history(wiki):
     context, client = wiki
     PageEditor(context, 'DeprecatedPage').saveText('Original content.\n', 0, notify=False)

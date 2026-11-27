@@ -1245,11 +1245,14 @@ class Page:
             context.theme.add_msg(
                 _('The backed up content of this page is deprecated and will rank lower in search results!'), "warning")
 
-            revisions = self.getRevList()
-            if len(revisions) >= 2:  # XXX shouldn't that be ever the case!? Looks like not.
-                oldpage = Page(context, self.page_name, rev=revisions[1])
-                body += oldpage.get_data()
-                del oldpage
+            current_revision = self.get_real_rev()
+            for revision in self.getRevList():
+                if revision >= current_revision:
+                    continue
+                oldpage = Page(context, self.page_name, rev=revision)
+                if 'deprecated' not in oldpage.pi:
+                    body += oldpage.get_data()
+                    break
 
         lang = self.pi.get('language', context.cfg.language_default)
         context.setContentLanguage(lang)

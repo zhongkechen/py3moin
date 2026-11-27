@@ -933,8 +933,6 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
         """
         context = self.context
         _ = self._
-        was_deprecated = self.pi.get('deprecated', False)
-
         if self.mtime is None:
             mtime_usecs = None
         else:
@@ -986,7 +984,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
 
             os.makedirs(revdir, exist_ok=True)
             rev = old_rev
-            if deleted or rev == 0 or (self.do_revision_backup and not was_deprecated):
+            if deleted or rev == 0 or self.do_revision_backup:
                 rev += 1
             new_revision = rev != old_rev
             if new_revision:
