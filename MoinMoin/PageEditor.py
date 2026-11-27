@@ -960,9 +960,9 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
 
         # Keep locks outside the page directory so readers can always open
         # current and page copies cannot inherit a live lock.
-        locks_path = os.path.join(self.cfg.data_dir, 'page-locks')
+        locks_path = os.path.join(self.cfg.data_dir, 'page-write-locks')
         os.makedirs(locks_path, exist_ok=True)
-        revision_lock = lock.ExclusiveLock(os.path.join(locks_path, self.page_name_fs))
+        revision_lock = lock.FileLock(os.path.join(locks_path, self.page_name_fs))
         if not revision_lock.acquire(timeout=10.0):
             raise self.CouldNotLock(_("Page could not get locked."))
 
