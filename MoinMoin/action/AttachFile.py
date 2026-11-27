@@ -33,6 +33,7 @@ import tarfile
 import time
 import zipfile
 from io import BytesIO
+from tempfile import TemporaryDirectory
 
 from MoinMoin import config, packages
 from MoinMoin import log
@@ -134,11 +135,7 @@ def getIndicator(request, pagename):
         an empty string if not attachments exist.
     """
     _ = request.getText
-    attach_dir = getAttachDir(request, pagename)
-    if not os.path.exists(attach_dir):
-        return ''
-
-    files = os.listdir(attach_dir)
+    files = _get_files(request, pagename)
     if not files:
         return ''
 
@@ -180,10 +177,7 @@ def info(pagename, request):
     """ Generate snippet with info on the attachment for page `pagename`. """
     _ = request.getText
 
-    attach_dir = getAttachDir(request, pagename)
-    files = []
-    if os.path.isdir(attach_dir):
-        files = os.listdir(attach_dir)
+    files = _get_files(request, pagename)
     page = Page(request, pagename)
     link = page.url(request, {'action': action_name})
     attach_info = _('There are <a href="%(link)s">%(count)s attachment(s)</a> stored for this page.') % {
@@ -208,7 +202,7 @@ def _write_stream(content, stream, bufsize=8192):
 def add_attachment(request, pagename, target, filecontent, overwrite=0):
     """ save <filecontent> to an attachment <target> of page <pagename>
 
-        filecontent can be either a str (in memory file content),
+        filecontent can be either bytes (in memory file content),
         or an open file object (file content in e.g. a tempfile).
     """
     # replace illegal chars
@@ -216,25 +210,34 @@ def add_attachment(request, pagename, target, filecontent, overwrite=0):
 
     # get directory, and possibly create it
     attach_dir = getAttachDir(request, pagename, create=1)
-    fpath = os.path.join(attach_dir, target).encode(config.charset)
+    fpath = os.path.join(attach_dir, target)
+    if not overwrite and os.path.lexists(fpath):
+        raise AttachmentAlreadyExists
 
-    exists = os.path.exists(fpath)
-    if exists:
+    replaced_size = None
+    # Stage on the same filesystem and keep incomplete data out of file lists.
+    with TemporaryDirectory(prefix='.upload-', dir=attach_dir) as staging:
+        staged_file = os.path.join(staging, 'content')
+        with open(staged_file, 'wb') as stream:
+            _write_stream(filecontent, stream)
+        filesize = os.path.getsize(staged_file)
+
         if overwrite:
-            remove_attachment(request, pagename, target)
+            try:
+                replaced_size = os.path.getsize(fpath)
+            except FileNotFoundError:
+                pass
+            os.replace(staged_file, fpath)
         else:
-            raise AttachmentAlreadyExists
+            try:
+                filesys.rename_no_overwrite(staged_file, fpath)
+            except FileExistsError as err:
+                raise AttachmentAlreadyExists from err
 
-    # save file
-    stream = open(fpath, 'wb')
-    try:
-        _write_stream(filecontent, stream)
-    finally:
-        stream.close()
-
+    if replaced_size is not None:
+        _record_attachment_removal(request, pagename, target, replaced_size)
     _addLogEntry(request, 'ATTNEW', pagename, target)
 
-    filesize = os.path.getsize(fpath)
     event = FileAttachedEvent(request, pagename, target, filesize)
     send_event(event)
 
@@ -258,12 +261,14 @@ def remove_attachment(request, pagename, target):
         # either it is gone already or we have no rights - not much we can do about it
         filesize = 0
     else:
-        _addLogEntry(request, 'ATTDEL', pagename, target)
-
-        event = FileRemovedEvent(request, pagename, target, filesize)
-        send_event(event)
+        _record_attachment_removal(request, pagename, target, filesize)
 
     return target, filesize
+
+
+def _record_attachment_removal(request, pagename, target, filesize):
+    _addLogEntry(request, 'ATTDEL', pagename, target)
+    send_event(FileRemovedEvent(request, pagename, target, filesize))
 
 
 class SamePath(Exception):
@@ -598,12 +603,11 @@ def _do_multifile(pagename, request):
 
 def _get_files(request, pagename):
     attach_dir = getAttachDir(request, pagename)
-    if os.path.isdir(attach_dir):
-        files = [fn for fn in os.listdir(attach_dir)]
-        files.sort()
-    else:
-        files = []
-    return files
+    try:
+        with os.scandir(attach_dir) as entries:
+            return sorted(entry.name for entry in entries if entry.is_file())
+    except (FileNotFoundError, NotADirectoryError):
+        return []
 
 
 def _get_filelist(request, pagename):
@@ -1357,19 +1361,15 @@ def do_admin_browser(request):
     # iterate over pages that might have attachments
     pages = request.rootpage.getPageList()
     for pagename in pages:
-        # check for attachments directory
         page_dir = getAttachDir(request, pagename)
-        if os.path.isdir(page_dir):
-            # iterate over files of the page
-            files = os.listdir(page_dir)
-            for filename in files:
-                filepath = os.path.join(page_dir, filename)
-                data.addRow((
-                    (Page(request, pagename).link_to(request,
-                                                     querystr="action=AttachFile"), wikiutil.escape(pagename, 1)),
-                    wikiutil.escape(filename),
-                    os.path.getsize(filepath),
-                ))
+        for filename in _get_files(request, pagename):
+            filepath = os.path.join(page_dir, filename)
+            data.addRow((
+                (Page(request, pagename).link_to(request,
+                                                 querystr="action=AttachFile"), wikiutil.escape(pagename, 1)),
+                wikiutil.escape(filename),
+                os.path.getsize(filepath),
+            ))
 
     if data:
         from MoinMoin.widget.browser import DataBrowserWidget

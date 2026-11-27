@@ -367,6 +367,69 @@ def test_goto_action_redirects_to_the_selected_page(wiki):
     assert response.headers['Location'] == '/TargetPage'
 
 
+def test_failed_attachment_overwrite_leaves_the_old_file_available(wiki, monkeypatch):
+    import errno
+
+    from MoinMoin.action import AttachFile
+
+    context, client = wiki
+    pagename = 'UploadPage'
+    filename = 'notes.txt'
+    PageEditor(context, pagename).saveText('Upload example.\n', 0, notify=False)
+    AttachFile.add_attachment(context, pagename, filename, b'Saved attachment.')
+    form = client.get('/UploadPage', query_string={'action': 'AttachFile'})
+    query = {'action': 'AttachFile', 'do': 'get', 'target': filename}
+    attachment = Path(AttachFile.getFilename(context, pagename, filename))
+    global_log = Path(context.cfg.data_dir) / 'edit-log'
+    previous_log = global_log.read_bytes()
+
+    def fail_after_partial_write(content, stream):
+        stream.write(b'Incomplete new attachment.')
+        assert AttachFile._get_files(context, pagename) == [filename]
+        assert attachment.read_bytes() == b'Saved attachment.'
+        raise OSError(errno.ENOSPC, 'simulated attachment write failure')
+
+    def upload():
+        return client.post('/UploadPage', data={
+            'action': 'AttachFile', 'do': 'upload', 'ticket': _field(form, 'ticket'),
+            'overwrite': '1', 'file': (BytesIO(b'Complete new attachment.'), filename),
+        })
+
+    with monkeypatch.context() as patch:
+        patch.setattr(AttachFile, '_write_stream', fail_after_partial_write)
+        with pytest.raises(OSError) as error:
+            upload()
+        assert error.value.errno == errno.ENOSPC
+
+    assert client.get('/UploadPage', query_string=query).data == b'Saved attachment.'
+    assert list(attachment.parent.iterdir()) == [attachment]
+    assert global_log.read_bytes() == previous_log
+    assert upload().status_code == 200
+    assert client.get('/UploadPage', query_string=query).data == b'Complete new attachment.'
+
+
+def test_concurrent_upload_does_not_overwrite_a_new_attachment(wiki, monkeypatch):
+    from MoinMoin.action import AttachFile
+
+    context, _ = wiki
+    pagename = 'ConcurrentUploadPage'
+    PageEditor(context, pagename).saveText('Upload example.\n', 0, notify=False)
+    write_stream = AttachFile._write_stream
+
+    def upload_after_staging(content, stream):
+        write_stream(content, stream)
+        if content == b'Staged contents.':
+            AttachFile.add_attachment(context, pagename, 'notes.txt', b'First published contents.')
+
+    monkeypatch.setattr(AttachFile, '_write_stream', upload_after_staging)
+    with pytest.raises(AttachFile.AttachmentAlreadyExists):
+        AttachFile.add_attachment(context, pagename, 'notes.txt', b'Staged contents.')
+
+    path = Path(AttachFile.getFilename(context, pagename, 'notes.txt'))
+    assert path.read_bytes() == b'First published contents.'
+    assert list(path.parent.iterdir()) == [path]
+
+
 def test_attachment_list_unzips_an_ordinary_archive(wiki):
     from html import unescape
     from zipfile import ZipFile
