@@ -111,6 +111,8 @@ def _install_pack(request, pack_dir, available, target):
                 message_type = 'info'
             else:
                 msg = _("Installation of '%(filename)s' failed.") % {'filename': filename}
+                if package.msg:
+                    msg += " " + wikiutil.escape(package.msg)
         else:
             msg = _('The file %s is not a MoinMoin package file.') % filename
     except FileNotFoundError:

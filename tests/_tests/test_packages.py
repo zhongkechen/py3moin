@@ -81,6 +81,36 @@ class TestQuoting:
             assert line == unpackLine(packLine(line))
 
 
+@pytest.mark.parametrize('command', ['ReplaceUnderlay', 'ReplaceUnderlayAttachment'])
+def test_underlay_commands_do_not_overwrite_local_pages(req, tmp_path, monkeypatch, command):
+    from MoinMoin.PageEditor import PageEditor
+
+    monkeypatch.setattr(req.cfg, 'data_underlay_dir', None)
+    become_trusted(req)
+    pagename = 'LocalPackageCollision'
+    try:
+        create_page(req, pagename, 'Original local page.\n')
+        PageEditor(req, pagename).saveText('Current local page.\n', 1, notify=False)
+        AttachFile.add_attachment(req, pagename, 'notes.txt', b'Original attachment.')
+        attachment = AttachFile.getFilename(req, pagename, 'notes.txt')
+        args = ['1', pagename] if command == 'ReplaceUnderlay' else ['1', 'notes.txt', pagename]
+        path = tmp_path / 'underlay.zip'
+        with zipfile.ZipFile(path, 'w') as archive:
+            archive.writestr(MOIN_PACKAGE_FILE, 'MoinMoinPackage|1\n' + packLine([command, *args]) + '\n')
+            archive.writestr('1', b'Packaged replacement.')
+        package = ZipPackage(req, path)
+        with package.zipfile:
+            assert not package.installPackage()
+        assert 'require a configured underlay directory' in package.msg
+        assert Page(req, pagename).current_rev() == 2
+        assert Page(req, pagename, rev=1).get_raw_body() == 'Original local page.\n'
+        assert Page(req, pagename).get_raw_body() == 'Current local page.\n'
+        with open(attachment, 'rb') as stored:
+            assert stored.read() == b'Original attachment.'
+    finally:
+        nuke_page(req, pagename)
+
+
 class TestRealCreation:
 
     def testSearch(self, req):
