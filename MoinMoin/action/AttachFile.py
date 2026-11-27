@@ -1073,7 +1073,7 @@ def _do_get(pagename, context):
 def _do_install(pagename, request):
     _ = request.getText
 
-    if not wikiutil.checkTicket(request, request.args.get('ticket', '')):
+    if not wikiutil.checkTicket(request, request.request.args.get('ticket', '')):
         return _('Please use the interactive user interface to use action %(actionname)s!') % {
             'actionname': 'AttachFile.install'}
 
