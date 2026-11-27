@@ -473,6 +473,26 @@ def test_http_basic_challenge_and_verified_login(wiki, encoding):
     assert client.get('/BasicPage').status_code == 401
 
 
+def test_extended_event_log_records_the_requested_page_url(wiki):
+    from MoinMoin.logfile.eventlog import EventLog
+
+    context, client = wiki
+    PageEditor(context, 'StatsPage').saveText('Statistics example.\n', 0, notify=False)
+    context.cfg.log_events_format = 2
+    context.cfg.interwikiname = 'StatsWiki'
+
+    response = client.get('/StatsPage', query_string={'view': 'wide'},
+                          environ_overrides={'SCRIPT_NAME': '/wiki'})
+    assert response.status_code == 200
+    assert b'Statistics example.' in response.data
+
+    _, action, values = next(EventLog(context).reverse())
+    assert action == 'VIEWPAGE'
+    assert values['pagename'] == 'StatsPage'
+    assert values['url'] == 'http://localhost/wiki/StatsPage?view=wide'
+    assert values['wikiname'] == 'StatsWiki'
+
+
 def test_wiki_indexes_return_the_requested_formats(wiki):
     context, client = wiki
     PageEditor(context, 'IndexPage').saveText('[[SecondPage]]\n', 0, notify=False)

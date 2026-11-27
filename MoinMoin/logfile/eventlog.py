@@ -51,7 +51,7 @@ class EventLog(LogFile):
         if cfg.log_events_format == 2:
             values['username'] = request.user.name
             values['wikiname'] = cfg.interwikiname
-            values['url'] = request.url
+            values['url'] = request.request.url
 
         # Encode values in a query string TODO: use more readable format
         values = wikiutil.makeQueryString(values)
