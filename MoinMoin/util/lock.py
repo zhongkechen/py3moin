@@ -61,6 +61,59 @@ class Timer:
         return time.time() - self._start
 
 
+class FileLock:
+    """Exclusive file lock released by the OS when the owning process exits.
+
+    Leave the lock file in place so waiters always lock the same file.
+    """
+    def __init__(self, path):
+        self.path = path
+        self._file = None
+
+    @staticmethod
+    def _try_lock(file):
+        if os.name == 'nt':
+            import msvcrt
+
+            file.seek(0)
+            msvcrt.locking(file.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+    def acquire(self, timeout=None):
+        if self._file is not None:
+            raise RuntimeError('lock already acquired: %s' % self.path)
+
+        timer = Timer(timeout)
+        timer.start()
+        file = open(self.path, 'a+b')
+        try:
+            while True:
+                try:
+                    self._try_lock(file)
+                except OSError as error:
+                    if error.errno not in (errno.EACCES, errno.EAGAIN, errno.EWOULDBLOCK):
+                        raise
+                    if not timer.haveTime():
+                        return False
+                    timer.sleep()
+                else:
+                    self._file = file
+                    return True
+        finally:
+            if self._file is None:
+                file.close()
+
+    def release(self):
+        file = self._file
+        if file is None:
+            raise RuntimeError('lock already released: %s' % self.path)
+        self._file = None
+        file.close()
+
+
 class ExclusiveLock:
     """ Exclusive lock
 

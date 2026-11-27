@@ -104,18 +104,18 @@ def test_uncached_reader_can_read_during_a_save(wiki, monkeypatch):
     revision = editor.getPagePath('revisions', '00000002', check_create=False)
     staging = Event()
     resume = Event()
-    replace = os.replace
+    open_revision = page_editor_module.codecs.open
 
-    def pause_revision_write(source, destination):
-        if destination == revision:
+    def pause_revision_write(filename, mode='r', *args, **kwargs):
+        if filename == revision + '.tmp' and mode == 'wb':
             staging.set()
             assert resume.wait(timeout=10)
-        return replace(source, destination)
+        return open_revision(filename, mode, *args, **kwargs)
 
     cfg = type(context.cfg)(CONFIG_NAME)
     cfg.cfg_mtime = 0
     reader = _client(cfg)
-    monkeypatch.setattr(page_editor_module.os, 'replace', pause_revision_write)
+    monkeypatch.setattr(page_editor_module.codecs, 'open', pause_revision_write)
 
     with ThreadPoolExecutor(max_workers=1) as executor:
         save = executor.submit(editor.saveText, 'Updated revision.\n', 1, notify=False)

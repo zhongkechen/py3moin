@@ -18,7 +18,7 @@ import codecs
 import errno
 import os
 import time
-from contextlib import closing, suppress
+from contextlib import closing, nullcontext, suppress
 
 import MoinMoin.events.notification as notification
 from MoinMoin import caching, config, wikiutil, error
@@ -988,61 +988,60 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename),)
             rev = old_rev
             if deleted or rev == 0 or (self.do_revision_backup and not was_deprecated):
                 rev += 1
-            if deleted:
-                # Deletion is represented by a revision with no content file.
+            new_revision = rev != old_rev
+            if new_revision:
+                # Preserve any revisions already on disk. A deletion also
+                # needs an unused revision number to represent the tombstone.
                 while os.path.exists(os.path.join(revdir, '%08d' % rev)):
                     rev += 1
             pagefile = os.path.join(revdir, '%08d' % rev)
+            pagefile_tmp = None if deleted else '%s.tmp' % pagefile
+            log_edit = self.do_revision_backup or deleted
+            transaction = glog.transaction(llog if new_revision else None) if log_edit else nullcontext()
 
-            if not deleted:
-                # write the new revision to a temporary file first and commit it
-                # before advancing the current pointer so failed writes cannot
-                # publish empty or truncated revisions
-                pagefile_tmp = '%s.tmp' % pagefile
-                try:
+            try:
+                if pagefile_tmp is not None:
                     with closing(codecs.open(pagefile_tmp, 'wb', config.charset)) as revision:
                         revision.write(self.encodeTextMimeType(text))
-                    os.replace(pagefile_tmp, pagefile)
-                except BaseException:
-                    with suppress(OSError):
-                        os.remove(pagefile_tmp)
-                    raise
+                if mtime_usecs is None:
+                    mtime = time.time() if deleted else os.path.getmtime(pagefile_tmp)
+                    mtime_usecs = wikiutil.timestamp2version(mtime)
 
-            if rev != old_rev:
                 try:
-                    with open(current_tmp, 'w') as current:
-                        current.write('%08d\n' % rev)
-                    os.replace(current_tmp, current_path)
+                    if new_revision:
+                        with open(current_tmp, 'w') as current:
+                            current.write('%08d\n' % rev)
+                    with transaction:
+                        if log_edit:
+                            if new_revision:
+                                llog.add(context, mtime_usecs, rev, action, self.page_name, None, extra, comment)
+                            glog.add(context, mtime_usecs, rev, action, self.page_name, None, extra, comment)
+                        if pagefile_tmp is not None:
+                            os.replace(pagefile_tmp, pagefile)
+                        if new_revision:
+                            try:
+                                os.replace(current_tmp, current_path)
+                            except BaseException:
+                                if pagefile_tmp is not None:
+                                    with suppress(OSError):
+                                        os.remove(pagefile)
+                                raise
                 except OSError as err:
-                    with suppress(OSError):
-                        os.remove(current_tmp)
-                    if not deleted:
-                        with suppress(OSError):
-                            os.remove(pagefile)
                     if err.errno == errno.ENOSPC:
                         raise self.SaveError(_("Cannot save page %s, no storage space left.") % self.page_name) from err
                     raise self.SaveError(
                         _("An I/O error occurred while saving page %s (errno=%d)") % (self.page_name, err.errno)) from err
+            finally:
+                if pagefile_tmp is not None:
+                    with suppress(OSError):
+                        os.remove(pagefile_tmp)
+                if new_revision:
+                    with suppress(OSError):
+                        os.remove(current_tmp)
 
-            if not deleted:
-                if mtime_usecs is None:
-                    mtime_usecs = wikiutil.timestamp2version(os.path.getmtime(pagefile))
-                # set in-memory content
-                self.set_raw_body(text)
-            else:
-                if mtime_usecs is None:
-                    mtime_usecs = wikiutil.timestamp2version(time.time())
-                # set in-memory content
-                self.set_raw_body(None)
-
+            self.set_raw_body(None if deleted else text)
             self.setConflict(wikiutil.containsConflictMarker(text))
             self.reset()
-
-            # write the editlog entry
-            if self.do_revision_backup or deleted:
-                if rev != old_rev:
-                    llog.add(context, mtime_usecs, rev, action, self.page_name, None, extra, comment)
-                glog.add(context, mtime_usecs, rev, action, self.page_name, None, extra, comment)
         finally:
             revision_lock.release()
 
