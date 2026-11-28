@@ -1,6 +1,9 @@
 Converting your DATA when upgrading MoinMoin
 ============================================
 
+Historical upstream MoinMoin 1.x documentation. For Py3Moin installation
+and migration from an existing 1.9 instance, see docs/PYTHON3.rst.
+
 1.9.x migration
 ===============
 If you use the moin 1.9.x code to do the migration, you need to give the
